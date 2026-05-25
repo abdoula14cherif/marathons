@@ -177,6 +177,15 @@ body{font-family:"DM Sans",sans-serif;background:var(--cream);color:var(--txt);d
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--txt);color:#fff;padding:12px 20px;border-radius:30px;font-size:13.5px;font-weight:500;z-index:9999;transition:transform .3s cubic-bezier(.34,1.2,.64,1);white-space:nowrap;max-width:90vw}
 #toast.show{transform:translateX(-50%) translateY(0)}
 input[type=file]{display:none}
+
+/* ── BANNER CAROUSEL ── */
+.banner{position:absolute;inset:0;overflow:hidden}
+.banner-track{display:flex;height:100%;width:300%;transition:transform .8s cubic-bezier(.77,0,.18,1)}
+.banner-slide{flex:1;background-size:cover;background-position:center;background-repeat:no-repeat}
+.banner-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.25) 0%,rgba(0,0,0,.55) 100%)}
+.banner-dots{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5}
+.bdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:all .3s}
+.bdot.on{width:20px;border-radius:3px;background:#fff}
 </style>
 </head>
 <body>
@@ -187,20 +196,28 @@ input[type=file]{display:none}
 </div>
 <div id="toast"></div>
 <input type="file" id="file-avatar" accept="image/*"/>
-<input type="file" id="file-cover" accept="image/*"/>
 
 <div id="app">
 
 <!-- PAGE ACCUEIL -->
 <div id="page-accueil" class="page active">
   <div class="hero" id="hero-section">
-    <img id="cover-img" class="hero-cover" src="" alt="" style="display:none"/>
-    <div class="hero-overlay"></div>
-    <div class="hero-pattern"></div>
-    <button class="hero-edit-cover" onclick="document.getElementById('file-cover').click()">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      Photo
-    </button>
+    <!-- BANNER CAROUSEL -->
+    <div class="banner" id="banner">
+      <div class="banner-track" id="banner-track">
+        <div class="banner-slide" style="background-image:url('https://assets1.csnews.com/images/v/max_width_2600/files/2022-06/marathon_branded_endurance_night_sm_061422.jpg')"></div>
+        <div class="banner-slide" style="background-image:url('https://www.marathonpetroleum.com/content/inline-images/marathonpetroleum/Operations/DM10440_0224_1365w.png')"></div>
+        <div class="banner-slide" style="background-image:url('https://assets1.csnews.com/images/v/max_width_2600/files/2022-06/mararthon_branded_endurance_day_sm.jpg')"></div>
+      </div>
+      <div class="banner-overlay"></div>
+      <!-- Dots -->
+      <div class="banner-dots" id="banner-dots">
+        <div class="bdot on" onclick="goSlide(0)"></div>
+        <div class="bdot" onclick="goSlide(1)"></div>
+        <div class="bdot" onclick="goSlide(2)"></div>
+      </div>
+    </div>
+    <!-- User info overlay -->
     <div class="hero-content">
       <div class="avatar-wrap" onclick="document.getElementById('file-avatar').click()">
         <div class="avatar-default" id="avatar-default"><span id="avatar-letter">M</span></div>
@@ -804,9 +821,7 @@ async function loadHistory(){
 
 function loadSavedPhotos(){
   const a=localStorage.getItem("marathon_avatar");
-  const c=localStorage.getItem("marathon_cover");
   if(a)setAvatarSrc(a);
-  if(c)setCoverSrc(c);
 }
 
 document.getElementById("file-avatar").addEventListener("change",function(e){
@@ -1005,6 +1020,27 @@ async function handleLogout(){
   await sb.auth.signOut();
   window.location.href='index.html';
 }
+
+// ── BANNER CAROUSEL ──
+var bIdx = 0, bTotal = 3, bTimer = null;
+function goSlide(n) {
+  bIdx = n;
+  document.getElementById('banner-track').style.transform = 'translateX(-' + (100/3 * n) + '%)';
+  document.querySelectorAll('.bdot').forEach(function(d,i){ d.classList.toggle('on', i===n); });
+}
+function nextSlide() { goSlide((bIdx + 1) % bTotal); }
+function startBanner() { bTimer = setInterval(nextSlide, 4000); }
+function stopBanner()  { clearInterval(bTimer); }
+// Touch/swipe support
+(function(){
+  var sx=0;
+  document.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;},{ passive:true });
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>40){ stopBanner(); goSlide(dx<0?(bIdx+1)%bTotal:(bIdx+bTotal-1)%bTotal); startBanner(); }
+  },{ passive:true });
+})();
+startBanner();
 </script>
 </body>
 </html>
