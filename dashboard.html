@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Marathon — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#C41C1C;--red-dark:#9E1616;--red-light:#E02020;--red-glow:rgba(196,28,28,.15);
+  --cream:#F7F2EC;--cream2:#EDE6DC;--white:#fff;
+  --txt:#1A1212;--txt2:#4A3A3A;--muted:#8A7070;
+  --border:rgba(196,28,28,.12);
+  --nav-h:68px;--header-h:220px;
+  --radius:18px;--shadow:0 8px 32px rgba(0,0,0,.1);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:"DM Sans",sans-serif;background:var(--cream);color:var(--txt);display:flex;flex-direction:column}
+#loader{position:fixed;inset:0;background:var(--red);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .4s}
+#loader .m{font-family:"Cormorant Garamond",serif;font-size:72px;font-weight:700;color:#fff;line-height:1;animation:pulse 1s ease infinite}
+#loader p{color:rgba(255,255,255,.7);font-size:13px;letter-spacing:.2em;text-transform:uppercase;margin-top:10px}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+#app{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.page{display:none;flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h)+16px);-webkit-overflow-scrolling:touch}
+.page.active{display:block}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -4px 24px rgba(0,0,0,.07)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:10.5px;font-weight:500;transition:color .2s;padding:0}
+.nav-item.active{color:var(--red)}
+.nav-item svg{width:22px;height:22px;stroke-width:1.8;transition:transform .2s}
+.nav-item.active svg{transform:scale(1.1)}
+.nav-dot{width:4px;height:4px;background:var(--red);border-radius:50%;opacity:0;transition:opacity .2s}
+.nav-item.active .nav-dot{opacity:1}
+.hero{position:relative;height:var(--header-h);overflow:hidden;background:linear-gradient(145deg,var(--red-dark) 0%,var(--red) 60%,#FF3333 100%);flex-shrink:0}
+.hero-cover{position:absolute;inset:0;object-fit:cover;width:100%;height:100%;opacity:.35}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(158,22,22,.3) 0%,rgba(158,22,22,.7) 100%)}
+.hero-pattern{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,.03) 20px,rgba(255,255,255,.03) 21px)}
+.hero-edit-cover{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.35);border:none;border-radius:8px;padding:7px 10px;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;backdrop-filter:blur(4px);font-family:"DM Sans",sans-serif;font-weight:500}
+.hero-content{position:absolute;bottom:0;left:0;right:0;padding:0 16px 16px;display:flex;align-items:flex-end;gap:14px}
+.avatar-wrap{position:relative;flex-shrink:0}
+.avatar{width:70px;height:70px;border-radius:50%;border:3px solid rgba(255,255,255,.9);object-fit:cover;background:var(--cream);box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer}
+.avatar-default{width:70px;height:70px;border-radius:50%;border:3px solid rgba(255,255,255,.9);background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:700;color:#fff;backdrop-filter:blur(4px)}
+.avatar-edit-btn{position:absolute;bottom:2px;right:2px;width:22px;height:22px;border-radius:50%;background:var(--red-dark);border:2px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hero-info{flex:1;padding-bottom:4px}
+.hero-name{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600;color:#fff;line-height:1.2}
+.hero-phone{font-size:13px;color:rgba(255,255,255,.75);margin-top:2px}
+.hero-level{display:inline-flex;align-items:center;margin-top:6px;border:1.5px solid rgba(255,255,255,.6);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;color:#fff;letter-spacing:.08em}
+.quick-actions{display:flex;justify-content:space-around;background:var(--white);padding:18px 8px;border-bottom:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.qa-btn{display:flex;flex-direction:column;align-items:center;gap:8px;border:none;background:none;cursor:pointer;padding:4px 12px;font-family:"DM Sans",sans-serif}
+.qa-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--red),var(--red-dark));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(196,28,28,.3);transition:transform .2s,box-shadow .2s}
+.qa-btn:active .qa-icon{transform:scale(.93);box-shadow:0 2px 8px rgba(196,28,28,.2)}
+.qa-icon svg{width:24px;height:24px;stroke:white;stroke-width:2;fill:none}
+.qa-label{font-size:12px;font-weight:500;color:var(--txt2)}
+.balance-section{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.balance-card{background:var(--white);border-radius:var(--radius);padding:16px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.05);position:relative;overflow:hidden}
+.balance-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red-dark),var(--red-light))}
+.balance-card .label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.balance-card .amount{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:700;color:var(--txt)}
+.balance-card .currency{font-size:12px;font-weight:600;color:var(--red);margin-right:2px}
+.menu-section{padding:0 16px 16px}
+.menu-section-title{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;padding-left:2px}
+.menu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.menu-item{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--white);border-radius:14px;padding:14px 6px 10px;border:1px solid var(--border);cursor:pointer;font-family:"DM Sans",sans-serif;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.menu-item:active{transform:scale(.95);background:var(--cream)}
+.menu-item .mi-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,rgba(196,28,28,.1),rgba(196,28,28,.06));display:flex;align-items:center;justify-content:center}
+.menu-item .mi-icon svg{width:20px;height:20px;stroke:var(--red);stroke-width:1.8;fill:none}
+.menu-item .mi-label{font-size:10px;font-weight:500;color:var(--txt2);text-align:center;line-height:1.3}
+.logout-wrap{padding:8px 16px 20px;display:flex;justify-content:center}
+.logout-btn{display:flex;align-items:center;gap:8px;border:1.5px solid rgba(196,28,28,.2);border-radius:30px;padding:11px 28px;font-family:"DM Sans",sans-serif;font-size:13.5px;font-weight:500;color:var(--red);background:var(--white);cursor:pointer;transition:all .2s}
+.logout-btn:hover{background:#FFF0F0}
+.page-header{background:linear-gradient(135deg,var(--red-dark),var(--red));padding:44px 20px 24px}
+.page-header h2{font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:600;color:#fff}
+.page-header p{color:rgba(255,255,255,.75);font-size:13px;margin-top:4px}
+.plans-list{padding:16px;display:flex;flex-direction:column;gap:14px}
+.plan-card{background:var(--white);border-radius:var(--radius);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.plan-card.featured{border-color:var(--red)}
+.plan-card.featured::after{content:"Populaire";position:absolute;top:14px;right:-18px;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:4px 32px;transform:rotate(35deg);letter-spacing:.08em}
+.plan-tier{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.plan-badge{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.plan-name{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:var(--txt)}
+.plan-sub{font-size:12px;color:var(--muted)}
+.plan-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.plan-stat{background:var(--cream);border-radius:10px;padding:10px 8px;text-align:center}
+.plan-stat .sv{font-size:15px;font-weight:700;color:var(--red)}
+.plan-stat .sk{font-size:10px;color:var(--muted);margin-top:2px}
+.invest-btn{width:100%;padding:13px;border-radius:12px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;transition:all .2s}
+.invest-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(196,28,28,.35)}
+.ref-hero{background:linear-gradient(135deg,var(--red-dark),var(--red));padding:44px 20px 28px;text-align:center}
+.ref-hero h2{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600;color:#fff;margin-bottom:6px}
+.ref-hero p{color:rgba(255,255,255,.75);font-size:13px;margin-bottom:20px}
+.ref-code-box{background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,.3);border-radius:14px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.ref-code-val{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:.1em}
+.copy-btn{background:rgba(255,255,255,.2);border:none;border-radius:8px;padding:7px 14px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;display:flex;align-items:center;gap:5px}
+.share-row{display:flex;gap:10px;margin-top:14px}
+.share-btn{flex:1;padding:11px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-family:"DM Sans",sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.team-section{padding:16px}
+.team-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.ts-card{background:var(--white);border-radius:var(--radius);padding:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.ts-card .tv{font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:700;color:var(--red)}
+.ts-card .tk{font-size:12px;color:var(--muted);margin-top:2px}
+.members-title{font-size:13px;font-weight:600;color:var(--txt2);margin-bottom:12px}
+.member-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.member-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,rgba(196,28,28,.15),rgba(196,28,28,.08));display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:18px;font-weight:700;color:var(--red);flex-shrink:0}
+.member-info{flex:1}
+.member-name{font-size:14px;font-weight:500;color:var(--txt)}
+.member-date{font-size:11px;color:var(--muted);margin-top:1px}
+.member-badge{background:#FFF0F0;color:var(--red);font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px}
+.no-members{text-align:center;padding:40px 20px;color:var(--muted);font-size:13.5px}
+.account-hero{background:linear-gradient(135deg,var(--red-dark),var(--red));padding:44px 20px 28px;display:flex;align-items:center;gap:16px}
+.account-info h3{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600;color:#fff}
+.account-info p{color:rgba(255,255,255,.75);font-size:13px;margin-top:3px}
+.settings-list{padding:16px;display:flex;flex-direction:column;gap:8px}
+.settings-item{display:flex;align-items:center;gap:14px;background:var(--white);border-radius:14px;padding:15px;border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.settings-item:active{background:var(--cream)}
+.si-icon{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.si-icon svg{width:20px;height:20px;stroke-width:1.8;fill:none}
+.si-text{flex:1}
+.si-title{font-size:14px;font-weight:500;color:var(--txt)}
+.si-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
+.si-arrow svg{width:16px;height:16px;stroke:var(--muted);stroke-width:2;fill:none}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.34,1.2,.64,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+.modal-header{padding:16px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);margin-top:8px}
+.modal-title{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600;color:var(--txt)}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--cream);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-close svg{width:16px;height:16px;stroke:var(--txt2);stroke-width:2.5;fill:none}
+.modal-body{padding:20px}
+.mfield{margin-bottom:16px}
+.mfield label{display:block;font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--txt2);margin-bottom:6px}
+.mfield input,.mfield select,.mfield textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:"DM Sans",sans-serif;font-size:14.5px;color:var(--txt);background:var(--cream);outline:none;transition:all .2s}
+.mfield input:focus,.mfield select:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px var(--red-glow)}
+.mfield textarea{resize:vertical;min-height:80px}
+.amount-presets{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.preset{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12.5px;font-weight:500;color:var(--txt2);background:var(--white);cursor:pointer;transition:all .2s}
+.preset.sel,.preset:hover{border-color:var(--red);color:var(--red);background:#FFF0F0}
+.payment-methods{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.pm-item{display:flex;align-items:center;gap:12px;padding:13px;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s}
+.pm-item.selected{border-color:var(--red);background:#FFF8F8}
+.pm-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;position:relative;transition:all .2s}
+.pm-item.selected .pm-dot{border-color:var(--red);background:var(--red)}
+.pm-item.selected .pm-dot::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#fff;border-radius:50%}
+.pm-name{font-size:13.5px;font-weight:500;color:var(--txt)}
+.pm-sub{font-size:11px;color:var(--muted)}
+.btn-modal{width:100%;padding:14px;border-radius:14px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;font-family:"DM Sans",sans-serif;font-size:14.5px;font-weight:600;transition:all .2s;margin-top:8px}
+.btn-modal:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(196,28,28,.35)}
+.btn-modal:disabled{opacity:.7;cursor:not-allowed;transform:none}
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.tx-icon{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.tx-icon.credit{background:#F0FFF4}
+.tx-icon.debit{background:#FFF0F0}
+.tx-icon svg{width:18px;height:18px;stroke-width:2;fill:none}
+.tx-icon.credit svg{stroke:#16A34A}
+.tx-icon.debit svg{stroke:var(--red)}
+.tx-info{flex:1}
+.tx-desc{font-size:13.5px;font-weight:500;color:var(--txt)}
+.tx-date{font-size:11.5px;color:var(--muted);margin-top:2px}
+.tx-amt{font-size:14.5px;font-weight:600}
+.tx-amt.credit{color:#16A34A}
+.tx-amt.debit{color:var(--red)}
+.info-card{background:var(--cream);border-radius:14px;padding:16px;margin-bottom:14px}
+.info-card h4{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:600;color:var(--txt);margin-bottom:8px}
+.info-card p{font-size:13px;color:var(--txt2);line-height:1.65}
+.modal-alert{padding:12px 14px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:14px;display:none}
+.modal-alert.err{display:flex;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC;align-items:center;gap:8px}
+.modal-alert.suc{display:flex;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0;align-items:center;gap:8px}
+.invest-summary{background:var(--cream);border-radius:14px;padding:16px;margin-bottom:18px}
+.invest-summary-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.invest-summary-row:last-child{border-bottom:none;font-weight:600}
+.invest-summary-row span{font-size:13.5px;color:var(--txt2)}
+.invest-summary-row strong{font-size:13.5px;color:var(--txt)}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--txt);color:#fff;padding:12px 20px;border-radius:30px;font-size:13.5px;font-weight:500;z-index:9999;transition:transform .3s cubic-bezier(.34,1.2,.64,1);white-space:nowrap;max-width:90vw}
+#toast.show{transform:translateX(-50%) translateY(0)}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="m">M</div>
+  <p>Marathon · Chargement...</p>
+</div>
+<div id="toast"></div>
+<input type="file" id="file-avatar" accept="image/*"/>
+<input type="file" id="file-cover" accept="image/*"/>
+
+<div id="app" style="display:none">
+
+<!-- PAGE ACCUEIL -->
+<div id="page-accueil" class="page active">
+  <div class="hero" id="hero-section">
+    <img id="cover-img" class="hero-cover" src="" alt="" style="display:none"/>
+    <div class="hero-overlay"></div>
+    <div class="hero-pattern"></div>
+    <button class="hero-edit-cover" onclick="document.getElementById('file-cover').click()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Photo
+    </button>
+    <div class="hero-content">
+      <div class="avatar-wrap" onclick="document.getElementById('file-avatar').click()">
+        <div class="avatar-default" id="avatar-default"><span id="avatar-letter">M</span></div>
+        <img id="avatar-img" class="avatar" src="" alt="" style="display:none"/>
+        <div class="avatar-edit-btn">
+          <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+      </div>
+      <div class="hero-info">
+        <div class="hero-name" id="hero-name">Utilisateur</div>
+        <div class="hero-phone" id="hero-phone">——</div>
+        <div class="hero-level" id="hero-level">LV0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <button class="qa-btn" onclick="openModal('modal-recharge')">
+      <div class="qa-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+      <span class="qa-label">Recharger</span>
+    </button>
+    <button class="qa-btn" onclick="openModal('modal-retrait')">
+      <div class="qa-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+      <span class="qa-label">Retirer</span>
+    </button>
+    <button class="qa-btn" onclick="openModal('modal-historique')">
+      <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+      <span class="qa-label">Historique</span>
+    </button>
+  </div>
+
+  <div class="balance-section">
+    <div class="balance-card">
+      <div class="label">Solde</div>
+      <div class="amount"><span class="currency">$</span><span id="balance-amount">0.00</span></div>
+    </div>
+    <div class="balance-card">
+      <div class="label">Revenus cumulés</div>
+      <div class="amount"><span class="currency">$</span><span id="earnings-amount">0.00</span></div>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-title">Informations</div>
+    <div class="menu-grid">
+      <button class="menu-item" onclick="openModal('modal-apropos')">
+        <div class="mi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+        <span class="mi-label">À propos</span>
+      </button>
+      <button class="menu-item" onclick="openModal('modal-reglementation')">
+        <div class="mi-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div>
+        <span class="mi-label">Réglement</span>
+      </button>
+      <button class="menu-item" onclick="openModal('modal-historique')">
+        <div class="mi-icon"><svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="3 3 3 7 7 7"/></svg></div>
+        <span class="mi-label">Historique</span>
+      </button>
+      <button class="menu-item" onclick="openModal('modal-service')">
+        <div class="mi-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <span class="mi-label">Service client</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-title">Mon espace</div>
+    <div class="menu-grid">
+      <button class="menu-item" onclick="openModal('modal-app')">
+        <div class="mi-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+        <span class="mi-label">Télécharger l'app</span>
+      </button>
+      <button class="menu-item" onclick="openModal('modal-carte')">
+        <div class="mi-icon"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+        <span class="mi-label">Lier une carte</span>
+      </button>
+      <button class="menu-item" onclick="openModal('modal-pwd')">
+        <div class="mi-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <span class="mi-label">Changer MDP</span>
+      </button>
+      <button class="menu-item" onclick="openModal('modal-gift')">
+        <div class="mi-icon"><svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
+        <span class="mi-label">GIFT</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="logout-wrap">
+    <button class="logout-btn" onclick="handleLogout()">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Déconnexion
+    </button>
+  </div>
+</div>
+
+<!-- PAGE PRODUIT -->
+<div id="page-produit" class="page">
+  <div class="page-header">
+    <h2>Plans d'investissement</h2>
+    <p>Choisissez le plan qui correspond à vos objectifs</p>
+  </div>
+  <div class="plans-list">
+    <div class="plan-card">
+      <div class="plan-tier">
+        <div class="plan-badge" style="background:linear-gradient(135deg,#CD7F32,#A0522D)">
+          <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div><div class="plan-name">Bronze</div><div class="plan-sub">Idéal pour débutants</div></div>
+      </div>
+      <div class="plan-stats">
+        <div class="plan-stat"><div class="sv">$10</div><div class="sk">Minimum</div></div>
+        <div class="plan-stat"><div class="sv">2%</div><div class="sk">Par jour</div></div>
+        <div class="plan-stat"><div class="sv">30j</div><div class="sk">Durée</div></div>
+      </div>
+      <button class="invest-btn" onclick="openInvestModal('Bronze','$10 – $99',2,30)">Investir maintenant</button>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-tier">
+        <div class="plan-badge" style="background:linear-gradient(135deg,#C0C0C0,#808080)">
+          <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div><div class="plan-name">Silver</div><div class="plan-sub">Le plus populaire</div></div>
+      </div>
+      <div class="plan-stats">
+        <div class="plan-stat"><div class="sv">$100</div><div class="sk">Minimum</div></div>
+        <div class="plan-stat"><div class="sv">3%</div><div class="sk">Par jour</div></div>
+        <div class="plan-stat"><div class="sv">30j</div><div class="sk">Durée</div></div>
+      </div>
+      <button class="invest-btn" onclick="openInvestModal('Silver','$100 – $499',3,30)">Investir maintenant</button>
+    </div>
+    <div class="plan-card">
+      <div class="plan-tier">
+        <div class="plan-badge" style="background:linear-gradient(135deg,#FFD700,#FFA500)">
+          <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div><div class="plan-name">Gold</div><div class="plan-sub">Pour investisseurs actifs</div></div>
+      </div>
+      <div class="plan-stats">
+        <div class="plan-stat"><div class="sv">$500</div><div class="sk">Minimum</div></div>
+        <div class="plan-stat"><div class="sv">4%</div><div class="sk">Par jour</div></div>
+        <div class="plan-stat"><div class="sv">30j</div><div class="sk">Durée</div></div>
+      </div>
+      <button class="invest-btn" onclick="openInvestModal('Gold','$500 – $999',4,30)">Investir maintenant</button>
+    </div>
+    <div class="plan-card">
+      <div class="plan-tier">
+        <div class="plan-badge" style="background:linear-gradient(135deg,#E5E4E2,#B0C4DE)">
+          <svg width="22" height="22" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div><div class="plan-name">Platinum</div><div class="plan-sub">Rendement maximum</div></div>
+      </div>
+      <div class="plan-stats">
+        <div class="plan-stat"><div class="sv">$1000</div><div class="sk">Minimum</div></div>
+        <div class="plan-stat"><div class="sv">5%</div><div class="sk">Par jour</div></div>
+        <div class="plan-stat"><div class="sv">30j</div><div class="sk">Durée</div></div>
+      </div>
+      <button class="invest-btn" onclick="openInvestModal('Platinum','$1000+',5,30)">Investir maintenant</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE EQUIPES -->
+<div id="page-equipes" class="page">
+  <div class="ref-hero">
+    <h2>Mon Équipe</h2>
+    <p>Partagez votre code et gagnez des commissions</p>
+    <div class="ref-code-box">
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:3px;letter-spacing:.1em">CODE PARRAINAGE</div>
+        <div class="ref-code-val" id="my-ref-code">——</div>
+      </div>
+      <button class="copy-btn" onclick="copyRefCode()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copier
+      </button>
+    </div>
+    <div class="share-row">
+      <button class="share-btn" onclick="shareWhatsApp()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8A8.5 8.5 0 0 1 7.1 20.3L3 21l.7-4.1a8.38 8.38 0 0 1-1.1-4.1 8.5 8.5 0 1 1 18.4-.3z"/></svg>
+        WhatsApp
+      </button>
+      <button class="share-btn" onclick="shareLink()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Lien d'invitation
+      </button>
+    </div>
+  </div>
+  <div class="team-section">
+    <div class="team-stats">
+      <div class="ts-card"><div class="tv" id="team-count">0</div><div class="tk">Membres recrutés</div></div>
+      <div class="ts-card"><div class="tv" id="team-earnings">$0.00</div><div class="tk">Commissions gagnées</div></div>
+    </div>
+    <div class="members-title">Membres de mon équipe</div>
+    <div id="members-list">
+      <div class="no-members">
+        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;opacity:.35"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Vous n'avez pas encore de membres.<br/>Partagez votre code pour commencer !
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE MON COMPTE -->
+<div id="page-compte" class="page">
+  <div class="account-hero">
+    <div id="account-av-display" style="width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,.8);background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:Cormorant Garamond,serif;font-size:26px;font-weight:700;color:#fff;flex-shrink:0">M</div>
+    <div class="account-info">
+      <h3 id="account-name">Utilisateur</h3>
+      <p id="account-phone">——</p>
+      <p id="account-email" style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px">——</p>
+    </div>
+  </div>
+  <div class="settings-list">
+    <div class="settings-item" onclick="openModal('modal-pwd')">
+      <div class="si-icon" style="background:rgba(196,28,28,.08)"><svg stroke="var(--red)" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="si-text"><div class="si-title">Changer le mot de passe</div><div class="si-sub">Sécurisez votre compte</div></div>
+      <div class="si-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="settings-item" onclick="openModal('modal-carte')">
+      <div class="si-icon" style="background:rgba(22,163,74,.08)"><svg stroke="#16A34A" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+      <div class="si-text"><div class="si-title">Méthodes de paiement</div><div class="si-sub">Gérez vos cartes et comptes</div></div>
+      <div class="si-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="settings-item" onclick="openModal('modal-service')">
+      <div class="si-icon" style="background:rgba(59,130,246,.08)"><svg stroke="#3B82F6" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="si-text"><div class="si-title">Support & Contact</div><div class="si-sub">Nous sommes là pour vous</div></div>
+      <div class="si-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="settings-item" onclick="openModal('modal-apropos')">
+      <div class="si-icon" style="background:rgba(168,85,247,.08)"><svg stroke="#A855F7" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+      <div class="si-text"><div class="si-title">À propos de Marathon</div><div class="si-sub">Version 1.0</div></div>
+      <div class="si-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="settings-item" onclick="handleLogout()" style="border-color:rgba(196,28,28,.15)">
+      <div class="si-icon" style="background:#FFF0F0"><svg stroke="var(--red)" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+      <div class="si-text"><div class="si-title" style="color:var(--red)">Déconnexion</div><div class="si-sub">Quitter Marathon</div></div>
+      <div class="si-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-accueil" onclick="showPage('accueil')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Accueil</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="nav-produit" onclick="showPage('produit')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>Produit</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="nav-equipes" onclick="showPage('equipes')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Equipes</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" id="nav-compte" onclick="showPage('compte')">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Mon compte</span><div class="nav-dot"></div>
+  </button>
+</nav>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- RECHARGE -->
+<div class="modal-bg" id="modal-recharge" onclick="bgClose(event,'modal-recharge')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Recharger mon compte</div>
+    <button class="modal-close" onclick="closeModal('modal-recharge')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-alert" id="rc-alert"></div>
+    <div class="mfield"><label>Montant (USD)</label>
+      <input type="number" id="rc-amount" placeholder="Ex: 50" min="1"/>
+      <div class="amount-presets">
+        <span class="preset" onclick="setPreset('rc-amount',10,this)">$10</span>
+        <span class="preset" onclick="setPreset('rc-amount',25,this)">$25</span>
+        <span class="preset" onclick="setPreset('rc-amount',50,this)">$50</span>
+        <span class="preset" onclick="setPreset('rc-amount',100,this)">$100</span>
+        <span class="preset" onclick="setPreset('rc-amount',500,this)">$500</span>
+      </div>
+    </div>
+    <div class="mfield"><label>Méthode de paiement</label>
+      <div class="payment-methods">
+        <div class="pm-item selected" onclick="selectPM(this)"><div class="pm-dot"></div><div><div class="pm-name">Mobile Money (MTN)</div><div class="pm-sub">Paiement instantané</div></div></div>
+        <div class="pm-item" onclick="selectPM(this)"><div class="pm-dot"></div><div><div class="pm-name">Orange Money</div><div class="pm-sub">Paiement instantané</div></div></div>
+        <div class="pm-item" onclick="selectPM(this)"><div class="pm-dot"></div><div><div class="pm-name">Carte bancaire</div><div class="pm-sub">Visa / Mastercard</div></div></div>
+      </div>
+    </div>
+    <button class="btn-modal" id="rc-btn" onclick="submitRecharge()">Confirmer la recharge</button>
+  </div>
+</div></div>
+
+<!-- RETRAIT -->
+<div class="modal-bg" id="modal-retrait" onclick="bgClose(event,'modal-retrait')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Retirer des fonds</div>
+    <button class="modal-close" onclick="closeModal('modal-retrait')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-alert" id="wd-alert"></div>
+    <div style="background:var(--cream);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12.5px;color:var(--muted)">Solde disponible</span>
+      <span style="font-size:16px;font-weight:700;color:var(--red)" id="wd-balance">$0.00</span>
+    </div>
+    <div class="mfield"><label>Montant à retirer (USD)</label>
+      <input type="number" id="wd-amount" placeholder="Montant" min="1"/>
+      <div class="amount-presets">
+        <span class="preset" onclick="setPreset('wd-amount',10,this)">$10</span>
+        <span class="preset" onclick="setPreset('wd-amount',25,this)">$25</span>
+        <span class="preset" onclick="setPreset('wd-amount',50,this)">$50</span>
+        <span class="preset" onclick="setAllPreset(this)">Tout</span>
+      </div>
+    </div>
+    <div class="mfield"><label>Numéro de compte / téléphone</label>
+      <input type="text" id="wd-account" placeholder="Ex: +237 6XX XXX XXX"/>
+    </div>
+    <div class="mfield"><label>Méthode de retrait</label>
+      <div class="payment-methods">
+        <div class="pm-item selected" onclick="selectPM(this)"><div class="pm-dot"></div><div><div class="pm-name">Mobile Money (MTN)</div><div class="pm-sub">Traitement sous 24h</div></div></div>
+        <div class="pm-item" onclick="selectPM(this)"><div class="pm-dot"></div><div><div class="pm-name">Orange Money</div><div class="pm-sub">Traitement sous 24h</div></div></div>
+      </div>
+    </div>
+    <button class="btn-modal" id="wd-btn" onclick="submitRetrait()">Demander le retrait</button>
+  </div>
+</div></div>
+
+<!-- HISTORIQUE -->
+<div class="modal-bg" id="modal-historique" onclick="bgClose(event,'modal-historique')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Historique</div>
+    <button class="modal-close" onclick="closeModal('modal-historique')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body" id="history-body">
+    <div style="text-align:center;padding:40px 20px;color:var(--muted)">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;opacity:.4"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/></svg>
+      Aucune transaction pour le moment.
+    </div>
+  </div>
+</div></div>
+
+<!-- INVEST -->
+<div class="modal-bg" id="modal-invest" onclick="bgClose(event,'modal-invest')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header">
+    <div class="modal-title">Investir — <span id="inv-plan-name">Plan</span></div>
+    <button class="modal-close" onclick="closeModal('modal-invest')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-alert" id="inv-alert"></div>
+    <div class="invest-summary">
+      <div class="invest-summary-row"><span>Fourchette</span><strong id="inv-range">—</strong></div>
+      <div class="invest-summary-row"><span>Rendement journalier</span><strong id="inv-rate">—</strong></div>
+      <div class="invest-summary-row"><span>Durée</span><strong id="inv-duration">—</strong></div>
+      <div class="invest-summary-row"><span>Gain total estimé</span><strong id="inv-gain" style="color:var(--red)">—</strong></div>
+    </div>
+    <div class="mfield"><label>Montant à investir (USD)</label>
+      <input type="number" id="inv-amount" placeholder="Entrez le montant" oninput="calcGain()"/>
+    </div>
+    <button class="btn-modal" id="inv-btn" onclick="submitInvest()">Confirmer l'investissement</button>
+  </div>
+</div></div>
+
+<!-- A PROPOS -->
+<div class="modal-bg" id="modal-apropos" onclick="bgClose(event,'modal-apropos')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">À propos</div>
+    <button class="modal-close" onclick="closeModal('modal-apropos')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:64px;height:64px;background:var(--red);border-radius:18px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(196,28,28,.3);margin-bottom:12px">
+        <span style="font-family:Cormorant Garamond,serif;font-size:36px;font-weight:700;color:#fff">M</span>
+      </div>
+      <div style="font-family:Cormorant Garamond,serif;font-size:24px;font-weight:600;color:var(--txt)">Marathon</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Plateforme d'investissement · v1.0</div>
+    </div>
+    <div class="info-card"><h4>Notre mission</h4><p>Marathon est une plateforme d'investissement innovante qui vous permet de faire fructifier votre argent grâce à des plans adaptés à tous les profils d'investisseurs.</p></div>
+    <div class="info-card"><h4>Comment ça marche</h4><p>Rechargez votre compte, choisissez un plan d'investissement, et recevez vos rendements quotidiennement. Parrainez vos amis pour gagner des commissions supplémentaires.</p></div>
+    <div class="info-card"><h4>Sécurité</h4><p>Vos fonds sont protégés et sécurisés. Notre plateforme utilise des technologies de pointe pour garantir la sécurité de vos investissements.</p></div>
+  </div>
+</div></div>
+
+<!-- REGLEMENTATION -->
+<div class="modal-bg" id="modal-reglementation" onclick="bgClose(event,'modal-reglementation')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Réglementation</div>
+    <button class="modal-close" onclick="closeModal('modal-reglementation')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div class="info-card"><h4>Conditions d'utilisation</h4><p>En utilisant Marathon, vous acceptez de respecter nos conditions. Tout investissement comporte des risques. Les rendements passés ne garantissent pas les rendements futurs.</p></div>
+    <div class="info-card"><h4>Politique de retrait</h4><p>Les demandes de retrait sont traitées dans un délai de 24 à 72 heures ouvrables. Le montant minimum de retrait est de $5. Des frais de traitement peuvent s'appliquer.</p></div>
+    <div class="info-card"><h4>Programme de parrainage</h4><p>Chaque parrainage actif vous rapporte une commission de 5% sur le premier investissement de votre filleul. Les commissions sont créditées automatiquement.</p></div>
+    <div class="info-card"><h4>Protection des données</h4><p>Vos données personnelles sont traitées conformément aux lois applicables. Nous ne partageons jamais vos informations avec des tiers.</p></div>
+  </div>
+</div></div>
+
+<!-- SERVICE CLIENT -->
+<div class="modal-bg" id="modal-service" onclick="bgClose(event,'modal-service')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Service client</div>
+    <button class="modal-close" onclick="closeModal('modal-service')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+      <a href="https://wa.me/237000000000" target="_blank" style="display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:15px;text-decoration:none">
+        <div style="width:44px;height:44px;background:#25D366;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8A8.5 8.5 0 0 1 7.1 20.3L3 21l.7-4.1a8.38 8.38 0 0 1-1.1-4.1 8.5 8.5 0 1 1 18.4-.3z"/></svg>
+        </div>
+        <div><div style="font-size:14px;font-weight:500;color:var(--txt)">WhatsApp Support</div><div style="font-size:11.5px;color:var(--muted)">Réponse rapide · 24/7</div></div>
+      </a>
+      <a href="mailto:support@marathon-invest.com" style="display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:15px;text-decoration:none">
+        <div style="width:44px;height:44px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div><div style="font-size:14px;font-weight:500;color:var(--txt)">Email</div><div style="font-size:11.5px;color:var(--muted)">support@marathon-invest.com</div></div>
+      </a>
+    </div>
+    <div class="mfield"><label>Message direct</label><textarea id="support-msg" placeholder="Décrivez votre problème..."></textarea></div>
+    <button class="btn-modal" onclick="sendSupport()">Envoyer le message</button>
+  </div>
+</div></div>
+
+<!-- APP -->
+<div class="modal-bg" id="modal-app" onclick="bgClose(event,'modal-app')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Application Mobile</div>
+    <button class="modal-close" onclick="closeModal('modal-app')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div style="text-align:center;padding:24px 0">
+      <div style="width:80px;height:80px;background:linear-gradient(135deg,var(--red),var(--red-dark));border-radius:24px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 8px 24px rgba(196,28,28,.3)">
+        <svg width="40" height="40" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      </div>
+      <div style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:600;color:var(--txt);margin-bottom:8px">Marathon Mobile</div>
+      <p style="font-size:13px;color:var(--muted);max-width:260px;margin:0 auto 24px;line-height:1.65">L'application mobile Marathon sera bientôt disponible sur Android et iOS.</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <div style="background:var(--cream);border-radius:12px;padding:12px 20px;cursor:pointer">
+          <div style="font-size:9px;color:var(--muted)">Bientôt sur</div>
+          <div style="font-size:13px;font-weight:600;color:var(--txt)">App Store</div>
+        </div>
+        <div style="background:var(--cream);border-radius:12px;padding:12px 20px;cursor:pointer">
+          <div style="font-size:9px;color:var(--muted)">Bientôt sur</div>
+          <div style="font-size:13px;font-weight:600;color:var(--txt)">Google Play</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- CARTE -->
+<div class="modal-bg" id="modal-carte" onclick="bgClose(event,'modal-carte')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Lier une carte</div>
+    <button class="modal-close" onclick="closeModal('modal-carte')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-alert" id="card-alert"></div>
+    <div style="background:linear-gradient(135deg,var(--red-dark),var(--red));border-radius:16px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.08)"></div>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.15em;margin-bottom:16px">MARATHON CARD</div>
+      <div style="font-family:Cormorant Garamond,serif;font-size:20px;color:#fff;letter-spacing:.2em;margin-bottom:18px" id="card-preview">•••• •••• •••• ••••</div>
+      <div style="display:flex;justify-content:space-between">
+        <div><div style="font-size:10px;color:rgba(255,255,255,.5)">TITULAIRE</div><div style="font-size:13px;color:#fff;margin-top:2px" id="card-holder-preview">VOTRE NOM</div></div>
+        <div><div style="font-size:10px;color:rgba(255,255,255,.5)">EXPIRATION</div><div style="font-size:13px;color:#fff;margin-top:2px" id="card-exp-preview">MM/AA</div></div>
+      </div>
+    </div>
+    <div class="mfield"><label>Numéro de carte</label><input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="mfield"><label>Expiration</label><input type="text" id="card-exp" placeholder="MM/AA" maxlength="5" oninput="formatExp(this)"/></div>
+      <div class="mfield"><label>CVV</label><input type="password" id="card-cvv" placeholder="•••" maxlength="3"/></div>
+    </div>
+    <div class="mfield"><label>Titulaire</label><input type="text" id="card-holder" placeholder="NOM PRÉNOM" oninput="document.getElementById('card-holder-preview').textContent=this.value.toUpperCase()||'VOTRE NOM'"/></div>
+    <button class="btn-modal" onclick="submitCard()">Enregistrer la carte</button>
+  </div>
+</div></div>
+
+<!-- MDP -->
+<div class="modal-bg" id="modal-pwd" onclick="bgClose(event,'modal-pwd')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Changer le mot de passe</div>
+    <button class="modal-close" onclick="closeModal('modal-pwd')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-alert" id="pwd-alert"></div>
+    <div class="mfield"><label>Nouveau mot de passe</label><input type="password" id="pwd-new" placeholder="Minimum 6 caractères"/></div>
+    <div class="mfield"><label>Confirmer</label><input type="password" id="pwd-confirm" placeholder="Répétez le mot de passe"/></div>
+    <button class="btn-modal" id="pwd-btn" onclick="submitPwd()">Mettre à jour</button>
+  </div>
+</div></div>
+
+<!-- GIFT -->
+<div class="modal-bg" id="modal-gift" onclick="bgClose(event,'modal-gift')">
+<div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Cadeaux & Bonus</div>
+    <button class="modal-close" onclick="closeModal('modal-gift')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div style="text-align:center;padding:16px 0 20px">
+      <div style="font-size:52px;margin-bottom:12px">🎁</div>
+      <div style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:600;color:var(--txt);margin-bottom:8px">Bonus de bienvenue</div>
+      <p style="font-size:13px;color:var(--muted);max-width:280px;margin:0 auto;line-height:1.65">Invitez des amis et gagnez jusqu'à <strong style="color:var(--red)">$50</strong> de bonus par parrainage réussi !</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="background:var(--cream);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">1️⃣</div>
+        <div style="font-size:13px;color:var(--txt2)">Partagez votre code de parrainage</div>
+      </div>
+      <div style="background:var(--cream);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">2️⃣</div>
+        <div style="font-size:13px;color:var(--txt2)">Votre filleul s'inscrit et investit</div>
+      </div>
+      <div style="background:var(--cream);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">3️⃣</div>
+        <div style="font-size:13px;color:var(--txt2)">Recevez votre commission automatiquement</div>
+      </div>
+    </div>
+    <button class="btn-modal" style="margin-top:20px" onclick="showPage('equipes');closeModal('modal-gift')">Voir mon équipe</button>
+  </div>
+</div></div>
+
+<script>
+const SUPABASE_URL="https://mzxxfxkryhxnycewyryv.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null,currentBalance=0,currentPlan={};
+
+window.addEventListener("DOMContentLoaded",async()=>{
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href="marathon-auth.html";return;}
+  currentUser=session.user;
+  await loadUserData();
+  loadSavedPhotos();
+  hideLoader();
+});
+
+async function loadUserData(){
+  const m=currentUser.user_metadata||{};
+  const name=m.full_name||currentUser.email?.split("@")[0]||"Utilisateur";
+  const phone=m.phone_number||"——";
+  const letter=name.charAt(0).toUpperCase();
+  document.getElementById("hero-name").textContent=name;
+  document.getElementById("hero-phone").textContent=phone;
+  document.getElementById("avatar-letter").textContent=letter;
+  document.getElementById("account-name").textContent=name;
+  document.getElementById("account-phone").textContent=phone;
+  document.getElementById("account-email").textContent=currentUser.email||"——";
+  document.getElementById("account-av-display").textContent=letter;
+  const refCode="MAR"+currentUser.id.slice(-5).toUpperCase();
+  document.getElementById("my-ref-code").textContent=refCode;
+  try{
+    const{data:p}=await sb.from("profiles").select("*").eq("id",currentUser.id).single();
+    if(p){
+      currentBalance=p.balance||0;
+      document.getElementById("balance-amount").textContent=currentBalance.toFixed(2);
+      document.getElementById("earnings-amount").textContent=(p.total_earnings||0).toFixed(2);
+      document.getElementById("hero-level").textContent="LV"+(p.level||0);
+      document.getElementById("wd-balance").textContent="$"+currentBalance.toFixed(2);
+      if(p.referral_code)document.getElementById("my-ref-code").textContent=p.referral_code;
+    }
+  }catch(e){}
+  loadTeamData();
+  loadHistory();
+}
+
+async function loadTeamData(){
+  try{
+    const{data}=await sb.from("referrals").select("*").eq("referrer_id",currentUser.id);
+    if(data&&data.length>0){
+      document.getElementById("team-count").textContent=data.length;
+      const total=data.reduce((s,r)=>s+(r.commission||0),0);
+      document.getElementById("team-earnings").textContent="$"+total.toFixed(2);
+      document.getElementById("members-list").innerHTML=data.map(r=>`
+        <div class="member-item">
+          <div class="member-av">${(r.referred_name||"U").charAt(0).toUpperCase()}</div>
+          <div class="member-info"><div class="member-name">${r.referred_name||"Membre"}</div>
+          <div class="member-date">${new Date(r.created_at).toLocaleDateString("fr-FR")}</div></div>
+          <span class="member-badge">+$${(r.commission||0).toFixed(2)}</span>
+        </div>`).join("");
+    }
+  }catch(e){}
+}
+
+async function loadHistory(){
+  try{
+    const{data}=await sb.from("transactions").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(20);
+    if(data&&data.length>0){
+      document.getElementById("history-body").innerHTML=data.map(tx=>`
+        <div class="tx-item">
+          <div class="tx-icon ${tx.type==="credit"?"credit":"debit"}">
+            ${tx.type==="credit"
+              ?'<svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>'
+              :'<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>'}
+          </div>
+          <div class="tx-info"><div class="tx-desc">${tx.description||tx.type}</div>
+          <div class="tx-date">${new Date(tx.created_at).toLocaleDateString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div>
+          <div class="tx-amt ${tx.type==="credit"?"credit":"debit"}">${tx.type==="credit"?"+":"-"}$${(tx.amount||0).toFixed(2)}</div>
+        </div>`).join("");
+    }
+  }catch(e){}
+}
+
+function loadSavedPhotos(){
+  const a=localStorage.getItem("marathon_avatar");
+  const c=localStorage.getItem("marathon_cover");
+  if(a)setAvatarSrc(a);
+  if(c)setCoverSrc(c);
+}
+
+document.getElementById("file-avatar").addEventListener("change",function(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=(ev)=>{const s=ev.target.result;localStorage.setItem("marathon_avatar",s);setAvatarSrc(s);showToast("Photo de profil mise à jour ✓");};
+  r.readAsDataURL(f);
+});
+
+document.getElementById("file-cover").addEventListener("change",function(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=(ev)=>{const s=ev.target.result;localStorage.setItem("marathon_cover",s);setCoverSrc(s);showToast("Photo de couverture mise à jour ✓");};
+  r.readAsDataURL(f);
+});
+
+function setAvatarSrc(s){
+  const i=document.getElementById("avatar-img"),d=document.getElementById("avatar-default");
+  i.src=s;i.style.display="block";d.style.display="none";
+  document.getElementById("account-av-display").innerHTML=`<img src="${s}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.8)"/>`;
+}
+function setCoverSrc(s){const i=document.getElementById("cover-img");i.src=s;i.style.display="block";}
+
+function hideLoader(){
+  const l=document.getElementById("loader");
+  l.style.opacity="0";
+  setTimeout(()=>{l.style.display="none";document.getElementById("app").style.display="flex";},400);
+}
+
+function showPage(n){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.remove("active"));
+  document.getElementById("page-"+n).classList.add("active");
+  document.getElementById("nav-"+n).classList.add("active");
+  document.getElementById("page-"+n).scrollTo(0,0);
+}
+
+function openModal(id){document.getElementById(id).classList.add("open");document.body.style.overflow="hidden";}
+function closeModal(id){document.getElementById(id).classList.remove("open");document.body.style.overflow="";}
+function bgClose(e,id){if(e.target===e.currentTarget)closeModal(id);}
+
+function showToast(msg,d=2500){
+  const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),d);
+}
+
+function setPreset(iid,v,el){
+  document.getElementById(iid).value=v;
+  document.querySelectorAll(".preset").forEach(p=>p.classList.remove("sel"));
+  el.classList.add("sel");
+  if(iid==="inv-amount")calcGain();
+}
+function setAllPreset(el){
+  document.getElementById("wd-amount").value=currentBalance.toFixed(2);
+  document.querySelectorAll(".preset").forEach(p=>p.classList.remove("sel"));
+  el.classList.add("sel");
+}
+function selectPM(el){
+  el.closest(".payment-methods").querySelectorAll(".pm-item").forEach(i=>i.classList.remove("selected"));
+  el.classList.add("selected");
+}
+
+function mAlert(id,msg,type="err"){
+  const el=document.getElementById(id);
+  el.className="modal-alert "+type;
+  el.innerHTML=`<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">${type==="err"?'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>':'<polyline points="20 6 9 17 4 12"/>'}</svg><span>${msg}</span>`;
+}
+
+async function submitRecharge(){
+  const amt=parseFloat(document.getElementById("rc-amount").value);
+  if(!amt||amt<1)return mAlert("rc-alert","Entrez un montant valide (min. $1)");
+  const btn=document.getElementById("rc-btn");
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Traitement...';
+  try{await sb.from("transactions").insert({user_id:currentUser.id,type:"pending_credit",amount:amt,description:"Demande de recharge",status:"pending"});}catch(e){}
+  await new Promise(r=>setTimeout(r,1200));
+  btn.disabled=false;btn.textContent="Confirmer la recharge";
+  mAlert("rc-alert",`Demande de $${amt.toFixed(2)} envoyée ! Suivez les instructions de paiement.`,"suc");
+  showToast("Demande de recharge envoyée ✓");
+}
+
+async function submitRetrait(){
+  const amt=parseFloat(document.getElementById("wd-amount").value);
+  const acc=document.getElementById("wd-account").value.trim();
+  if(!amt||amt<1)return mAlert("wd-alert","Entrez un montant valide");
+  if(amt>currentBalance)return mAlert("wd-alert",`Solde insuffisant. Disponible : $${currentBalance.toFixed(2)}`);
+  if(!acc)return mAlert("wd-alert","Entrez votre numéro de compte");
+  const btn=document.getElementById("wd-btn");
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Traitement...';
+  try{await sb.from("transactions").insert({user_id:currentUser.id,type:"debit",amount:amt,description:"Retrait vers "+acc,status:"pending"});}catch(e){}
+  await new Promise(r=>setTimeout(r,1200));
+  btn.disabled=false;btn.textContent="Demander le retrait";
+  mAlert("wd-alert",`Retrait de $${amt.toFixed(2)} en cours de traitement (24–72h).`,"suc");
+  showToast("Demande de retrait envoyée ✓");
+}
+
+function openInvestModal(name,range,rate,days){
+  currentPlan={name,range,rate,days};
+  document.getElementById("inv-plan-name").textContent=name;
+  document.getElementById("inv-range").textContent=range;
+  document.getElementById("inv-rate").textContent=rate+"% / jour";
+  document.getElementById("inv-duration").textContent=days+" jours";
+  document.getElementById("inv-gain").textContent="—";
+  document.getElementById("inv-amount").value="";
+  document.getElementById("inv-alert").className="modal-alert";
+  openModal("modal-invest");
+}
+
+function calcGain(){
+  const amt=parseFloat(document.getElementById("inv-amount").value);
+  if(!amt||!currentPlan.rate){document.getElementById("inv-gain").textContent="—";return;}
+  document.getElementById("inv-gain").textContent="$"+(amt*(currentPlan.rate/100)*currentPlan.days).toFixed(2);
+}
+
+async function submitInvest(){
+  const amt=parseFloat(document.getElementById("inv-amount").value);
+  if(!amt||amt<1)return mAlert("inv-alert","Entrez un montant valide");
+  if(amt>currentBalance)return mAlert("inv-alert",`Solde insuffisant. Disponible : $${currentBalance.toFixed(2)}`);
+  const btn=document.getElementById("inv-btn");
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Investissement...';
+  try{await sb.from("investments").insert({user_id:currentUser.id,plan:currentPlan.name,amount:amt,daily_rate:currentPlan.rate,duration_days:currentPlan.days,status:"active"});}catch(e){}
+  await new Promise(r=>setTimeout(r,1200));
+  btn.disabled=false;btn.textContent="Confirmer l'investissement";
+  mAlert("inv-alert",`Investissement de $${amt.toFixed(2)} activé ! Rendement : ${currentPlan.rate}%/jour.`,"suc");
+  showToast("Investissement activé ✓");
+}
+
+async function submitPwd(){
+  const p1=document.getElementById("pwd-new").value;
+  const p2=document.getElementById("pwd-confirm").value;
+  if(!p1||p1.length<6)return mAlert("pwd-alert","Minimum 6 caractères requis");
+  if(p1!==p2)return mAlert("pwd-alert","Les mots de passe ne correspondent pas");
+  const btn=document.getElementById("pwd-btn");
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Mise à jour...';
+  const{error}=await sb.auth.updateUser({password:p1});
+  btn.disabled=false;btn.textContent="Mettre à jour";
+  if(error)return mAlert("pwd-alert",error.message);
+  mAlert("pwd-alert","Mot de passe mis à jour avec succès !","suc");
+  showToast("Mot de passe modifié ✓");
+  document.getElementById("pwd-new").value="";
+  document.getElementById("pwd-confirm").value="";
+}
+
+function formatCard(i){
+  let v=i.value.replace(/\D/g,"").substring(0,16);
+  v=v.replace(/(.{4})/g,"$1 ").trim();
+  i.value=v;
+  document.getElementById("card-preview").textContent=v||"•••• •••• •••• ••••";
+}
+function formatExp(i){
+  let v=i.value.replace(/\D/g,"").substring(0,4);
+  if(v.length>=2)v=v.slice(0,2)+"/"+v.slice(2);
+  i.value=v;
+  document.getElementById("card-exp-preview").textContent=v||"MM/AA";
+}
+async function submitCard(){
+  const num=document.getElementById("card-number").value;
+  const exp=document.getElementById("card-exp").value;
+  const cvv=document.getElementById("card-cvv").value;
+  const holder=document.getElementById("card-holder").value;
+  if(num.replace(/\s/g,"").length<16)return mAlert("card-alert","Numéro de carte invalide");
+  if(exp.length<5)return mAlert("card-alert","Date d'expiration invalide");
+  if(cvv.length<3)return mAlert("card-alert","CVV invalide");
+  if(!holder)return mAlert("card-alert","Nom du titulaire requis");
+  await new Promise(r=>setTimeout(r,800));
+  mAlert("card-alert","Carte enregistrée avec succès !","suc");
+  showToast("Carte bancaire liée ✓");
+}
+
+function sendSupport(){
+  const msg=document.getElementById("support-msg").value.trim();
+  if(!msg){showToast("Veuillez écrire un message");return;}
+  showToast("Message envoyé au support ✓");
+  document.getElementById("support-msg").value="";
+  closeModal("modal-service");
+}
+
+function copyRefCode(){
+  const code=document.getElementById("my-ref-code").textContent;
+  const link=window.location.origin+"/marathon-auth.html?ref="+code;
+  navigator.clipboard.writeText(link).then(()=>showToast("Lien copié ✓")).catch(()=>showToast("Code: "+code));
+}
+function shareWhatsApp(){
+  const code=document.getElementById("my-ref-code").textContent;
+  const link=encodeURIComponent(window.location.origin+"/marathon-auth.html?ref="+code);
+  window.open("https://wa.me/?text=Rejoignez-moi sur Marathon+"+link);
+}
+function shareLink(){
+  const code=document.getElementById("my-ref-code").textContent;
+  const link=window.location.origin+"/marathon-auth.html?ref="+code;
+  if(navigator.share){navigator.share({title:"Marathon",text:"Rejoignez Marathon !",url:link});}
+  else{navigator.clipboard.writeText(link).then(()=>showToast("Lien copié ✓"));}
+}
+
+async function handleLogout(){
+  if(!confirm("Voulez-vous vraiment vous déconnecter ?"))return;
+  await sb.auth.signOut();
+  window.location.href="marathon-auth.html";
+}
+<\/script>
+</body>
+</html>
