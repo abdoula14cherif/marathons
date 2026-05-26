@@ -2,237 +2,177 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>Marathon — Retrait</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--red:#C41C1C;--rd:#9E1616;--rl:#E02020;--rg:rgba(196,28,28,.13);--cr:#F7F2EC;--wh:#fff;--t1:#1A1212;--t2:#4A3A3A;--mu:#8A7070;--bo:rgba(196,28,28,.12)}
-body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-height:100vh}
+:root{--red:#C41C1C;--rd:#9E1616;--cr:#F7F2EC;--mu:#8A7070;--bo:rgba(196,28,28,.12);--t1:#1A1212;--t2:#4A3A3A}
+body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-height:100vh;padding-bottom:30px}
 .topbar{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;display:flex;align-items:center;gap:12px}
 .back{background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .back svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5}
 .topbar h1{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:#fff}
 .topbar p{color:rgba(255,255,255,.72);font-size:12px;margin-top:2px}
-.btn{width:100%;padding:14px;border-radius:13px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14.5px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;transition:all .2s}
+.content{padding:16px}
+.card{background:#fff;border-radius:14px;padding:16px;border:1px solid var(--bo);margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
+.field input,.field select{width:100%;padding:12px 14px;border:1.5px solid var(--bo);border-radius:11px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--t1);background:var(--cr);outline:none;transition:all .2s}
+.field input:focus,.field select:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px rgba(196,28,28,.1)}
+.btn{width:100%;padding:13px;border-radius:12px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;transition:all .2s}
 .btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.6;cursor:not-allowed}
-.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle}
+.btn-ghost{background:#fff;color:var(--red);border:1.5px solid rgba(196,28,28,.25);box-shadow:none}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle}
 @keyframes sp{to{transform:rotate(360deg)}}
-#toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw}
-#toast.show{transform:translateX(-50%) translateY(0)}
-.alert{padding:12px 14px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:14px;display:none}
+.alert{padding:11px 13px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:14px;display:none}
 .alert.err{display:block;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC}
 .alert.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0}
-
-body{padding-bottom:30px}
-.content{padding:16px}
-.balbox{background:#fff;border-radius:15px;padding:16px;border:1px solid var(--bo);margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-.balbox .lbl{font-size:11.5px;color:var(--mu);font-weight:500}
-.balbox .val{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:700;color:var(--red)}
-/* INFO BOXES */
-.inforow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
-.ibox{background:#fff;border-radius:12px;padding:12px 13px;border:1px solid var(--bo);text-align:center}
-.ibox .iv{font-size:15px;font-weight:700;color:var(--t1)}
-.ibox .ik{font-size:10px;color:var(--mu);margin-top:3px}
-.ibox.warn .iv{color:var(--red)}
-/* RULES */
-.rules{background:#FFF7ED;border:1px solid rgba(245,158,11,.22);border-radius:13px;padding:14px;margin-bottom:18px}
-.rules h4{font-size:12.5px;font-weight:700;color:#92400E;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.rules ul{list-style:none;display:flex;flex-direction:column;gap:7px}
-.rules li{font-size:12.5px;color:#92400E;display:flex;align-items:flex-start;gap:7px;line-height:1.5}
-/* FIELD */
-.field{margin-bottom:16px}
-.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
-.field input,.field select{width:100%;padding:13px 14px;border:1.5px solid var(--bo);border-radius:12px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--t1);background:var(--cr);outline:none;transition:all .2s}
-.field input:focus,.field select:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px var(--rg)}
-.presets{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.preset{padding:7px 14px;border-radius:20px;border:1.5px solid var(--bo);font-size:12.5px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer;transition:all .2s}
-.preset.on,.preset:active{border-color:var(--red);color:var(--red);background:#FFF0F0}
-/* METHODS */
-.methods{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-.mth{display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid var(--bo);border-radius:12px;cursor:pointer;transition:all .2s}
-.mth.on{border-color:var(--red);background:#FFF8F8}
-.mth-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--bo);flex-shrink:0;position:relative;transition:all .2s}
-.mth.on .mth-radio{border-color:var(--red);background:var(--red)}
-.mth.on .mth-radio::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#fff;border-radius:50%}
-.mth-ico{font-size:22px}
-.mth-name{font-size:13.5px;font-weight:500;color:var(--t1)}
-.mth-sub{font-size:11px;color:var(--mu)}
-/* FEE SUMMARY */
-.fee-box{background:var(--cr);border-radius:12px;padding:13px 14px;margin:16px 0}
-.fee-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px}
-.fee-row span{color:var(--t2)}
-.fee-row strong{color:var(--t1)}
-.fee-row.total{border-top:1px solid var(--bo);margin-top:4px;padding-top:9px;font-weight:600}
-.fee-row.total strong{color:var(--red);font-size:15px}
-/* SUCCESS */
+.alert.info{display:block;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
 .success-screen{display:none;text-align:center;padding:40px 20px}
 .success-screen.on{display:block}
-.sico{width:74px;height:74px;background:linear-gradient(135deg,#16A34A,#15803D);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
-@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-.success-screen h3{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:var(--t1);margin-bottom:8px}
+.sico{width:72px;height:72px;background:linear-gradient(135deg,#16A34A,#15803D);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.success-screen h3{font-family:"Cormorant Garamond",serif;font-size:23px;font-weight:600;color:var(--t1);margin-bottom:8px}
 .success-screen p{font-size:13px;color:var(--mu);line-height:1.65;max-width:300px;margin:0 auto 22px}
 </style>
 </head>
 <body>
 <div id="toast"></div>
+
 <div class="topbar">
-  <button class="back" onclick="go('dashboard.html')">
-    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
-  <div>
-    <h1>Retrait</h1>
-    <p>Retirez vos fonds en toute sécurité</p>
-  </div>
+  <button class="back" onclick="go('dashboard.html')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <div><h1>Retrait</h1><p>Retirez vos fonds en toute sécurité</p></div>
 </div>
-
 <div class="content">
-
-  <!-- Solde -->
-  <div class="balbox">
-    <div><div class="lbl">Solde disponible</div><div class="val" id="solde">0 <span style="font-size:14px">FCFA</span></div></div>
-    <svg width="36" height="36" fill="none" stroke="var(--red)" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+  <!-- Redirect notice si pas de carte -->
+  <div id="no-card-notice" class="alert info" style="display:none">
+    📱 Vous devez d'abord enregistrer un compte Mobile Money pour effectuer un retrait.
   </div>
 
-  <!-- Infos clés -->
-  <div class="inforow">
-    <div class="ibox"><div class="iv">1 000 F</div><div class="ik">Retrait minimum</div></div>
-    <div class="ibox warn"><div class="iv">10%</div><div class="ik">Frais de retrait</div></div>
-    <div class="ibox"><div class="iv">09h — 17h</div><div class="ik">Horaires de retrait</div></div>
-    <div class="ibox"><div class="iv">2 / jour</div><div class="ik">Maximum par jour</div></div>
+  <div id="balance-box" class="card" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:11px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Solde disponible</div>
+      <div id="solde" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--red)">—</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:var(--mu);margin-bottom:3px">Compte enregistré</div>
+      <div id="card-info" style="font-size:12.5px;font-weight:600;color:var(--t1)">—</div>
+    </div>
   </div>
 
-  <!-- Règles -->
-  <div class="rules">
-    <h4>⚠️ Règles importantes</h4>
-    <ul>
-      <li>✅ Les retraits sont traités automatiquement</li>
-      <li>✅ Disponibles tous les jours de 09h00 à 17h00</li>
-      <li>✅ Maximum 2 retraits par jour</li>
-      <li>⚡ Frais de 10% déduits du montant retiré</li>
-      <li>📲 Retrait vers Mobile Money uniquement</li>
-    </ul>
+  <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px">
+    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">1 000 F</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Minimum</div></div>
+    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--red)">10%</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Frais</div></div>
+    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">09h — 17h</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Horaires</div></div>
+    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">2 / jour</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Maximum</div></div>
   </div>
 
-  <!-- Form -->
   <div id="retrait-form">
-    <div class="alert" id="alert"></div>
-
+    <div class="alert" id="al"></div>
     <div class="field">
       <label>Montant à retirer (FCFA)</label>
-      <input type="number" id="montant" placeholder="Ex: 5 000" min="1000" oninput="calcFee()"/>
-      <div class="presets">
-        <span class="preset" onclick="setAmt(1000,this)">1 000</span>
-        <span class="preset" onclick="setAmt(2000,this)">2 000</span>
-        <span class="preset" onclick="setAmt(5000,this)">5 000</span>
-        <span class="preset" onclick="setAmt(10000,this)">10 000</span>
-        <span class="preset" onclick="setAll(this)">Tout</span>
+      <input type="number" id="montant" placeholder="Montant minimum : 1 000 FCFA" min="1000" oninput="calcFee()"/>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span onclick="setAmt(1000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">1 000</span>
+        <span onclick="setAmt(2000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">2 000</span>
+        <span onclick="setAmt(5000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">5 000</span>
+        <span onclick="setAmt(10000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">10 000</span>
+        <span onclick="setAll(this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">Tout</span>
       </div>
     </div>
-
-    <!-- Fee summary -->
-    <div class="fee-box" id="feebox" style="display:none">
-      <div class="fee-row"><span>Montant demandé</span><strong id="famt">—</strong></div>
-      <div class="fee-row"><span>Frais (10%)</span><strong id="ffee" style="color:var(--red)">—</strong></div>
-      <div class="fee-row total"><span>Vous recevrez</span><strong id="fnet">—</strong></div>
+    <div id="fee-box" class="card" style="display:none;padding:12px">
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--bo)"><span style="color:var(--t2)">Montant demandé</span><strong id="famt"></strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--bo)"><span style="color:var(--t2)">Frais (10%)</span><strong id="ffee" style="color:var(--red)"></strong></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0 3px;font-size:14px;font-weight:700"><span>Vous recevrez</span><span id="fnet" style="color:var(--red)"></span></div>
     </div>
-
-    <div class="field">
-      <label>Méthode de retrait</label>
-      <div class="methods">
-        <div class="mth on" onclick="selMth(this)">
-          <div class="mth-radio"></div>
-          <div class="mth-ico">📱</div>
-          <div><div class="mth-name">MTN Mobile Money</div><div class="mth-sub">Cameroun, Côte d'Ivoire, Bénin...</div></div>
-        </div>
-        <div class="mth" onclick="selMth(this)">
-          <div class="mth-radio"></div>
-          <div class="mth-ico">🟠</div>
-          <div><div class="mth-name">Orange Money</div><div class="mth-sub">Cameroun, Côte d'Ivoire, Togo...</div></div>
-        </div>
-        <div class="mth" onclick="selMth(this)">
-          <div class="mth-radio"></div>
-          <div class="mth-ico">🌊</div>
-          <div><div class="mth-name">Wave</div><div class="mth-sub">Sénégal, Côte d'Ivoire...</div></div>
-        </div>
-        <div class="mth" onclick="selMth(this)">
-          <div class="mth-radio"></div>
-          <div class="mth-ico">💛</div>
-          <div><div class="mth-name">Moov Money</div><div class="mth-sub">Togo, Burkina, Bénin...</div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Numéro de téléphone</label>
-      <input type="tel" id="numero" placeholder="+237 6XX XXX XXX"/>
-    </div>
-
-    <button class="btn" id="submitbtn" onclick="doRetrait()">Confirmer le retrait</button>
+    <button class="btn" id="submit-btn" onclick="doRetrait()">Confirmer le retrait</button>
+    <button class="btn btn-ghost" style="margin-top:10px" onclick="go('carte.html')">Modifier mon compte Mobile Money</button>
   </div>
 
-  <!-- Success -->
   <div class="success-screen" id="success">
     <div class="sico"><svg width="32" height="32" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
     <h3>Demande envoyée !</h3>
-    <p id="success-msg">Votre retrait est en cours de traitement.</p>
+    <p id="success-msg">Votre retrait est en cours.</p>
     <button class="btn" onclick="go('dashboard.html')">Retour au dashboard</button>
   </div>
-
 </div>
 
 <script>
 
-var sb = null;
-try { sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'); } catch(e) {}
-var currentUser = null;
+var sb = null, currentUser = null;
+try { sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'); } catch(e) {}
+function toast(msg) {
+  var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+function al(id, msg, type) {
+  var el = document.getElementById(id); el.className = 'alert '+(type||'err'); el.textContent = msg;
+}
+function go(url) { window.location.href = url; }
 async function initAuth(redirect) {
   try {
-    if (!sb) return;
+    if (!sb) return null;
     var s = await sb.auth.getSession();
-    if (!s.data || !s.data.session) { window.location.href = redirect || 'index.html'; return null; }
+    if (!s.data || !s.data.session) { go(redirect||'index.html'); return null; }
     currentUser = s.data.session.user;
     return currentUser;
   } catch(e) { return null; }
 }
-function toast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 2600);
-}
-function go(url) { window.location.href = url; }
 
-var userBalance = 0;
+var userBalance = 0, userCard = null;
+
 window.addEventListener('DOMContentLoaded', async function() {
   var u = await initAuth('index.html');
   if (!u) return;
+  // Load balance
   try {
-    var r = await sb.from('profiles').select('balance').eq('id', u.id).single();
-    if (r.data) {
-      userBalance = r.data.balance || 0;
-      document.getElementById('solde').innerHTML = userBalance.toLocaleString('fr-FR') + ' <span style="font-size:14px">FCFA</span>';
+    var rp = await sb.from('profiles').select('balance').eq('id', u.id).single();
+    if (rp.data) {
+      userBalance = rp.data.balance || 0;
+      document.getElementById('solde').textContent = userBalance.toLocaleString('fr-FR') + ' FCFA';
     }
   } catch(e) {}
+  // Check for card
+  try {
+    var rc = await sb.from('payment_methods').select('*').eq('user_id', u.id).eq('is_default', true).single();
+    if (rc.data) {
+      userCard = rc.data;
+      document.getElementById('card-info').textContent = rc.data.method + ' · ' + rc.data.country_code + ' ' + rc.data.phone;
+    } else {
+      // No card registered
+      document.getElementById('no-card-notice').style.display = 'block';
+      document.getElementById('retrait-form').style.display = 'none';
+      setTimeout(function(){ go('carte.html?from=retrait'); }, 2500);
+    }
+  } catch(e) {
+    // Try without .single() in case of no result
+    try {
+      var rc2 = await sb.from('payment_methods').select('*').eq('user_id', u.id).order('created_at', {ascending:false}).limit(1);
+      if (!rc2.data || rc2.data.length === 0) {
+        document.getElementById('no-card-notice').style.display = 'block';
+        document.getElementById('retrait-form').style.display = 'none';
+        setTimeout(function(){ go('carte.html?from=retrait'); }, 2500);
+      } else {
+        userCard = rc2.data[0];
+        document.getElementById('card-info').textContent = userCard.method + ' · ' + userCard.country_code + ' ' + userCard.phone;
+      }
+    } catch(e2) {}
+  }
 });
+
 function setAmt(v, el) {
   document.getElementById('montant').value = v;
-  document.querySelectorAll('.preset').forEach(function(p){ p.classList.remove('on'); });
-  el.classList.add('on');
   calcFee();
 }
-function setAll(el) {
-  document.getElementById('montant').value = userBalance;
-  document.querySelectorAll('.preset').forEach(function(p){ p.classList.remove('on'); });
-  el.classList.add('on');
-  calcFee();
-}
+function setAll(el) { document.getElementById('montant').value = userBalance; calcFee(); }
 function calcFee() {
   var v = parseFloat(document.getElementById('montant').value);
-  var box = document.getElementById('feebox');
-  if (!v || v < 1) { box.style.display='none'; return; }
+  var box = document.getElementById('fee-box');
+  if (!v || v < 1) { box.style.display = 'none'; return; }
   var fee = Math.round(v * 0.10);
   var net = v - fee;
   document.getElementById('famt').textContent = v.toLocaleString('fr-FR') + ' FCFA';
@@ -240,50 +180,35 @@ function calcFee() {
   document.getElementById('fnet').textContent = net.toLocaleString('fr-FR') + ' FCFA';
   box.style.display = 'block';
 }
-function selMth(el) {
-  document.querySelectorAll('.mth').forEach(function(m){ m.classList.remove('on'); });
-  el.classList.add('on');
-}
-function al(msg, type) {
-  var el = document.getElementById('alert');
-  el.className = 'alert ' + (type||'err');
-  el.textContent = msg;
-}
+
 async function doRetrait() {
   var montant = parseFloat(document.getElementById('montant').value);
-  var numero = document.getElementById('numero').value.trim();
-  var method = document.querySelector('.mth.on .mth-name');
-  if (!montant || montant < 1000) return al('Montant minimum : 1 000 FCFA');
-  if (montant > userBalance) return al('Solde insuffisant. Disponible : '+userBalance.toLocaleString('fr-FR')+' FCFA');
-  if (!numero) return al('Entrez votre numéro de téléphone');
-  var now = new Date();
-  var h = now.getHours();
-  if (h < 9 || h >= 17) return al('Les retraits sont disponibles de 09h00 à 17h00 uniquement.');
-  var btn = document.getElementById('submitbtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>Traitement...';
-  var frais = Math.round(montant * 0.10);
-  var net = montant - frais;
+  if (!montant || montant < 1000) return al('al', 'Montant minimum : 1 000 FCFA');
+  if (montant > userBalance) return al('al', 'Solde insuffisant : ' + userBalance.toLocaleString('fr-FR') + ' FCFA disponible');
+  if (!userCard) return al('al', 'Aucun compte Mobile Money enregistré');
+  var h = new Date().getHours();
+  if (h < 9 || h >= 17) return al('al', 'Retraits disponibles de 09h00 à 17h00 uniquement');
+  var btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Traitement...';
+  var fee = Math.round(montant * 0.10);
+  var net = montant - fee;
   try {
-    if (sb && currentUser) {
-      await sb.from('transactions').insert({
-        user_id: currentUser.id,
-        type: 'retrait',
-        amount: montant,
-        fee: frais,
-        net_amount: net,
-        method: method ? method.textContent : 'Mobile Money',
-        phone: numero,
-        status: 'pending'
-      });
-    }
-  } catch(e) {}
-  await new Promise(function(r){ setTimeout(r, 1200); });
-  document.getElementById('retrait-form').style.display = 'none';
-  document.getElementById('success-msg').textContent =
-    'Retrait de '+net.toLocaleString('fr-FR')+' FCFA vers '+numero+'. Traitement automatique en cours.';
-  document.getElementById('success').classList.add('on');
+    // Insert transaction
+    var rt = await sb.from('transactions').insert({
+      user_id: currentUser.id, type: 'retrait',
+      amount: montant, fee: fee, net_amount: net,
+      status: 'pending',
+      description: 'Retrait via ' + userCard.method,
+      method: userCard.method,
+      phone: userCard.country_code + ' ' + userCard.phone
+    });
+    if (rt.error) throw rt.error;
+    // Update balance
+    await sb.from('profiles').update({ balance: userBalance - montant }).eq('id', currentUser.id);
+    document.getElementById('retrait-form').style.display = 'none';
+    document.getElementById('success-msg').textContent = 'Retrait de ' + net.toLocaleString('fr-FR') + ' FCFA vers ' + userCard.method + ' (' + userCard.country_code + ' ' + userCard.phone + '). Traitement automatique.';
+    document.getElementById('success').classList.add('on');
+  } catch(e) { al('al', 'Erreur : ' + (e.message || 'Réessayez')); btn.disabled = false; btn.textContent = 'Confirmer le retrait'; }
 }
 </script>
-</body>
-</html>
+</body></html>
