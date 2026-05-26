@@ -5,156 +5,122 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>Marathon</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--red:#C41C1C;--rd:#9E1616;--rl:#E02020;--rg:rgba(196,28,28,.13);--cr:#F7F2EC;--wh:#fff;--t1:#1A1212;--t2:#4A3A3A;--mu:#8A7070;--bo:rgba(196,28,28,.12)}
-body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-height:100vh}
-.topbar{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;display:flex;align-items:center;gap:12px}
-.back{background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
-.back svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5}
-.topbar h1{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:#fff}
-.topbar p{color:rgba(255,255,255,.72);font-size:12px;margin-top:2px}
-.btn{width:100%;padding:14px;border-radius:13px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14.5px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;transition:all .2s}
-.btn:active{transform:scale(.98)}
-.btn:disabled{opacity:.6;cursor:not-allowed}
-.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle}
-@keyframes sp{to{transform:rotate(360deg)}}
-#toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw}
-#toast.show{transform:translateX(-50%) translateY(0)}
-.alert{padding:12px 14px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:14px;display:none}
-.alert.err{display:block;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC}
-.alert.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0}
-
-html,body{height:100%;overflow:hidden}
+:root{--red:#C41C1C;--rd:#9E1616;--cr:#F7F2EC;--mu:#8A7070;--bo:rgba(196,28,28,.12);--t1:#1A1212;--t2:#4A3A3A}
+html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1)}
 #app{height:100%;display:flex;flex-direction:column}
-.page{display:none;flex:1;overflow-y:auto;padding-bottom:72px}
-.page.on{display:block}
-/* BOTTOM NAV */
-.bnav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;border-top:1px solid var(--bo);display:flex;z-index:100;box-shadow:0 -2px 14px rgba(0,0,0,.06)}
-.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:none;background:none;color:var(--mu);font-family:"DM Sans",sans-serif;font-size:10.5px;font-weight:500;cursor:pointer;padding:0;transition:color .2s}
+.page{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:74px}
+.page.on{display:flex;flex-direction:column}
+.bnav{position:fixed;bottom:0;left:0;right:0;height:68px;background:#fff;border-top:1px solid var(--bo);display:flex;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,.06)}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--mu);font-size:10px;font-weight:500;cursor:pointer;padding:0}
 .ni.on{color:var(--red)}
 .ni svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8}
-.ni.on svg{transform:scale(1.1)}
 .ndot{width:4px;height:4px;background:var(--red);border-radius:50%;opacity:0}
 .ni.on .ndot{opacity:1}
-/* HERO BANNER */
-.hero{position:relative;height:220px;overflow:hidden;flex-shrink:0}
-.btrack{display:flex;height:100%;width:300%;transition:transform .85s cubic-bezier(.77,0,.18,1)}
+/* HERO */
+.hero{position:relative;height:210px;overflow:hidden;flex-shrink:0;background:#9E1616}
+.btrack{display:flex;height:100%;width:300%;transition:transform .9s cubic-bezier(.77,0,.18,1)}
 .bslide{flex:1;background-size:cover;background-position:center}
-.bovl{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.2),rgba(0,0,0,.62))}
-.bdots{position:absolute;bottom:54px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:4}
-.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.38);cursor:pointer;transition:all .3s}
-.dot.on{width:20px;border-radius:3px;background:#fff}
-.hcontent{position:absolute;bottom:0;left:0;right:0;padding:0 16px 13px;display:flex;align-items:flex-end;gap:12px;z-index:5}
-.avwrap{position:relative;flex-shrink:0;cursor:pointer}
-.avdef{width:66px;height:66px;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:700;color:#fff;backdrop-filter:blur(4px)}
-.avimg{width:66px;height:66px;border-radius:50%;border:3px solid rgba(255,255,255,.85);object-fit:cover;display:none}
-.avedit{position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:var(--rd);border:2px solid #fff;display:flex;align-items:center;justify-content:center}
-.hname{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:#fff;line-height:1.2}
+.bovl{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.65) 100%)}
+.bdots{position:absolute;bottom:52px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:4}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer;transition:all .3s}
+.dot.on{width:18px;border-radius:3px;background:#fff}
+.hc{position:absolute;bottom:0;left:0;right:0;padding:0 16px 12px;display:flex;align-items:flex-end;gap:12px;z-index:5}
+.avw{position:relative;flex-shrink:0;cursor:pointer}
+.avd{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:25px;font-weight:700;color:#fff}
+.avi{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,.85);object-fit:cover;display:none}
+.aved{position:absolute;bottom:1px;right:1px;width:19px;height:19px;border-radius:50%;background:var(--rd);border:2px solid #fff;display:flex;align-items:center;justify-content:center}
+.hname{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:#fff}
 .hphone{font-size:12px;color:rgba(255,255,255,.75);margin-top:2px}
-.hlevel{display:inline-flex;margin-top:5px;border:1.5px solid rgba(255,255,255,.5);border-radius:20px;padding:2px 10px;font-size:10.5px;font-weight:600;color:#fff}
+.hlv{display:inline-flex;margin-top:5px;border:1.5px solid rgba(255,255,255,.5);border-radius:20px;padding:2px 9px;font-size:10px;font-weight:600;color:#fff}
 /* QUICK ACTIONS */
-.qa{display:flex;justify-content:space-around;background:#fff;padding:15px 8px;border-bottom:1px solid var(--bo)}
-.qabtn{display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;cursor:pointer;padding:4px 12px}
-.qaico{width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--red),var(--rd));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(196,28,28,.28);transition:transform .18s}
-.qabtn:active .qaico{transform:scale(.91)}
-.qaico svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2}
-.qalbl{font-size:11.5px;font-weight:500;color:var(--t2)}
+.qa{display:flex;background:#fff;border-bottom:1px solid var(--bo);flex-shrink:0}
+.qab{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;cursor:pointer;padding:14px 4px}
+.qai{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--red),var(--rd));display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(196,28,28,.3)}
+.qab:active .qai{transform:scale(.9)}
+.qai svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2}
+.ql{font-size:11px;font-weight:500;color:var(--t2)}
 /* BALANCE */
-.bals{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.balcard{background:#fff;border-radius:15px;padding:14px;border:1px solid var(--bo);box-shadow:0 2px 8px rgba(0,0,0,.05);position:relative;overflow:hidden}
-.balcard::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--rd),var(--rl))}
-.ballbl{font-size:10px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.balamt{font-family:"Cormorant Garamond",serif;font-size:18px;font-weight:700;color:var(--t1)}
-.balcur{font-size:11px;font-weight:600;color:var(--red)}
-/* BONUS BADGE */
-.bonus-banner{margin:0 16px 6px;background:linear-gradient(135deg,#FFF7ED,#FFF3E0);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px}
-.bonus-banner span{font-size:13px;color:#92400E;font-weight:500}
+.bals{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px;flex-shrink:0}
+.bc{background:#fff;border-radius:14px;padding:13px;border:1px solid var(--bo);position:relative;overflow:hidden}
+.bc::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--rd),#E02020)}
+.bl{font-size:10px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.ba{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:700;color:var(--red)}
+/* BONUS */
+.bonus{margin:0 14px 6px;background:#FFF7ED;border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:9px 12px;font-size:12px;color:#92400E;flex-shrink:0}
 /* MENU */
-.msec{padding:0 16px 14px}
-.mstitle{font-size:10.5px;color:var(--mu);font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;padding-left:2px;margin-top:14px}
-.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-.mitem{display:flex;flex-direction:column;align-items:center;gap:5px;background:#fff;border-radius:12px;padding:12px 5px 9px;cursor:pointer;font-family:"DM Sans",sans-serif;transition:all .18s;box-shadow:0 1px 6px rgba(0,0,0,.04);border:none}
-.mitem:active{transform:scale(.94)}
-.miico{width:36px;height:36px;border-radius:10px;background:rgba(196,28,28,.08);display:flex;align-items:center;justify-content:center}
-.miico svg{width:18px;height:18px;stroke:var(--red);fill:none;stroke-width:1.8}
-.milbl{font-size:9.5px;font-weight:500;color:var(--t2);text-align:center;line-height:1.3}
-.logwrap{padding:4px 16px 16px;display:flex;justify-content:center}
-.logbtn{display:flex;align-items:center;gap:8px;border:1.5px solid rgba(196,28,28,.2);border-radius:30px;padding:10px 24px;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;color:var(--red);background:#fff;cursor:pointer}
-
-/* ── PRODUIT TAB ── */
-.plabel{padding:14px 16px 8px;font-size:11px;color:var(--mu);font-weight:600;letter-spacing:.12em;text-transform:uppercase}
-.plans{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
-.pcard{background:#fff;border-radius:15px;padding:16px;border:1px solid var(--bo);box-shadow:0 3px 14px rgba(0,0,0,.07);position:relative;overflow:hidden}
-.phead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.pbadge{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.pname{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:var(--t1)}
-.psub{font-size:11.5px;color:var(--mu)}
-.phot{margin-left:auto;background:var(--red);color:#fff;font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:20px}
-.pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:13px}
-.pg{background:var(--cr);border-radius:9px;padding:9px 6px;text-align:center}
-.pgv{font-size:13px;font-weight:700;color:var(--red)}
-.pgk{font-size:9.5px;color:var(--mu);margin-top:2px}
-.pbtn{width:100%;padding:12px;border-radius:11px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:13.5px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;transition:all .2s}
-.pbtn:active{transform:scale(.98)}
-
-/* ── EQUIPES TAB ── */
-.rhero{background:linear-gradient(135deg,var(--rd),var(--red));padding:36px 16px 22px;text-align:center}
-.rhero h2{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:#fff;margin-bottom:4px}
-.rhero p{color:rgba(255,255,255,.72);font-size:12.5px;margin-bottom:16px}
-.rbox{background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,.3);border-radius:13px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ms{padding:0 14px 12px;flex-shrink:0}
+.mt{font-size:10px;color:var(--mu);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin:12px 0 8px 2px}
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mi{display:flex;flex-direction:column;align-items:center;gap:5px;background:#fff;border-radius:11px;padding:11px 4px 8px;cursor:pointer;border:none;font-family:"DM Sans",sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.mi:active{transform:scale(.93)}
+.mii{width:34px;height:34px;border-radius:9px;background:rgba(196,28,28,.08);display:flex;align-items:center;justify-content:center}
+.mii svg{width:17px;height:17px;stroke:var(--red);fill:none;stroke-width:1.8}
+.mil{font-size:9px;font-weight:500;color:var(--t2);text-align:center;line-height:1.3}
+.lw{padding:2px 14px 14px;display:flex;justify-content:center;flex-shrink:0}
+.lb{display:flex;align-items:center;gap:7px;border:1.5px solid rgba(196,28,28,.2);border-radius:30px;padding:9px 22px;font-family:"DM Sans",sans-serif;font-size:12.5px;font-weight:500;color:var(--red);background:#fff;cursor:pointer}
+/* PLANS */
+.phdr{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;flex-shrink:0}
+.phdr h2{font-family:"Cormorant Garamond",serif;font-size:25px;font-weight:600;color:#fff}
+.phdr p{color:rgba(255,255,255,.7);font-size:12px;margin-top:2px}
+.plist{padding:13px 14px;display:flex;flex-direction:column;gap:11px}
+.pcard{background:#fff;border-radius:14px;padding:15px;border:1px solid var(--bo);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.phead{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.pbadge{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pname{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:var(--t1)}
+.psub{font-size:11px;color:var(--mu)}
+.pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px}
+.pg{background:var(--cr);border-radius:8px;padding:8px 5px;text-align:center}
+.pgv{font-size:12px;font-weight:700;color:var(--red)}
+.pgk{font-size:9px;color:var(--mu);margin-top:2px}
+.pbtn{width:100%;padding:11px;border-radius:10px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff}
+.pbtn:active{opacity:.85}
+/* EQUIPES */
+.rh{background:linear-gradient(135deg,var(--rd),var(--red));padding:38px 16px 18px;text-align:center;flex-shrink:0}
+.rh h2{font-family:"Cormorant Garamond",serif;font-size:23px;font-weight:600;color:#fff;margin-bottom:4px}
+.rh p{color:rgba(255,255,255,.7);font-size:12px;margin-bottom:14px}
+.rbox{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:12px;padding:11px 15px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .rcode{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:.1em}
-.copybtn{background:rgba(255,255,255,.2);border:none;border-radius:7px;padding:7px 12px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;display:flex;align-items:center;gap:5px}
-.srow{display:flex;gap:9px}
-.sbtn{flex:1;padding:10px;border-radius:11px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-family:"DM Sans",sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
-.tsec{padding:14px 16px}
-.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.tcard{background:#fff;border-radius:14px;padding:14px;border:1px solid var(--bo)}
-.tv{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:700;color:var(--red)}
-.tk{font-size:11px;color:var(--mu);margin-top:2px}
-/* Commission levels */
-.comlevels{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.comlv{display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:12px 14px;border:1px solid var(--bo)}
-.comlv-badge{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.comlv-info{flex:1}
-.comlv-name{font-size:13px;font-weight:600;color:var(--t1)}
-.comlv-sub{font-size:11px;color:var(--mu);margin-top:1px}
-.comlv-pct{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:700;color:var(--red)}
-.note-box{background:#FFF7ED;border:1px solid rgba(245,158,11,.25);border-radius:11px;padding:11px 13px;margin-bottom:14px;font-size:12px;color:#92400E;line-height:1.6}
-.mtitle{font-size:12.5px;font-weight:600;color:var(--t2);margin-bottom:10px}
-.nomem{text-align:center;padding:32px 20px;color:var(--mu);font-size:13px;line-height:1.7}
-.memitem{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bo)}
-.memav{width:36px;height:36px;border-radius:50%;background:rgba(196,28,28,.1);display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:16px;font-weight:700;color:var(--red);flex-shrink:0}
-.memname{font-size:13px;font-weight:500;color:var(--t1)}
-.memdate{font-size:10.5px;color:var(--mu);margin-top:1px}
-.membadge{background:#FFF0F0;color:var(--red);font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px}
-
-/* ── COMPTE TAB ── */
-.achero{background:linear-gradient(135deg,var(--rd),var(--red));padding:40px 16px 22px;display:flex;align-items:center;gap:14px}
-.acav{width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,255,255,.8);background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
-.acav img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.acinfo h3{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:#fff}
-.acinfo p{color:rgba(255,255,255,.72);font-size:12px;margin-top:2px}
-.slist{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
-.sitem{display:flex;align-items:center;gap:12px;background:#fff;border-radius:13px;padding:13px 14px;border:1px solid var(--bo);cursor:pointer;transition:background .18s}
-.sitem:active{background:var(--cr)}
-.siico{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.siico svg{width:18px;height:18px;fill:none;stroke-width:1.8}
-.sitx{flex:1}
-.siname{font-size:13.5px;font-weight:500;color:var(--t1)}
-.sisub{font-size:11px;color:var(--mu);margin-top:1px}
-.siarrow svg{width:15px;height:15px;stroke:var(--mu);fill:none;stroke-width:2}
+.cb{background:rgba(255,255,255,.2);border:none;border-radius:7px;padding:7px 12px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif}
+.sr{display:flex;gap:8px}
+.sb{flex:1;padding:9px;border-radius:10px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-family:"DM Sans",sans-serif;font-size:11.5px;font-weight:600;cursor:pointer}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 14px}
+.tc{background:#fff;border-radius:13px;padding:13px;border:1px solid var(--bo)}
+.tv{font-family:"Cormorant Garamond",serif;font-size:25px;font-weight:700;color:var(--red)}
+.tk{font-size:10.5px;color:var(--mu);margin-top:2px}
+.ts{padding:0 14px 14px}
+.cls{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.cl{display:flex;align-items:center;gap:11px;background:#fff;border-radius:11px;padding:11px 13px;border:1px solid var(--bo)}
+.nb{background:#FFF7ED;border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:11.5px;color:#92400E;line-height:1.6}
+.mlt{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px}
+.nom{text-align:center;padding:28px 20px;color:var(--mu);font-size:12.5px;line-height:1.7}
+/* COMPTE */
+.ach{background:linear-gradient(135deg,var(--rd),var(--red));padding:38px 16px 20px;display:flex;align-items:center;gap:13px;flex-shrink:0}
+.acav{width:58px;height:58px;border-radius:50%;border:3px solid rgba(255,255,255,.8);background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:23px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
+.acav img{width:100%;height:100%;object-fit:cover}
+.sl{padding:13px 14px;display:flex;flex-direction:column;gap:7px}
+.si{display:flex;align-items:center;gap:11px;background:#fff;border-radius:12px;padding:12px 13px;border:1px solid var(--bo);cursor:pointer}
+.si:active{background:var(--cr)}
+.sii{width:35px;height:35px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sii svg{width:17px;height:17px;fill:none;stroke-width:1.8}
+.st{flex:1}
+.sn{font-size:13px;font-weight:500;color:var(--t1)}
+.ss{font-size:10.5px;color:var(--mu);margin-top:1px}
+.sar svg{width:14px;height:14px;stroke:var(--mu);fill:none;stroke-width:2}
+/* TOAST */
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
 input[type=file]{display:none}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="toast"></div>
 <input type="file" id="file-avatar" accept="image/*"/>
 <div id="app">
 
-<!-- ━━━━━━━ ACCUEIL ━━━━━━━ -->
+<!-- ACCUEIL -->
 <div id="p-accueil" class="page on">
   <div class="hero">
     <div class="btrack" id="btrack">
@@ -164,337 +130,153 @@ input[type=file]{display:none}
     </div>
     <div class="bovl"></div>
     <div class="bdots">
-      <div class="dot on" onclick="goSlide(0)"></div>
-      <div class="dot" onclick="goSlide(1)"></div>
-      <div class="dot" onclick="goSlide(2)"></div>
+      <div class="dot on" onclick="gS(0)"></div>
+      <div class="dot" onclick="gS(1)"></div>
+      <div class="dot" onclick="gS(2)"></div>
     </div>
-    <div class="hcontent">
-      <div class="avwrap" onclick="document.getElementById('file-avatar').click()">
-        <div class="avdef" id="avdef"><span id="avletter">M</span></div>
-        <img id="avimg" class="avimg" src="" alt=""/>
-        <div class="avedit"><svg width="10" height="10" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+    <div class="hc">
+      <div class="avw" onclick="document.getElementById('file-avatar').click()">
+        <div class="avd" id="avd"><span id="avl">M</span></div>
+        <img id="avi" class="avi" src="" alt=""/>
+        <div class="aved"><svg width="10" height="10" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
       </div>
       <div>
         <div class="hname" id="hname">Utilisateur</div>
         <div class="hphone" id="hphone">——</div>
-        <div class="hlevel" id="hlevel">LV0</div>
+        <div class="hlv" id="hlv">LV0</div>
       </div>
     </div>
   </div>
-
   <div class="qa">
-    <button class="qabtn" onclick="go('recharge.html')">
-      <div class="qaico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
-      <span class="qalbl">Recharger</span>
+    <button class="qab" onclick="window.location.href='recharge.html'">
+      <div class="qai"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+      <span class="ql">Recharger</span>
     </button>
-    <button class="qabtn" onclick="go('retrait.html')">
-      <div class="qaico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
-      <span class="qalbl">Retirer</span>
+    <button class="qab" onclick="window.location.href='retrait.html'">
+      <div class="qai"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+      <span class="ql">Retirer</span>
     </button>
-    <button class="qabtn" onclick="go('historique.html')">
-      <div class="qaico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-      <span class="qalbl">Historique</span>
+    <button class="qab" onclick="window.location.href='historique.html'">
+      <div class="qai"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+      <span class="ql">Historique</span>
     </button>
   </div>
-
   <div class="bals">
-    <div class="balcard">
-      <div class="ballbl">Solde</div>
-      <div class="balamt"><span class="balcur" id="bal">0</span> <small style="font-size:11px;color:var(--mu)">FCFA</small></div>
+    <div class="bc"><div class="bl">Solde</div><div class="ba" id="bal">0 <span style="font-size:11px;font-weight:400">FCFA</span></div></div>
+    <div class="bc"><div class="bl">Revenus cumulés</div><div class="ba" id="earn">0 <span style="font-size:11px;font-weight:400">FCFA</span></div></div>
+  </div>
+  <div class="bonus">🎁 Bonus d'inscription : <strong>500 FCFA</strong> offert automatiquement !</div>
+  <div class="ms">
+    <div class="mt">Informations</div>
+    <div class="mg">
+      <button class="mi" onclick="window.location.href='apropos.html'"><div class="mii"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><span class="mil">À propos</span></button>
+      <button class="mi" onclick="window.location.href='reglementation.html'"><div class="mii"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><span class="mil">Réglement</span></button>
+      <button class="mi" onclick="window.location.href='historique.html'"><div class="mii"><svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="3 3 3 7 7 7"/></svg></div><span class="mil">Historique</span></button>
+      <button class="mi" onclick="window.location.href='service.html'"><div class="mii"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><span class="mil">Support</span></button>
     </div>
-    <div class="balcard">
-      <div class="ballbl">Revenus cumulés</div>
-      <div class="balamt"><span class="balcur" id="earn">0</span> <small style="font-size:11px;color:var(--mu)">FCFA</small></div>
+    <div class="mt">Mon espace</div>
+    <div class="mg">
+      <button class="mi" onclick="window.location.href='app.html'"><div class="mii"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><span class="mil">App</span></button>
+      <button class="mi" onclick="window.location.href='carte.html'"><div class="mii"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><span class="mil">Carte</span></button>
+      <button class="mi" onclick="window.location.href='mot-de-passe.html'"><div class="mii"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><span class="mil">Mot de passe</span></button>
+      <button class="mi" onclick="window.location.href='gift.html'"><div class="mii"><svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><span class="mil">GIFT</span></button>
     </div>
   </div>
-
-  <div class="bonus-banner">
-    <span>🎁</span>
-    <span>Bonus d'inscription : <strong>500 FCFA</strong> offert à l'inscription !</span>
-  </div>
-
-  <div class="msec">
-    <div class="mstitle">Informations</div>
-    <div class="mgrid">
-      <button class="mitem" onclick="go('apropos.html')"><div class="miico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><span class="milbl">À propos</span></button>
-      <button class="mitem" onclick="go('reglementation.html')"><div class="miico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><span class="milbl">Réglement</span></button>
-      <button class="mitem" onclick="go('historique.html')"><div class="miico"><svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="3 3 3 7 7 7"/></svg></div><span class="milbl">Historique</span></button>
-      <button class="mitem" onclick="go('service.html')"><div class="miico"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><span class="milbl">Service client</span></button>
-    </div>
-    <div class="mstitle">Mon espace</div>
-    <div class="mgrid">
-      <button class="mitem" onclick="go('app.html')"><div class="miico"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><span class="milbl">Télécharger l'app</span></button>
-      <button class="mitem" onclick="go('carte.html')"><div class="miico"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><span class="milbl">Lier une carte</span></button>
-      <button class="mitem" onclick="go('mot-de-passe.html')"><div class="miico"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><span class="milbl">Changer MDP</span></button>
-      <button class="mitem" onclick="go('gift.html')"><div class="miico"><svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><span class="milbl">GIFT</span></button>
-    </div>
-  </div>
-
-  <div class="logwrap">
-    <button class="logbtn" onclick="doLogout()">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+  <div class="lw">
+    <button class="lb" onclick="doLogout()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Déconnexion
     </button>
   </div>
 </div>
 
-<!-- ━━━━━━━ PRODUIT ━━━━━━━ -->
+<!-- PRODUIT -->
 <div id="p-produit" class="page">
-  <div style="background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 18px">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#fff">Plans d'investissement</div>
-    <div style="color:rgba(255,255,255,.72);font-size:12.5px;margin-top:3px">Durée fixe : 100 jours · Revenus quotidiens</div>
-  </div>
-  <div class="plabel">Choisissez votre plan</div>
-  <div class="plans">
-
-    <div class="pcard">
-      <div class="phead">
-        <div class="pbadge" style="background:linear-gradient(135deg,#22C55E,#16A34A)">
-          <span style="font-size:18px">🟢</span>
-        </div>
-        <div>
-          <div class="pname">Starter</div>
-          <div class="psub">Durée : 100 jours</div>
-        </div>
-        
-      </div>
-      <div class="pgrid">
-        <div class="pg"><div class="pgv">3 000 F</div><div class="pgk">Investissement</div></div>
-        <div class="pg"><div class="pgv">400 F</div><div class="pgk">Par jour</div></div>
-        <div class="pg"><div class="pgv">40 000 F</div><div class="pgk">Total gagné</div></div>
-      </div>
-      <button class="pbtn" onclick="go('investir.html?plan=starter')">Investir maintenant</button>
-    </div>
-    <div class="pcard">
-      <div class="phead">
-        <div class="pbadge" style="background:linear-gradient(135deg,#CD7F32,#A0522D)">
-          <span style="font-size:18px">🔵</span>
-        </div>
-        <div>
-          <div class="pname">Bronze</div>
-          <div class="psub">Durée : 100 jours</div>
-        </div>
-        
-      </div>
-      <div class="pgrid">
-        <div class="pg"><div class="pgv">6 000 F</div><div class="pgk">Investissement</div></div>
-        <div class="pg"><div class="pgv">900 F</div><div class="pgk">Par jour</div></div>
-        <div class="pg"><div class="pgv">90 000 F</div><div class="pgk">Total gagné</div></div>
-      </div>
-      <button class="pbtn" onclick="go('investir.html?plan=bronze')">Investir maintenant</button>
-    </div>
-    <div class="pcard">
-      <div class="phead">
-        <div class="pbadge" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">
-          <span style="font-size:18px">🟠</span>
-        </div>
-        <div>
-          <div class="pname">Silver</div>
-          <div class="psub">Durée : 100 jours</div>
-        </div>
-        
-      </div>
-      <div class="pgrid">
-        <div class="pg"><div class="pgv">10 000 F</div><div class="pgk">Investissement</div></div>
-        <div class="pg"><div class="pgv">1 500 F</div><div class="pgk">Par jour</div></div>
-        <div class="pg"><div class="pgv">150 000 F</div><div class="pgk">Total gagné</div></div>
-      </div>
-      <button class="pbtn" onclick="go('investir.html?plan=silver')">Investir maintenant</button>
-    </div>
-    <div class="pcard">
-      <div class="phead">
-        <div class="pbadge" style="background:linear-gradient(135deg,#F59E0B,#D97706)">
-          <span style="font-size:18px">🟣</span>
-        </div>
-        <div>
-          <div class="pname">Gold</div>
-          <div class="psub">Durée : 100 jours</div>
-        </div>
-        <div class='phot'>🔥 Populaire</div>
-      </div>
-      <div class="pgrid">
-        <div class="pg"><div class="pgv">20 000 F</div><div class="pgk">Investissement</div></div>
-        <div class="pg"><div class="pgv">3 500 F</div><div class="pgk">Par jour</div></div>
-        <div class="pg"><div class="pgv">350 000 F</div><div class="pgk">Total gagné</div></div>
-      </div>
-      <button class="pbtn" onclick="go('investir.html?plan=gold')">Investir maintenant</button>
-    </div>
-    <div class="pcard">
-      <div class="phead">
-        <div class="pbadge" style="background:linear-gradient(135deg,#EF4444,#DC2626)">
-          <span style="font-size:18px">🔴</span>
-        </div>
-        <div>
-          <div class="pname">Premium</div>
-          <div class="psub">Durée : 100 jours</div>
-        </div>
-        
-      </div>
-      <div class="pgrid">
-        <div class="pg"><div class="pgv">50 000 F</div><div class="pgk">Investissement</div></div>
-        <div class="pg"><div class="pgv">10 000 F</div><div class="pgk">Par jour</div></div>
-        <div class="pg"><div class="pgv">1 000 000 F</div><div class="pgk">Total gagné</div></div>
-      </div>
-      <button class="pbtn" onclick="go('investir.html?plan=premium')">Investir maintenant</button>
-    </div>
-    <div class="pcard">
-      <div class="phead">
-        <div class="pbadge" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)">
-          <span style="font-size:18px">👑</span>
-        </div>
-        <div>
-          <div class="pname">VIP</div>
-          <div class="psub">Durée : 100 jours</div>
-        </div>
-        
-      </div>
-      <div class="pgrid">
-        <div class="pg"><div class="pgv">100 000 F</div><div class="pgk">Investissement</div></div>
-        <div class="pg"><div class="pgv">20 000 F</div><div class="pgk">Par jour</div></div>
-        <div class="pg"><div class="pgv">2 000 000 F</div><div class="pgk">Total gagné</div></div>
-      </div>
-      <button class="pbtn" onclick="go('investir.html?plan=vip')">Investir maintenant</button>
-    </div>
-    <div class="pcard">
-      <div class="phead">
-        <div class="pbadge" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">
-          <span style="font-size:18px">❄️</span>
-        </div>
-        <div>
-          <div class="pname">COLD</div>
-          <div class="psub">Durée : 100 jours</div>
-        </div>
-        
-      </div>
-      <div class="pgrid">
-        <div class="pg"><div class="pgv">300 000 F</div><div class="pgk">Investissement</div></div>
-        <div class="pg"><div class="pgv">50 000 F</div><div class="pgk">Par jour</div></div>
-        <div class="pg"><div class="pgv">5 000 000 F</div><div class="pgk">Total gagné</div></div>
-      </div>
-      <button class="pbtn" onclick="go('investir.html?plan=cold')">Investir maintenant</button>
-    </div>
+  <div class="phdr"><h2>Plans d'investissement</h2><p>100 jours · Revenus quotidiens garantis</p></div>
+  <div class="plist">
+<div class="pcard"><div class="phead"><div class="pbadge" style="background:#22C55E"><span style="font-size:20px">🟢</span></div><div style="flex:1"><div class="pname">Starter</div><div class="psub">Idéal pour débuter</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">3 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">400 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">120 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="window.location.href='investir.html?plan=starter'">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#3B82F6"><span style="font-size:20px">🔵</span></div><div style="flex:1"><div class="pname">Bronze</div><div class="psub">Rendement régulier</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">6 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">900 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">270 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="window.location.href='investir.html?plan=bronze'">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#F97316"><span style="font-size:20px">🟠</span></div><div style="flex:1"><div class="pname">Silver</div><div class="psub">Bon rapport qualité</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">10 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">1 500 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">450 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="window.location.href='investir.html?plan=silver'">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#F59E0B"><span style="font-size:20px">🟣</span></div><div style="flex:1"><div class="pname">Gold</div><div class="psub">Investisseurs actifs</div></div><span style="margin-left:auto;background:#C41C1C;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px">🔥 Top</span></div><div class="pgrid"><div class="pg"><div class="pgv">20 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">3 500 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">1 050 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="window.location.href='investir.html?plan=gold'">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#EF4444"><span style="font-size:20px">🔴</span></div><div style="flex:1"><div class="pname">Premium</div><div class="psub">Hauts rendements</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">50 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">10 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">3 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="window.location.href='investir.html?plan=premium'">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#8B5CF6"><span style="font-size:20px">👑</span></div><div style="flex:1"><div class="pname">VIP</div><div class="psub">Élite Marathon</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">100 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">20 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">6 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="window.location.href='investir.html?plan=vip'">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#0EA5E9"><span style="font-size:20px">❄️</span></div><div style="flex:1"><div class="pname">COLD</div><div class="psub">Investissement ultime</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">300 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">50 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">15 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="window.location.href='investir.html?plan=cold'">Investir maintenant</button></div>
   </div>
 </div>
 
-<!-- ━━━━━━━ EQUIPES ━━━━━━━ -->
+<!-- EQUIPES -->
 <div id="p-equipes" class="page">
-  <div class="rhero">
+  <div class="rh">
     <h2>Mon Équipe</h2>
-    <p>Invitez et gagnez des commissions sur 3 niveaux</p>
+    <p>Parrainage sur 3 niveaux</p>
     <div class="rbox">
       <div>
-        <div style="font-size:10px;color:rgba(255,255,255,.55);margin-bottom:3px;letter-spacing:.1em">CODE PARRAINAGE</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.55);margin-bottom:2px;letter-spacing:.1em">CODE PARRAINAGE</div>
         <div class="rcode" id="rcode">——</div>
       </div>
-      <button class="copybtn" onclick="copyCode()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Copier
-      </button>
+      <button class="cb" onclick="copyCode()">📋 Copier</button>
     </div>
-    <div class="srow">
-      <button class="sbtn" onclick="shareWA()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8A8.5 8.5 0 0 1 7.1 20.3L3 21l.7-4.1a8.38 8.38 0 0 1-1.1-4.1 8.5 8.5 0 1 1 18.4-.3z"/></svg> WhatsApp</button>
-      <button class="sbtn" onclick="shareLink()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Lien</button>
+    <div class="sr">
+      <button class="sb" onclick="shareWA()">📱 WhatsApp</button>
+      <button class="sb" onclick="shareLink()">🔗 Partager</button>
     </div>
   </div>
-  <div class="tsec">
-    <div class="tgrid">
-      <div class="tcard"><div class="tv" id="tmembers">0</div><div class="tk">Membres recrutés</div></div>
-      <div class="tcard"><div class="tv" id="tcommission">0 F</div><div class="tk">Commissions gagnées</div></div>
-    </div>
-
-    <div class="mtitle" style="margin-bottom:8px">Programme de parrainage</div>
-    <div class="comlevels">
-      <div class="comlv">
-        <div class="comlv-badge" style="background:#FFF7ED">🥇</div>
-        <div class="comlv-info">
-          <div class="comlv-name">Niveau 1 — Filleuls directs</div>
-          <div class="comlv-sub">Commission sur investissement</div>
-        </div>
-        <div class="comlv-pct">20%</div>
+  <div class="tg">
+    <div class="tc"><div class="tv" id="tcount">0</div><div class="tk">Membres recrutés</div></div>
+    <div class="tc"><div class="tv" id="tcom">0 F</div><div class="tk">Commissions</div></div>
+  </div>
+  <div class="ts">
+    <div class="mlt">Programme de parrainage</div>
+    <div class="cls">
+      <div class="cl">
+        <span style="font-size:22px">🥇</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--t1)">Niveau 1 — Filleul direct</div><div style="font-size:11px;color:var(--mu)">Sur investissement</div></div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--red)">20%</div>
       </div>
-      <div class="comlv">
-        <div class="comlv-badge" style="background:#F8FAFC">🥈</div>
-        <div class="comlv-info">
-          <div class="comlv-name">Niveau 2 — Filleuls indirects</div>
-          <div class="comlv-sub">Commission sur investissement</div>
-        </div>
-        <div class="comlv-pct">2%</div>
+      <div class="cl">
+        <span style="font-size:22px">🥈</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--t1)">Niveau 2 — Indirect</div><div style="font-size:11px;color:var(--mu)">Sur investissement</div></div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--red)">2%</div>
       </div>
-      <div class="comlv">
-        <div class="comlv-badge" style="background:#FFF5F0">🥉</div>
-        <div class="comlv-info">
-          <div class="comlv-name">Niveau 3 — Réseau étendu</div>
-          <div class="comlv-sub">Commission sur investissement</div>
-        </div>
-        <div class="comlv-pct">1%</div>
+      <div class="cl">
+        <span style="font-size:22px">🥉</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--t1)">Niveau 3 — Réseau étendu</div><div style="font-size:11px;color:var(--mu)">Sur investissement</div></div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--red)">1%</div>
       </div>
     </div>
-
-    <div class="note-box">⚠️ La commission est versée uniquement lorsque votre filleul réalise un investissement actif.</div>
-
-    <div class="mtitle">Membres de mon équipe</div>
-    <div id="memlist">
-      <div class="nomem">
-        <svg width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;opacity:.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Aucun membre pour l'instant.<br/>Partagez votre code pour commencer !
-      </div>
-    </div>
+    <div class="nb">⚠️ Commission versée uniquement si votre filleul a investi sur la plateforme.</div>
+    <div class="mlt">Membres</div>
+    <div id="mlist"><div class="nom">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;opacity:.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Aucun membre pour l'instant.<br/>Partagez votre code !
+    </div></div>
   </div>
 </div>
 
-<!-- ━━━━━━━ COMPTE ━━━━━━━ -->
+<!-- COMPTE -->
 <div id="p-compte" class="page">
-  <div class="achero">
+  <div class="ach">
     <div class="acav" id="acav">M</div>
-    <div class="acinfo">
-      <h3 id="acname">Utilisateur</h3>
-      <p id="acphone">——</p>
-      <p id="acemail" style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">——</p>
-    </div>
+    <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#fff" id="acn">Utilisateur</div><div style="font-size:12px;color:rgba(255,255,255,.72);margin-top:2px" id="acp">——</div><div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:1px" id="ace">——</div></div>
   </div>
-  <div class="slist">
-    <div class="sitem" onclick="go('mot-de-passe.html')">
-      <div class="siico" style="background:rgba(196,28,28,.08)"><svg stroke="var(--red)" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-      <div class="sitx"><div class="siname">Changer le mot de passe</div><div class="sisub">Sécurisez votre compte</div></div>
-      <div class="siarrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
-    <div class="sitem" onclick="go('carte.html')">
-      <div class="siico" style="background:rgba(22,163,74,.08)"><svg stroke="#16A34A" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
-      <div class="sitx"><div class="siname">Méthodes de paiement</div><div class="sisub">Gérez vos cartes</div></div>
-      <div class="siarrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
-    <div class="sitem" onclick="go('service.html')">
-      <div class="siico" style="background:rgba(59,130,246,.08)"><svg stroke="#3B82F6" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-      <div class="sitx"><div class="siname">Support & Contact</div><div class="sisub">Nous sommes là pour vous</div></div>
-      <div class="siarrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
-    <div class="sitem" onclick="go('apropos.html')">
-      <div class="siico" style="background:rgba(168,85,247,.08)"><svg stroke="#A855F7" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
-      <div class="sitx"><div class="siname">À propos de Marathon</div><div class="sisub">Version 1.0</div></div>
-      <div class="siarrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
-    <div class="sitem" onclick="doLogout()">
-      <div class="siico" style="background:#FFF0F0"><svg stroke="var(--red)" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
-      <div class="sitx"><div class="siname" style="color:var(--red)">Déconnexion</div><div class="sisub">Quitter Marathon</div></div>
-      <div class="siarrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
+  <div class="sl">
+    <div class="si" onclick="window.location.href='mot-de-passe.html'"><div class="sii" style="background:rgba(196,28,28,.08)"><svg stroke="var(--red)" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="st"><div class="sn">Mot de passe</div><div class="ss">Modifier votre mot de passe</div></div><div class="sar"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="si" onclick="window.location.href='carte.html'"><div class="sii" style="background:rgba(22,163,74,.08)"><svg stroke="#16A34A" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="st"><div class="sn">Méthodes de paiement</div><div class="ss">Gérez vos cartes</div></div><div class="sar"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="si" onclick="window.location.href='service.html'"><div class="sii" style="background:rgba(59,130,246,.08)"><svg stroke="#3B82F6" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="st"><div class="sn">Support & Contact</div><div class="ss">Nous sommes là pour vous</div></div><div class="sar"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="si" onclick="window.location.href='apropos.html'"><div class="sii" style="background:rgba(168,85,247,.08)"><svg stroke="#A855F7" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div class="st"><div class="sn">À propos</div><div class="ss">Version 1.0</div></div><div class="sar"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="si" onclick="doLogout()"><div class="sii" style="background:#FFF0F0"><svg stroke="var(--red)" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div class="st"><div class="sn" style="color:var(--red)">Déconnexion</div><div class="ss">Quitter Marathon</div></div><div class="sar"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
   </div>
 </div>
 
+<!-- BOTTOM NAV -->
 <nav class="bnav">
-  <button class="ni on" id="n-accueil" onclick="showPage('accueil')">
+  <button class="ni on" id="n-accueil" onclick="nav('accueil')">
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     <span>Accueil</span><div class="ndot"></div>
   </button>
-  <button class="ni" id="n-produit" onclick="showPage('produit')">
+  <button class="ni" id="n-produit" onclick="nav('produit')">
     <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
     <span>Produit</span><div class="ndot"></div>
   </button>
-  <button class="ni" id="n-equipes" onclick="showPage('equipes')">
+  <button class="ni" id="n-equipes" onclick="nav('equipes')">
     <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     <span>Equipes</span><div class="ndot"></div>
   </button>
-  <button class="ni" id="n-compte" onclick="showPage('compte')">
+  <button class="ni" id="n-compte" onclick="nav('compte')">
     <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <span>Mon compte</span><div class="ndot"></div>
   </button>
@@ -502,95 +284,131 @@ input[type=file]{display:none}
 </div>
 
 <script>
-{SB_JS}
-window.addEventListener('DOMContentLoaded', async function() {{
-  var u = await initAuth('index.html');
-  if (!u) return;
-  var m = u.user_metadata || {{}};
-  var name = m.full_name || u.email.split('@')[0];
-  var phone = m.phone_number || '——';
-  var letter = name.charAt(0).toUpperCase();
-  document.getElementById('hname').textContent = name;
-  document.getElementById('hphone').textContent = phone;
-  document.getElementById('avletter').textContent = letter;
-  document.getElementById('acname').textContent = name;
-  document.getElementById('acphone').textContent = phone;
-  document.getElementById('acemail').textContent = u.email || '——';
-  document.getElementById('acav').textContent = letter;
-  var code = 'MAR' + u.id.slice(-5).toUpperCase();
-  document.getElementById('rcode').textContent = code;
-  var av = localStorage.getItem('marathon_avatar');
-  if (av) setAvatar(av);
-  try {{
-    var r = await sb.from('profiles').select('balance,total_earnings,level,referral_code').eq('id', u.id).single();
-    if (r.data) {{
-      document.getElementById('bal').textContent = (r.data.balance||0).toLocaleString('fr-FR');
-      document.getElementById('earn').textContent = (r.data.total_earnings||0).toLocaleString('fr-FR');
-      document.getElementById('hlevel').textContent = 'LV'+(r.data.level||0);
-      if (r.data.referral_code) document.getElementById('rcode').textContent = r.data.referral_code;
-    }}
-  }} catch(e) {{}}
-  try {{
-    var tr = await sb.from('referrals').select('*').eq('referrer_id', u.id);
-    if (tr.data && tr.data.length) {{
-      document.getElementById('tmembers').textContent = tr.data.length;
-      var total = tr.data.reduce(function(s,x){{ return s+(x.commission||0); }}, 0);
-      document.getElementById('tcommission').textContent = total.toLocaleString('fr-FR')+' F';
-      document.getElementById('memlist').innerHTML = tr.data.map(function(m) {{
-        return '<div class="memitem"><div class="memav">'+((m.referred_name||'U').charAt(0).toUpperCase())+'</div>'
-          +'<div style="flex:1"><div class="memname">'+(m.referred_name||'Membre')+'</div>'
-          +'<div class="memdate">'+new Date(m.created_at).toLocaleDateString('fr-FR')+'</div></div>'
-          +'<span class="membadge">+'+((m.commission||0).toLocaleString('fr-FR'))+' F</span></div>';
-      }}).join('');
-    }}
-  }} catch(e) {{}}
+// ── Supabase ──
+var sb = null;
+try {
+  sb = supabase.createClient(
+    'https://mzxxfxkryhxnycewyryv.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
+  );
+} catch(e) { console.warn('Supabase error', e); }
+
+// ── Auth: non-blocking, page always visible ──
+window.addEventListener('DOMContentLoaded', function() {
   startBanner();
-}});
-function setAvatar(src) {{
-  var i=document.getElementById('avimg'), d=document.getElementById('avdef');
-  i.src=src; i.style.display='block'; d.style.display='none';
-  document.getElementById('acav').innerHTML='<img src="'+src+'"/>';
-}}
-document.getElementById('file-avatar').addEventListener('change', function(e) {{
-  var f=e.target.files[0]; if(!f) return;
-  var r=new FileReader();
-  r.onload=function(ev){{ localStorage.setItem('marathon_avatar',ev.target.result); setAvatar(ev.target.result); toast('Photo mise à jour ✓'); }};
+  loadAvatar();
+  if (sb) {
+    sb.auth.getSession().then(function(res) {
+      var session = res.data && res.data.session;
+      if (!session) { window.location.href = 'index.html'; return; }
+      var u = session.user;
+      var m = u.user_metadata || {};
+      var name = m.full_name || u.email.split('@')[0] || 'Utilisateur';
+      var phone = m.phone_number || '——';
+      var letter = name.charAt(0).toUpperCase();
+      document.getElementById('hname').textContent = name;
+      document.getElementById('hphone').textContent = phone;
+      document.getElementById('avl').textContent = letter;
+      document.getElementById('acn').textContent = name;
+      document.getElementById('acp').textContent = phone;
+      document.getElementById('ace').textContent = u.email || '——';
+      document.getElementById('acav').textContent = letter;
+      var code = 'MAR' + u.id.slice(-5).toUpperCase();
+      document.getElementById('rcode').textContent = code;
+      sb.from('profiles').select('balance,total_earnings,level,referral_code').eq('id', u.id).single().then(function(r) {
+        if (r.data) {
+          document.getElementById('bal').innerHTML = (r.data.balance||0).toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+          document.getElementById('earn').innerHTML = (r.data.total_earnings||0).toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+          document.getElementById('hlv').textContent = 'LV' + (r.data.level||0);
+          if (r.data.referral_code) document.getElementById('rcode').textContent = r.data.referral_code;
+        }
+      }).catch(function(){});
+      sb.from('referrals').select('*').eq('referrer_id', u.id).then(function(r) {
+        if (r.data && r.data.length) {
+          document.getElementById('tcount').textContent = r.data.length;
+          var tot = r.data.reduce(function(s,x){ return s+(x.commission||0); }, 0);
+          document.getElementById('tcom').textContent = tot.toLocaleString('fr-FR') + ' F';
+          document.getElementById('mlist').innerHTML = r.data.map(function(m) {
+            return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bo)">'
+              + '<div style="width:36px;height:36px;border-radius:50%;background:rgba(196,28,28,.1);display:flex;align-items:center;justify-content:center;font-family:Cormorant Garamond,serif;font-size:16px;font-weight:700;color:var(--red);flex-shrink:0">'+((m.referred_name||'U').charAt(0).toUpperCase())+'</div>'
+              + '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+(m.referred_name||'Membre')+'</div>'
+              + '<div style="font-size:11px;color:var(--mu)">'+new Date(m.created_at).toLocaleDateString('fr-FR')+'</div></div>'
+              + '<span style="background:#FFF0F0;color:var(--red);font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px">+'+(m.commission||0).toLocaleString('fr-FR')+' F</span></div>';
+          }).join('');
+        }
+      }).catch(function(){});
+    }).catch(function(e) { console.warn(e); });
+  }
+});
+
+// ── Avatar ──
+function loadAvatar() {
+  var a = localStorage.getItem('marathon_avatar');
+  if (a) setAvatar(a);
+}
+function setAvatar(src) {
+  var i = document.getElementById('avi'), d = document.getElementById('avd');
+  i.src = src; i.style.display = 'block'; d.style.display = 'none';
+  document.getElementById('acav').innerHTML = '<img src="' + src + '"/>';
+}
+document.getElementById('file-avatar').addEventListener('change', function(e) {
+  var f = e.target.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function(ev) {
+    localStorage.setItem('marathon_avatar', ev.target.result);
+    setAvatar(ev.target.result);
+    toast('Photo mise à jour ✓');
+  };
   r.readAsDataURL(f);
-}});
-function showPage(n) {{
-  document.querySelectorAll('.page').forEach(function(p){{ p.classList.remove('on'); }});
-  document.querySelectorAll('.ni').forEach(function(b){{ b.classList.remove('on'); }});
+});
+
+// ── Navigation ──
+function nav(n) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('on'); });
+  document.querySelectorAll('.ni').forEach(function(b) { b.classList.remove('on'); });
   document.getElementById('p-'+n).classList.add('on');
   document.getElementById('n-'+n).classList.add('on');
-  document.getElementById('p-'+n).scrollTop=0;
-}}
-var bi=0;
-function goSlide(n) {{
-  bi=n;
-  document.getElementById('btrack').style.transform='translateX(-'+(100/3*n)+'%)';
-  document.querySelectorAll('.dot').forEach(function(d,i){{ d.classList.toggle('on',i===n); }});
-}}
-function startBanner() {{ setInterval(function(){{ goSlide((bi+1)%3); }}, 4000); }}
-function copyCode() {{
-  var code=document.getElementById('rcode').textContent;
-  var link=window.location.origin+'/index.html?ref='+code;
-  navigator.clipboard.writeText(link).then(function(){{ toast('Lien copié !'); }}).catch(function(){{ toast('Code : '+code); }});
-}}
-function shareWA() {{
-  var code=document.getElementById('rcode').textContent;
-  window.open('https://wa.me/?text='+encodeURIComponent('Rejoignez Marathon ! '+window.location.origin+'/index.html?ref='+code));
-}}
-function shareLink() {{
-  var code=document.getElementById('rcode').textContent;
-  var link=window.location.origin+'/index.html?ref='+code;
-  if (navigator.share) {{ navigator.share({{title:'Marathon',url:link}}); }}
-  else {{ navigator.clipboard.writeText(link).then(function(){{ toast('Lien copié !'); }}); }}
-}}
-async function doLogout() {{
+  document.getElementById('p-'+n).scrollTop = 0;
+}
+
+// ── Banner ──
+var bi = 0;
+function gS(n) {
+  bi = n;
+  document.getElementById('btrack').style.transform = 'translateX(-' + (100/3*n) + '%)';
+  document.querySelectorAll('.dot').forEach(function(d,i) { d.classList.toggle('on', i===n); });
+}
+function startBanner() { setInterval(function() { gS((bi+1)%3); }, 4000); }
+
+// ── Referral ──
+function copyCode() {
+  var c = document.getElementById('rcode').textContent;
+  navigator.clipboard.writeText(window.location.origin+'/index.html?ref='+c).then(function(){ toast('Lien copié !'); }).catch(function(){ toast('Code : '+c); });
+}
+function shareWA() {
+  var c = document.getElementById('rcode').textContent;
+  window.open('https://wa.me/?text='+encodeURIComponent('Rejoignez Marathon ! '+window.location.origin+'/index.html?ref='+c));
+}
+function shareLink() {
+  var c = document.getElementById('rcode').textContent;
+  var l = window.location.origin+'/index.html?ref='+c;
+  if (navigator.share) { navigator.share({title:'Marathon',url:l}); }
+  else { navigator.clipboard.writeText(l).then(function(){ toast('Lien copié !'); }); }
+}
+
+// ── Logout ──
+function doLogout() {
   if (!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
-  try {{ if(sb) await sb.auth.signOut(); }} catch(e) {{}}
-  window.location.href='index.html';
-}}
+  if (sb) { sb.auth.signOut().catch(function(){}); }
+  window.location.href = 'index.html';
+}
+
+// ── Toast ──
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2600);
+}
 </script>
 </body>
 </html>
