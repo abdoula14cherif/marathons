@@ -112,6 +112,31 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
 #toast.show{transform:translateX(-50%) translateY(0)}
 input[type=file]{display:none}
+
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.sheet-bg.on{display:flex}
+.sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;animation:slideUp .3s cubic-bezier(.34,1.2,.64,1);padding:0 0 28px}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-handle{width:40px;height:4px;background:rgba(196,28,28,.15);border-radius:2px;margin:12px auto 0}
+.sh-hdr{padding:14px 18px 12px;border-bottom:1px solid rgba(196,28,28,.1);display:flex;align-items:center;justify-content:space-between}
+.sh-title{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:var(--t1)}
+.sh-close{background:var(--cr);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sh-body{padding:16px 18px 0}
+.sh-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bo);font-size:13px}
+.sh-row:last-child{border-bottom:none}
+.sh-row span{color:var(--t2)}
+.sh-row b{color:var(--t1)}
+.sh-bal{display:flex;justify-content:space-between;align-items:center;background:var(--cr);border-radius:11px;padding:11px 13px;margin:12px 0}
+.sh-insuf{background:#FFF0F0;border-radius:10px;padding:11px 13px;margin-bottom:10px;font-size:12.5px;color:var(--red);text-align:center;display:none}
+.sh-note{background:#FFF7ED;border-radius:10px;padding:10px 12px;font-size:12px;color:#92400E;margin-bottom:12px}
+.sh-btn{width:100%;padding:13px;border-radius:12px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;margin-bottom:8px}
+.sh-btn:disabled{opacity:.6;cursor:not-allowed}
+.sh-btn.g{background:var(--cr);color:var(--red);border:1.5px solid rgba(196,28,28,.22)}
+.inv-ok{display:none;text-align:center;padding:20px 18px}
+.inv-ok.on{display:block}
+.inv-ok .ico{font-size:50px;margin-bottom:12px}
+.inv-ok h3{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600;color:var(--t1);margin-bottom:8px}
+.inv-ok p{font-size:13px;color:var(--mu);line-height:1.6;margin-bottom:16px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -165,7 +190,7 @@ input[type=file]{display:none}
     <div class="bc"><div class="bl">Solde</div><div class="ba" id="bal">0 <span style="font-size:11px;font-weight:400">FCFA</span></div></div>
     <div class="bc"><div class="bl">Revenus cumulés</div><div class="ba" id="earn">0 <span style="font-size:11px;font-weight:400">FCFA</span></div></div>
   </div>
-  <div class="bonus">🎁 Bonus d'inscription : <strong>500 FCFA</strong> offert automatiquement !</div>
+  <div class="bonus" id="bonus-banner" style="display:none">🎁 Bonus de bienvenue : <strong>+500 FCFA</strong> crédité sur votre compte !</div>
   <div class="ms">
     <div class="mt">Informations</div>
     <div class="mg">
@@ -263,6 +288,50 @@ input[type=file]{display:none}
 </div>
 
 <!-- BOTTOM NAV -->
+<div class="sheet-bg" id="inv-sheet" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <div class="sh-title">Confirmer l'investissement</div>
+      <button class="sh-close" onclick="closeSheet()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="sh-form">
+      <div class="sh-body">
+        <div style="background:var(--cr);border-radius:11px;padding:13px;margin-bottom:12px">
+          <div class="sh-row"><span>Plan</span><b id="si-name">—</b></div>
+          <div class="sh-row"><span>Investissement</span><b id="si-amt">—</b></div>
+          <div class="sh-row"><span>Revenu / jour</span><b id="si-rev">—</b></div>
+          <div class="sh-row"><span>Durée</span><b>100 jours</b></div>
+          <div class="sh-row" style="padding-top:9px;font-weight:600"><span>Gain total</span><b id="si-total" style="color:var(--red)">—</b></div>
+        </div>
+        <div class="sh-bal">
+          <div>
+            <div style="font-size:10.5px;color:var(--mu);margin-bottom:3px">Votre solde actuel</div>
+            <div id="si-bal" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--red)">—</div>
+          </div>
+          <svg width="30" height="30" fill="none" stroke="var(--red)" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:.35"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        </div>
+        <div class="sh-insuf" id="si-insuf">
+          Solde insuffisant pour ce plan.<br/>
+          <span onclick="closeSheet();window.location.href='recharge.html'" style="font-weight:600;cursor:pointer;text-decoration:underline">Recharger mon compte →</span>
+        </div>
+        <div class="sh-note">⚡ Une tâche quotidienne s'activera chaque jour. Validez-la pour recevoir votre revenu journalier.</div>
+        <button class="sh-btn" id="si-btn" onclick="doInvest()">Confirmer l'investissement</button>
+        <button class="sh-btn g" onclick="closeSheet()">Annuler</button>
+      </div>
+    </div>
+    <div class="inv-ok" id="sh-ok">
+      <div class="ico">✅</div>
+      <h3>Investissement activé !</h3>
+      <p id="sh-ok-msg">Votre plan est actif.</p>
+      <button class="sh-btn" onclick="closeSheet();nav('accueil')">Retour à l'accueil</button>
+      <button class="sh-btn g" onclick="closeSheet();window.location.href='historique.html'">Voir mes tâches →</button>
+    </div>
+  </div>
+</div>
+
 <nav class="bnav">
   <button class="ni on" id="n-accueil" onclick="nav('accueil')">
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -318,7 +387,13 @@ window.addEventListener('DOMContentLoaded', function() {
       sb.from('profiles').select('balance,total_earnings,level,referral_code').eq('id', u.id).single().then(function(r) {
         if (r.data) {
           document.getElementById('bal').innerHTML = (r.data.balance||0).toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+          currentBalance = r.data.balance || 0;
           document.getElementById('earn').innerHTML = (r.data.total_earnings||0).toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+          // Show bonus banner if it's a new account
+          if (r.data.bonus_received) {
+            var bb = document.getElementById('bonus-banner');
+            if (bb) bb.style.display = 'block';
+          }
           document.getElementById('hlv').textContent = 'LV' + (r.data.level||0);
           if (r.data.referral_code) document.getElementById('rcode').textContent = r.data.referral_code;
         }
@@ -408,6 +483,65 @@ function toast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 2600);
+}
+
+var investData = null, currentBalance = 0;
+function openInvest(pid, pname, amt, rev) {
+  investData = {id:pid, name:pname, amount:amt, revenue:rev};
+  document.getElementById('si-name').textContent = pname;
+  document.getElementById('si-amt').textContent = amt.toLocaleString('fr-FR') + ' FCFA';
+  document.getElementById('si-rev').textContent = rev.toLocaleString('fr-FR') + ' FCFA / jour';
+  document.getElementById('si-total').textContent = (rev * 100).toLocaleString('fr-FR') + ' FCFA';
+  document.getElementById('si-bal').textContent = currentBalance.toLocaleString('fr-FR') + ' FCFA';
+  document.getElementById('sh-ok').classList.remove('on');
+  document.getElementById('sh-form').style.display = 'block';
+  var insuf = document.getElementById('si-insuf');
+  var btn = document.getElementById('si-btn');
+  if (currentBalance < amt) {
+    insuf.style.display = 'block'; btn.disabled = true; btn.textContent = 'Solde insuffisant';
+  } else {
+    insuf.style.display = 'none'; btn.disabled = false; btn.textContent = 'Confirmer l\'investissement';
+  }
+  document.getElementById('inv-sheet').classList.add('on');
+}
+function closeSheet() {
+  document.getElementById('inv-sheet').classList.remove('on');
+}
+async function doInvest() {
+  if (!investData || !currentUser || currentBalance < investData.amount) return;
+  var btn = document.getElementById('si-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle"></span>Investissement...';
+  try {
+    var ri = await sb.from('investments').insert({
+      user_id: currentUser.id, plan_id: investData.id, plan_name: investData.name,
+      amount: investData.amount, daily_revenue: investData.revenue,
+      days_total: 100, days_remaining: 100, days_completed: 0, total_earned: 0, status: 'active'
+    }).select().single();
+    if (ri.error) throw ri.error;
+    var newBal = currentBalance - investData.amount;
+    await sb.from('profiles').update({balance: newBal}).eq('id', currentUser.id);
+    await sb.from('transactions').insert({
+      user_id: currentUser.id, type: 'depot', amount: investData.amount,
+      fee: 0, net_amount: investData.amount, status: 'success',
+      description: 'Investissement Plan ' + investData.name
+    });
+    var today = new Date().toISOString().split('T')[0];
+    await sb.from('daily_tasks').insert({
+      user_id: currentUser.id, investment_id: ri.data.id,
+      task_date: today, reward_amount: investData.revenue,
+      plan_name: investData.name, status: 'pending'
+    }).then(function(){}).catch(function(){});
+    currentBalance = newBal;
+    document.getElementById('bal').innerHTML = newBal.toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+    document.getElementById('sh-ok-msg').textContent = 'Plan ' + investData.name + ' actif ! Allez dans Historique > Tâches pour recevoir vos ' + investData.revenue.toLocaleString('fr-FR') + ' FCFA aujourd\'hui.';
+    document.getElementById('sh-form').style.display = 'none';
+    document.getElementById('sh-ok').classList.add('on');
+    toast('Plan ' + investData.name + ' activé ✓');
+  } catch(e) {
+    toast('Erreur : ' + (e.message || 'Réessayez'));
+    btn.disabled = false; btn.textContent = 'Confirmer l\'investissement';
+  }
 }
 </script>
 </body>
