@@ -3,164 +3,1158 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Marathon — Historique</title>
+<title>Marathon — Historique & Tâches</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--red:#C41C1C;--rd:#9E1616;--cr:#F7F2EC;--mu:#8A7070;--bo:rgba(196,28,28,.12);--t1:#1A1212;--t2:#4A3A3A}
-body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-height:100vh;padding-bottom:30px}
-.topbar{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;display:flex;align-items:center;gap:12px}
-.back{background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
-.back svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5}
-.topbar h1{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:#fff}
-.topbar p{color:rgba(255,255,255,.72);font-size:12px;margin-top:2px}
-.content{padding:16px}
-.card{background:#fff;border-radius:14px;padding:16px;border:1px solid var(--bo);margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-.field{margin-bottom:15px}
-.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
-.field input,.field select{width:100%;padding:12px 14px;border:1.5px solid var(--bo);border-radius:11px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--t1);background:var(--cr);outline:none;transition:all .2s}
-.field input:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px rgba(196,28,28,.1)}
-.btn{width:100%;padding:13px;border-radius:12px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;transition:all .2s}
-.btn:active{transform:scale(.98)}
-.btn:disabled{opacity:.6;cursor:not-allowed}
-.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle}
-@keyframes sp{to{transform:rotate(360deg)}}
-.alert{padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
-.alert.err{display:block;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC}
-.alert.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0}
-#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
-#toast.show{transform:translateX(-50%) translateY(0)}
-.loader{text-align:center;padding:40px 20px;color:var(--mu);font-size:13px}
-.loader svg{animation:sp 1s linear infinite;display:block;margin:0 auto 10px}
+
+:root{
+--red:#C41C1C;
+--rd:#9E1616;
+--cr:#F7F2EC;
+--mu:#8A7070;
+--bo:rgba(196,28,28,.12);
+--t1:#1A1212;
+--t2:#4A3A3A;
+}
+
+body{
+font-family:"DM Sans",sans-serif;
+background:var(--cr);
+color:var(--t1);
+min-height:100vh;
+padding-bottom:30px;
+}
+
+.topbar{
+background:linear-gradient(135deg,var(--rd),var(--red));
+padding:44px 16px 16px;
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.back{
+background:rgba(255,255,255,.18);
+border:none;
+border-radius:10px;
+width:36px;
+height:36px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+flex-shrink:0;
+}
+
+.back svg{
+width:20px;
+height:20px;
+stroke:#fff;
+fill:none;
+stroke-width:2.5;
+}
+
+.topbar h1{
+font-family:"Cormorant Garamond",serif;
+font-size:24px;
+font-weight:600;
+color:#fff;
+}
+
+.topbar p{
+color:rgba(255,255,255,.72);
+font-size:12px;
+margin-top:2px;
+}
+
+.tabs{
+display:flex;
+background:#fff;
+border-bottom:1px solid var(--bo);
+position:sticky;
+top:0;
+z-index:10;
+}
+
+.tab{
+flex:1;
+padding:13px;
+border:none;
+background:none;
+font-family:"DM Sans",sans-serif;
+font-size:13.5px;
+font-weight:500;
+color:var(--mu);
+cursor:pointer;
+border-bottom:2.5px solid transparent;
+transition:all .2s;
+}
+
+.tab.on{
+color:var(--red);
+border-bottom-color:var(--red);
+}
+
+.tab-section{
+display:none;
+padding:16px;
+}
+
+.tab-section.on{
+display:block;
+}
+
+.task-card{
+background:#fff;
+border-radius:14px;
+border:1px solid var(--bo);
+margin-bottom:12px;
+overflow:hidden;
+box-shadow:0 2px 10px rgba(0,0,0,.05);
+}
+
+.task-header{
+display:flex;
+align-items:center;
+gap:12px;
+padding:14px;
+}
+
+.task-plan-badge{
+width:44px;
+height:44px;
+border-radius:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+flex-shrink:0;
+}
+
+.task-plan-name{
+font-size:14px;
+font-weight:600;
+color:var(--t1);
+}
+
+.task-reward{
+font-family:"Cormorant Garamond",serif;
+font-size:20px;
+font-weight:700;
+color:var(--red);
+}
+
+.task-reward-label{
+font-size:10.5px;
+color:var(--mu);
+}
+
+.task-status{
+font-size:10px;
+font-weight:700;
+padding:3px 9px;
+border-radius:20px;
+flex-shrink:0;
+}
+
+.task-status.pending{
+background:#FFF7ED;
+color:#D97706;
+}
+
+.task-status.done{
+background:#F0FFF4;
+color:#166534;
+}
+
+.vehicle-section{
+padding:0 14px 14px;
+display:none;
+}
+
+.vehicle-section.on{
+display:block;
+}
+
+.vehicle-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+margin-bottom:12px;
+}
+
+.veh-btn{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:5px;
+padding:12px 6px;
+background:var(--cr);
+border-radius:11px;
+border:2px solid transparent;
+cursor:pointer;
+font-family:"DM Sans",sans-serif;
+transition:all .2s;
+}
+
+.veh-btn.sel{
+border-color:var(--red);
+background:#FFF0F0;
+}
+
+.veh-btn:active{
+transform:scale(.94);
+}
+
+.veh-emoji{
+font-size:26px;
+}
+
+.veh-label{
+font-size:11px;
+font-weight:500;
+color:var(--t2);
+text-align:center;
+}
+
+.confirm-task-btn{
+width:100%;
+padding:13px;
+border-radius:12px;
+border:none;
+cursor:pointer;
+font-family:"DM Sans",sans-serif;
+font-size:14px;
+font-weight:600;
+background:linear-gradient(135deg,var(--red),var(--rd));
+color:#fff;
+}
+
+.confirm-task-btn:disabled{
+opacity:.6;
+cursor:not-allowed;
+}
+
+.task-divider{
+height:1px;
+background:var(--bo);
+}
+
+.tx-item{
+display:flex;
+align-items:center;
+gap:11px;
+background:#fff;
+border-radius:13px;
+padding:12px 14px;
+margin-bottom:8px;
+border:1px solid var(--bo);
+}
+
+.tx-ico{
+width:40px;
+height:40px;
+border-radius:11px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:19px;
+flex-shrink:0;
+}
+
+.tx-desc{
+font-size:13px;
+font-weight:500;
+color:var(--t1);
+}
+
+.tx-date{
+font-size:11px;
+color:var(--mu);
+margin-top:2px;
+}
+
+.tx-status{
+font-size:9.5px;
+font-weight:600;
+padding:2px 7px;
+border-radius:20px;
+margin-top:3px;
+display:inline-block;
+}
+
+.tx-amt{
+font-size:14px;
+font-weight:700;
+text-align:right;
+flex-shrink:0;
+}
+
+.filters{
+display:flex;
+gap:7px;
+margin-bottom:14px;
+flex-wrap:wrap;
+}
+
+.fbtn{
+padding:7px 13px;
+border-radius:20px;
+border:1.5px solid var(--bo);
+font-size:12px;
+font-weight:500;
+color:var(--mu);
+background:#fff;
+cursor:pointer;
+}
+
+.fbtn.on{
+border-color:var(--red);
+color:var(--red);
+background:#FFF0F0;
+}
+
+.summary{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-bottom:14px;
+}
+
+.sum-card{
+background:#fff;
+border-radius:12px;
+padding:12px;
+border:1px solid var(--bo);
+text-align:center;
+}
+
+.sum-val{
+font-family:"Cormorant Garamond",serif;
+font-size:18px;
+font-weight:700;
+}
+
+.sum-lbl{
+font-size:10px;
+color:var(--mu);
+margin-top:2px;
+}
+
+.spin{
+width:15px;
+height:15px;
+border:2px solid rgba(255,255,255,.35);
+border-top-color:#fff;
+border-radius:50%;
+animation:sp .6s linear infinite;
+display:inline-block;
+margin-right:6px;
+vertical-align:middle;
+}
+
+@keyframes sp{
+to{transform:rotate(360deg)}
+}
+
+.empty{
+text-align:center;
+padding:36px 20px;
+color:var(--mu);
+}
+
+.empty svg{
+display:block;
+margin:0 auto 10px;
+opacity:.3;
+}
+
+#toast{
+position:fixed;
+top:16px;
+left:50%;
+transform:translateX(-50%) translateY(-70px);
+background:var(--t1);
+color:#fff;
+padding:10px 18px;
+border-radius:30px;
+font-size:13px;
+font-weight:500;
+z-index:9999;
+transition:transform .3s;
+white-space:nowrap;
+max-width:88vw;
+pointer-events:none;
+}
+
+#toast.show{
+transform:translateX(-50%) translateY(0);
+}
+
+.task-done-banner{
+background:linear-gradient(135deg,#16A34A,#15803D);
+border-radius:11px;
+padding:13px 14px;
+margin-bottom:12px;
+display:none;
+align-items:center;
+gap:10px;
+color:#fff;
+}
+
+.task-done-banner.show{
+display:flex;
+}
 </style>
 </head>
+
 <body>
+
 <div id="toast"></div>
 
 <div class="topbar">
-  <button class="back" onclick="go('dashboard.html')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
-  <div><h1>Historique</h1><p>Toutes vos transactions</p></div>
+<button class="back" onclick="window.location.href='dashboard.html'">
+<svg viewBox="0 0 24 24">
+<polyline points="15 18 9 12 15 6"/>
+</svg>
+</button>
+
+<div>
+<h1>Historique & Tâches</h1>
+<p>Transactions et tâches journalières</p>
 </div>
-<div class="content">
-
-  <!-- Filtre -->
-  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    <button class="filter-btn on" onclick="filterTx('all',this)">Tout</button>
-    <button class="filter-btn" onclick="filterTx('depot',this)">Dépôts</button>
-    <button class="filter-btn" onclick="filterTx('retrait',this)">Retraits</button>
-    <button class="filter-btn" onclick="filterTx('revenu',this)">Revenus</button>
-    <button class="filter-btn" onclick="filterTx('commission',this)">Commissions</button>
-  </div>
-
-  <!-- Résumé -->
-  <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0;overflow:hidden">
-    <div style="padding:13px;border-right:1px solid var(--bo);text-align:center">
-      <div id="total-in" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#16A34A">0</div>
-      <div style="font-size:10px;color:var(--mu);margin-top:2px">Total reçu (FCFA)</div>
-    </div>
-    <div style="padding:13px;text-align:center">
-      <div id="total-out" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--red)">0</div>
-      <div style="font-size:10px;color:var(--mu);margin-top:2px">Total retiré (FCFA)</div>
-    </div>
-  </div>
-
-  <!-- Liste -->
-  <div id="tx-list">
-    <div class="loader">
-      <svg width="28" height="28" fill="none" stroke="var(--mu)" stroke-width="2" viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/></svg>
-      Chargement des transactions...
-    </div>
-  </div>
 </div>
 
-<style>
-.filter-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--bo);font-family:"DM Sans",sans-serif;font-size:12px;font-weight:500;color:var(--mu);background:#fff;cursor:pointer;transition:all .2s}
-.filter-btn.on{border-color:var(--red);color:var(--red);background:#FFF0F0}
-.tx-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:13px;padding:13px 14px;margin-bottom:9px;border:1px solid var(--bo)}
-.tx-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
-.tx-desc{font-size:13.5px;font-weight:500;color:var(--t1)}
-.tx-date{font-size:11px;color:var(--mu);margin-top:2px}
-.tx-amt{font-size:14.5px;font-weight:700;text-align:right;flex-shrink:0}
-.tx-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-top:3px;display:inline-block}
-</style>
+<div class="tabs">
+<button class="tab on" onclick="switchTab('tasks',this)">⚡ Tâches du jour</button>
+<button class="tab" onclick="switchTab('tx',this)">📋 Transactions</button>
+</div>
+
+<!-- SECTION TACHES -->
+<div id="sec-tasks" class="tab-section on">
+
+<div class="task-done-banner" id="done-banner">
+<span style="font-size:28px">🎉</span>
+
+<div>
+<div style="font-size:14px;font-weight:600">Tâche validée !</div>
+<div id="done-msg" style="font-size:12px;opacity:.85">
+Votre revenu a été crédité.
+</div>
+</div>
+</div>
+
+<div id="tasks-list">
+<div class="empty">
+Chargement des tâches...
+</div>
+</div>
+
+</div>
+
+<!-- SECTION TRANSACTIONS -->
+<div id="sec-tx" class="tab-section">
+
+<div class="summary">
+<div class="sum-card">
+<div class="sum-val" id="s-in" style="color:#16A34A">0</div>
+<div class="sum-lbl">Total reçu (FCFA)</div>
+</div>
+
+<div class="sum-card">
+<div class="sum-val" id="s-out" style="color:var(--red)">0</div>
+<div class="sum-lbl">Total retiré (FCFA)</div>
+</div>
+</div>
+
+<div class="filters">
+<button class="fbtn on" onclick="filterTx('all',this)">Tout</button>
+<button class="fbtn" onclick="filterTx('depot',this)">Dépôts</button>
+<button class="fbtn" onclick="filterTx('retrait',this)">Retraits</button>
+<button class="fbtn" onclick="filterTx('revenu',this)">Revenus</button>
+<button class="fbtn" onclick="filterTx('tache',this)">Tâches</button>
+<button class="fbtn" onclick="filterTx('bonus',this)">Bonus</button>
+</div>
+
+<div id="tx-list">
+<div class="empty">Chargement...</div>
+</div>
+
+</div>
 
 <script>
-var sb=null,currentUser=null;
-try{sb=supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');}catch(e){}
-function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2600);}
-function go(u){window.location.href=u;}
-async function initAuth(r){
-  try{if(!sb)return null;var s=await sb.auth.getSession();if(!s.data||!s.data.session){go(r||'index.html');return null;}currentUser=s.data.session.user;return currentUser;}
-  catch(e){return null;}
-}
-var allTx = [];
 
-window.addEventListener('DOMContentLoaded', async function() {
-  var u = await initAuth('index.html');
-  if (!u) return;
-  try {
-    var r = await sb.from('transactions').select('*').eq('user_id', u.id).order('created_at', {ascending: false}).limit(100);
-    if (r.data) {
-      allTx = r.data;
-      renderTx(allTx);
-      // Totals
-      var tin = allTx.filter(function(t){ return ['depot','revenu','commission','bonus'].includes(t.type) && t.status==='success'; }).reduce(function(s,t){ return s+(t.amount||0); },0);
-      var tout = allTx.filter(function(t){ return t.type==='retrait' && t.status==='success'; }).reduce(function(s,t){ return s+(t.net_amount||t.amount||0); },0);
-      document.getElementById('total-in').textContent = tin.toLocaleString('fr-FR');
-      document.getElementById('total-out').textContent = tout.toLocaleString('fr-FR');
-    }
-  } catch(e) {}
+var sb = null;
+var currentUser = null;
+var allTx = [];
+var selectedVehicles = {};
+
+try{
+
+sb = supabase.createClient(
+'https://mzxxfxkryhxnycewyryv.supabase.co',
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
+);
+
+}catch(e){}
+
+function toast(msg){
+
+var t = document.getElementById('toast');
+
+t.textContent = msg;
+
+t.classList.add('show');
+
+setTimeout(function(){
+
+t.classList.remove('show');
+
+},3000);
+
+}
+
+window.addEventListener('DOMContentLoaded', async function(){
+
+try{
+
+if(!sb) return;
+
+var s = await sb.auth.getSession();
+
+if(!s.data || !s.data.session){
+
+window.location.href='index.html';
+return;
+
+}
+
+currentUser = s.data.session.user;
+
+await loadTasks();
+await loadTransactions();
+
+}catch(e){
+
+console.log(e);
+
+}
+
 });
 
-var ICONS = {depot:'💰',retrait:'📤',revenu:'📈',commission:'🤝',bonus:'🎁'};
-var COLORS = {depot:'#F0FFF4',retrait:'#FFF0F0',revenu:'#EFF6FF',commission:'#FDF4FF',bonus:'#FFF7ED'};
-var AMTCOL = {depot:'#16A34A',retrait:'#C41C1C',revenu:'#2563EB',commission:'#7C3AED',bonus:'#D97706'};
-var STATUS_STYLE = {
-  success:'background:#F0FFF4;color:#166534',
-  pending:'background:#FFF7ED;color:#92400E',
-  failed:'background:#FFF0F0;color:#C41C1C',
-  cancelled:'background:#F3F4F6;color:#6B7280'
+function switchTab(name,btn){
+
+document.querySelectorAll('.tab').forEach(function(t){
+
+t.classList.remove('on');
+
+});
+
+document.querySelectorAll('.tab-section').forEach(function(s){
+
+s.classList.remove('on');
+
+});
+
+btn.classList.add('on');
+
+document.getElementById('sec-'+name).classList.add('on');
+
+}
+
+var PLAN_COLORS = {
+starter:'#22C55E',
+bronze:'#3B82F6',
+silver:'#F97316',
+gold:'#F59E0B',
+premium:'#EF4444',
+vip:'#8B5CF6',
+cold:'#0EA5E9'
 };
-var STATUS_LBL = {success:'Succès',pending:'En attente',failed:'Échoué',cancelled:'Annulé'};
 
-function renderTx(list) {
-  var div = document.getElementById('tx-list');
-  if (!list || !list.length) {
-    div.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--mu);font-size:13px"><svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;opacity:.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Aucune transaction</div>';
-    return;
-  }
-  // Group by date
-  var groups = {};
-  list.forEach(function(t) {
-    var d = new Date(t.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'});
-    if (!groups[d]) groups[d] = [];
-    groups[d].push(t);
-  });
-  var html = '';
-  Object.keys(groups).forEach(function(date) {
-    html += '<div style="font-size:11px;font-weight:600;color:var(--mu);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px 2px">'+date+'</div>';
-    groups[date].forEach(function(t) {
-      var sign = ['depot','revenu','commission','bonus'].includes(t.type) ? '+' : '-';
-      var amt = t.type==='retrait' ? (t.net_amount||t.amount) : t.amount;
-      var st = t.status || 'pending';
-      html += '<div class="tx-item">'
-        + '<div class="tx-ico" style="background:'+( COLORS[t.type]||'#F3F4F6')+'">'+( ICONS[t.type]||'💳')+'</div>'
-        + '<div style="flex:1"><div class="tx-desc">'+(t.description||t.type)+'</div>'
-        + (t.phone ? '<div class="tx-date">'+t.phone+'</div>' : '')
-        + '<div class="tx-date">'+new Date(t.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</div>'
-        + '<span class="tx-status" style="'+STATUS_STYLE[st]+'">'+STATUS_LBL[st]+'</span></div>'
-        + '<div class="tx-amt" style="color:'+(AMTCOL[t.type]||'#000')+'">'+sign+amt.toLocaleString('fr-FR')+' F</div>'
-        + '</div>';
-    });
-  });
-  div.innerHTML = html;
+async function loadTasks(){
+
+var today = new Date().toISOString().split('T')[0];
+
+try{
+
+// GENERATION SECURISEE DES TACHES
+
+var ri = await sb
+.from('investments')
+.select('id,plan_id,plan_name,daily_revenue,days_remaining')
+.eq('user_id',currentUser.id)
+.eq('status','active')
+.gt('days_remaining',0);
+
+if(ri.data && ri.data.length){
+
+for(var i=0;i<ri.data.length;i++){
+
+var inv = ri.data[i];
+
+var existing = await sb
+.from('daily_tasks')
+.select('id')
+.eq('user_id',currentUser.id)
+.eq('investment_id',inv.id)
+.eq('task_date',today)
+.maybeSingle();
+
+if(!existing.data){
+
+await sb.from('daily_tasks').insert({
+
+user_id:currentUser.id,
+investment_id:inv.id,
+task_date:today,
+reward_amount:inv.daily_revenue,
+plan_name:inv.plan_name,
+status:'pending'
+
+});
+
 }
 
-function filterTx(type, btn) {
-  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('on'); });
-  btn.classList.add('on');
-  if (type === 'all') renderTx(allTx);
-  else renderTx(allTx.filter(function(t){ return t.type === type; }));
 }
-</script></body></html>
+
+}
+
+// LOAD TASKS
+
+var rt = await sb
+.from('daily_tasks')
+.select('*,investments(plan_id)')
+.eq('user_id',currentUser.id)
+.eq('task_date',today)
+.order('created_at',{ascending:false});
+
+renderTasks(rt.data || []);
+
+}catch(e){
+
+console.log(e);
+
+}
+
+}
+
+function renderTasks(tasks){
+
+var div = document.getElementById('tasks-list');
+
+if(!tasks || !tasks.length){
+
+div.innerHTML = `
+<div class="empty">
+Aucun investissement actif.
+</div>
+`;
+
+return;
+
+}
+
+var pending = tasks.filter(t=>t.status==='pending');
+var done = tasks.filter(t=>t.status==='completed');
+
+var html='';
+
+pending.forEach(function(t){
+
+var planId = (t.investments && t.investments.plan_id)
+? t.investments.plan_id
+: 'starter';
+
+var col = PLAN_COLORS[planId] || '#C41C1C';
+
+html += `
+<div class="task-card" id="task-${t.id}">
+
+<div class="task-header">
+
+<div class="task-plan-badge" style="background:${col}20">
+${getPlanEmoji(planId)}
+</div>
+
+<div style="flex:1">
+
+<div class="task-plan-name">
+Plan ${t.plan_name || 'Investissement'}
+</div>
+
+<div style="font-size:11px;color:var(--mu);margin-top:2px">
+Tâche du ${new Date(t.task_date).toLocaleDateString('fr-FR')}
+</div>
+
+</div>
+
+<div style="text-align:right">
+
+<div class="task-reward">
++${(t.reward_amount||0).toLocaleString('fr-FR')} F
+</div>
+
+<div class="task-reward-label">
+à gagner
+</div>
+
+</div>
+
+</div>
+
+<div class="task-divider"></div>
+
+<div style="padding:12px 14px">
+
+<div style="font-size:13px;color:var(--t2);margin-bottom:10px">
+⛽ <strong>Validez le ravitaillement</strong>
+</div>
+
+<button onclick="showVehicles('${t.id}')"
+style="width:100%;padding:11px;border-radius:10px;border:none;cursor:pointer;font-family:DM Sans,sans-serif;font-size:13.5px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff">
+⚡ Effectuer la tâche
+</button>
+
+</div>
+
+<div class="vehicle-section" id="veh-${t.id}">
+
+<div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:10px">
+Sélectionnez le véhicule :
+</div>
+
+<div class="vehicle-grid">
+
+<div class="veh-btn" onclick="selectVeh(this,'voiture','${t.id}')">
+<span class="veh-emoji">🚗</span>
+<span class="veh-label">Voiture</span>
+</div>
+
+<div class="veh-btn" onclick="selectVeh(this,'moto','${t.id}')">
+<span class="veh-emoji">🏍️</span>
+<span class="veh-label">Moto</span>
+</div>
+
+<div class="veh-btn" onclick="selectVeh(this,'camion','${t.id}')">
+<span class="veh-emoji">🚛</span>
+<span class="veh-label">Camion</span>
+</div>
+
+<div class="veh-btn" onclick="selectVeh(this,'bus','${t.id}')">
+<span class="veh-emoji">🚌</span>
+<span class="veh-label">Bus</span>
+</div>
+
+<div class="veh-btn" onclick="selectVeh(this,'minibus','${t.id}')">
+<span class="veh-emoji">🚐</span>
+<span class="veh-label">Minibus</span>
+</div>
+
+<div class="veh-btn" onclick="selectVeh(this,'generatrice','${t.id}')">
+<span class="veh-emoji">⚡</span>
+<span class="veh-label">Génératrice</span>
+</div>
+
+</div>
+
+<button id="confirm-${t.id}"
+class="confirm-task-btn"
+disabled
+onclick="confirmTask('${t.id}',${t.reward_amount || 0},'${t.plan_name || ''}','${t.investment_id}')">
+
+Valider le ravitaillement
+
+</button>
+
+</div>
+
+</div>
+`;
+
+});
+
+done.forEach(function(t){
+
+html += `
+<div class="task-card" style="opacity:.7">
+
+<div class="task-header">
+
+<div class="task-plan-badge" style="background:#F0FFF4">
+✅
+</div>
+
+<div style="flex:1">
+
+<div class="task-plan-name">
+Plan ${t.plan_name}
+</div>
+
+<div style="font-size:11px;color:var(--mu);margin-top:2px">
+Tâche effectuée
+</div>
+
+</div>
+
+<div style="text-align:right">
+
+<div style="font-size:15px;font-weight:700;color:#16A34A">
++${(t.reward_amount || 0).toLocaleString('fr-FR')} F
+</div>
+
+<span class="task-status done">
+Encaissé ✓
+</span>
+
+</div>
+
+</div>
+
+</div>
+`;
+
+});
+
+div.innerHTML = html;
+
+}
+
+function getPlanEmoji(planId){
+
+var e = {
+starter:'🟢',
+bronze:'🔵',
+silver:'🟠',
+gold:'🟣',
+premium:'🔴',
+vip:'👑',
+cold:'❄️'
+};
+
+return e[planId] || '💰';
+
+}
+
+function showVehicles(taskId){
+
+var veh = document.getElementById('veh-'+taskId);
+
+if(veh){
+
+veh.classList.toggle('on');
+
+selectedVehicles[taskId] = null;
+
+veh.querySelectorAll('.veh-btn').forEach(function(b){
+
+b.classList.remove('sel');
+
+});
+
+}
+
+}
+
+function selectVeh(el,type,taskId){
+
+var veh = document.getElementById('veh-'+taskId);
+
+veh.querySelectorAll('.veh-btn').forEach(function(b){
+
+b.classList.remove('sel');
+
+});
+
+el.classList.add('sel');
+
+selectedVehicles[taskId] = type;
+
+var btn = document.getElementById('confirm-'+taskId);
+
+btn.disabled = false;
+
+btn.textContent = 'Valider — '+type;
+
+}
+
+async function confirmTask(taskId,reward,planName,investId){
+
+var selectedVehicle = selectedVehicles[taskId];
+
+if(!selectedVehicle){
+
+toast('Sélectionnez un véhicule');
+
+return;
+
+}
+
+var btn = document.getElementById('confirm-'+taskId);
+
+btn.disabled = true;
+
+btn.innerHTML = '<span class="spin"></span>Validation...';
+
+try{
+
+// CHECK IF ALREADY COMPLETED
+
+var chk = await sb
+.from('daily_tasks')
+.select('status')
+.eq('id',taskId)
+.single();
+
+if(chk.data && chk.data.status==='completed'){
+
+toast('Tâche déjà effectuée');
+
+return;
+
+}
+
+// UPDATE TASK
+
+var r = await sb
+.from('daily_tasks')
+.update({
+
+status:'completed',
+vehicle_type:selectedVehicle,
+completed_at:new Date().toISOString()
+
+})
+.eq('id',taskId);
+
+if(r.error) throw r.error;
+
+// GET PROFILE
+
+var rp = await sb
+.from('profiles')
+.select('balance,total_earnings')
+.eq('id',currentUser.id)
+.single();
+
+if(rp.data){
+
+var newBal = (rp.data.balance || 0) + reward;
+var newEarn = (rp.data.total_earnings || 0) + reward;
+
+await sb
+.from('profiles')
+.update({
+
+balance:newBal,
+total_earnings:newEarn
+
+})
+.eq('id',currentUser.id);
+
+}
+
+// INSERT TX
+
+await sb.from('transactions').insert({
+
+user_id:currentUser.id,
+type:'tache',
+amount:reward,
+fee:0,
+net_amount:reward,
+status:'success',
+description:'Tâche journalière — '+planName
+
+});
+
+// UPDATE INVESTMENT
+
+var inv = await sb
+.from('investments')
+.select('days_remaining,days_completed,total_earned')
+.eq('id',investId)
+.single();
+
+if(inv.data){
+
+var newDays = Math.max(0,(inv.data.days_remaining || 0)-1);
+
+await sb
+.from('investments')
+.update({
+
+days_remaining:newDays,
+days_completed:(inv.data.days_completed || 0)+1,
+total_earned:(inv.data.total_earned || 0)+reward,
+status:newDays===0 ? 'completed' : 'active'
+
+})
+.eq('id',investId);
+
+}
+
+// SUCCESS
+
+document.getElementById('done-msg').textContent =
+'+'+reward.toLocaleString('fr-FR')+' FCFA crédités';
+
+document.getElementById('done-banner').classList.add('show');
+
+toast('🎉 '+reward.toLocaleString('fr-FR')+' FCFA reçus');
+
+selectedVehicles[taskId] = null;
+
+setTimeout(function(){
+
+document.getElementById('done-banner').classList.remove('show');
+
+loadTasks();
+loadTransactions();
+
+},1000);
+
+}catch(e){
+
+console.log(e);
+
+toast('Erreur : '+(e.message || 'Réessayez'));
+
+btn.disabled = false;
+
+btn.textContent = 'Valider le ravitaillement';
+
+}
+
+}
+
+// TRANSACTIONS
+
+async function loadTransactions(){
+
+try{
+
+var r = await sb
+.from('transactions')
+.select('*')
+.eq('user_id',currentUser.id)
+.order('created_at',{ascending:false})
+.limit(100);
+
+if(r.data){
+
+allTx = r.data;
+
+renderTx(allTx);
+
+var tin = allTx
+.filter(t=>['depot','revenu','commission','bonus','tache'].includes(t.type))
+.reduce((s,t)=>s+(t.amount || 0),0);
+
+var tout = allTx
+.filter(t=>t.type==='retrait')
+.reduce((s,t)=>s+(t.amount || 0),0);
+
+document.getElementById('s-in').textContent =
+tin.toLocaleString('fr-FR');
+
+document.getElementById('s-out').textContent =
+tout.toLocaleString('fr-FR');
+
+}
+
+}catch(e){
+
+console.log(e);
+
+}
+
+}
+
+function renderTx(list){
+
+var div = document.getElementById('tx-list');
+
+if(!list.length){
+
+div.innerHTML='<div class="empty">Aucune transaction</div>';
+
+return;
+
+}
+
+var html='';
+
+list.forEach(function(t){
+
+var sign = ['depot','revenu','commission','bonus','tache']
+.includes(t.type)
+? '+'
+: '-';
+
+html += `
+<div class="tx-item">
+
+<div class="tx-ico">
+💳
+</div>
+
+<div style="flex:1">
+
+<div class="tx-desc">
+${t.description || t.type}
+</div>
+
+<div class="tx-date">
+${new Date(t.created_at).toLocaleString('fr-FR')}
+</div>
+
+</div>
+
+<div class="tx-amt">
+${sign}${(t.amount || 0).toLocaleString('fr-FR')} F
+</div>
+
+</div>
+`;
+
+});
+
+div.innerHTML = html;
+
+}
+
+function filterTx(type,btn){
+
+document.querySelectorAll('.fbtn').forEach(function(b){
+
+b.classList.remove('on');
+
+});
+
+btn.classList.add('on');
+
+if(type==='all'){
+
+renderTx(allTx);
+
+}else{
+
+renderTx(allTx.filter(function(t){
+
+return t.type===type;
+
+}));
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
