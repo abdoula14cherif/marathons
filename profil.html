@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Marathon — Mon Profil</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#C41C1C;--rd:#9E1616;--cr:#F7F2EC;--mu:#8A7070;--bo:rgba(196,28,28,.12);--t1:#1A1212;--t2:#4A3A3A}
+body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-height:100vh;padding-bottom:30px}
+.topbar{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;display:flex;align-items:center;gap:12px}
+.back{background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.back svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5}
+.topbar h1{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:#fff}
+.topbar p{color:rgba(255,255,255,.72);font-size:12px;margin-top:2px}
+.content{padding:16px}
+.card{background:#fff;border-radius:14px;padding:16px;border:1px solid var(--bo);margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
+.field input,.field select{width:100%;padding:12px 14px;border:1.5px solid var(--bo);border-radius:11px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--t1);background:var(--cr);outline:none;transition:all .2s}
+.field input:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px rgba(196,28,28,.1)}
+.btn{width:100%;padding:13px;border-radius:12px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;transition:all .2s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.alert{padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
+.alert.err{display:block;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC}
+.alert.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.loader{text-align:center;padding:40px 20px;color:var(--mu);font-size:13px}
+.loader svg{animation:sp 1s linear infinite;display:block;margin:0 auto 10px}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<div class="topbar">
+  <button class="back" onclick="go('dashboard.html')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <div><h1>Mon Profil</h1><p>Vos informations personnelles</p></div>
+</div>
+<div class="content">
+
+  <!-- Avatar & infos principales -->
+  <div class="card" style="text-align:center;padding:24px 16px">
+    <div id="av-wrap" style="position:relative;display:inline-block;margin-bottom:14px;cursor:pointer" onclick="document.getElementById('file-av').click()">
+      <div id="av-def" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--rd));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:#fff;margin:0 auto">
+        <span id="av-letter">M</span>
+      </div>
+      <img id="av-img" src="" alt="" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--red)"/>
+      <div style="position:absolute;bottom:2px;right:2px;width:24px;height:24px;border-radius:50%;background:var(--rd);border:2px solid #fff;display:flex;align-items:center;justify-content:center">
+        <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+    </div>
+    <input type="file" id="file-av" accept="image/*" style="display:none"/>
+    <div id="p-name" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--t1)">——</div>
+    <div id="p-email" style="font-size:12.5px;color:var(--mu);margin-top:3px">——</div>
+    <div id="p-level" style="display:inline-flex;margin-top:8px;background:var(--red);color:#fff;font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px">LV0</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center">
+      <div style="padding:14px 8px;border-right:1px solid var(--bo)">
+        <div id="s-bal" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--red)">0</div>
+        <div style="font-size:10px;color:var(--mu);margin-top:2px">Solde (FCFA)</div>
+      </div>
+      <div style="padding:14px 8px;border-right:1px solid var(--bo)">
+        <div id="s-earn" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--red)">0</div>
+        <div style="font-size:10px;color:var(--mu);margin-top:2px">Revenus (FCFA)</div>
+      </div>
+      <div style="padding:14px 8px">
+        <div id="s-ref" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--red)">0</div>
+        <div style="font-size:10px;color:var(--mu);margin-top:2px">Filleuls</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Infos perso éditables -->
+  <div class="card">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--t1);margin-bottom:14px">Informations personnelles</div>
+    <div class="alert" id="al"></div>
+    <div class="field"><label>Nom complet</label><input type="text" id="f-name" placeholder="Votre nom"/></div>
+    <div class="field"><label>Téléphone</label><input type="tel" id="f-phone" placeholder="+237 6XX XXX XXX"/></div>
+    <div class="field"><label>Email</label><input type="email" id="f-email" disabled style="opacity:.6;cursor:not-allowed"/></div>
+    <button class="btn" id="save-btn" onclick="saveProfile()">Enregistrer les modifications</button>
+  </div>
+
+  <!-- Investissements actifs -->
+  <div class="card">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--t1);margin-bottom:12px">Investissements actifs</div>
+    <div id="investments-list"><div class="loader"><svg width="28" height="28" fill="none" stroke="var(--mu)" stroke-width="2" viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/></svg>Chargement...</div></div>
+  </div>
+
+  <!-- Infos compte -->
+  <div class="card">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--t1);margin-bottom:12px">Mon code de parrainage</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--cr);border-radius:10px;padding:12px 14px">
+      <div>
+        <div style="font-size:10px;color:var(--mu);margin-bottom:3px">CODE</div>
+        <div id="p-refcode" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--red);letter-spacing:.1em">——</div>
+      </div>
+      <button onclick="copyCode()" style="background:var(--red);color:#fff;border:none;border-radius:9px;padding:9px 14px;font-family:'DM Sans',serif;font-size:12.5px;font-weight:600;cursor:pointer">📋 Copier</button>
+    </div>
+    <div style="font-size:11px;color:var(--mu);margin-top:8px;text-align:center">Partagez ce code et gagnez 20% sur chaque investissement</div>
+  </div>
+
+  <button class="btn" style="background:var(--cr);color:var(--red);border:1.5px solid rgba(196,28,28,.22)" onclick="go('mot-de-passe.html')">🔒 Changer le mot de passe</button>
+</div>
+
+<script>
+var sb=null,currentUser=null;
+try{sb=supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');}catch(e){}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2600);}
+function go(u){window.location.href=u;}
+async function initAuth(r){
+  try{if(!sb)return null;var s=await sb.auth.getSession();if(!s.data||!s.data.session){go(r||'index.html');return null;}currentUser=s.data.session.user;return currentUser;}
+  catch(e){return null;}
+}
+window.addEventListener('DOMContentLoaded', async function() {
+  var u = await initAuth('index.html');
+  if (!u) return;
+  // Avatar from localStorage
+  var av = localStorage.getItem('marathon_avatar');
+  if (av) { document.getElementById('av-img').src=av; document.getElementById('av-img').style.display='block'; document.getElementById('av-def').style.display='none'; }
+  document.getElementById('f-email').value = u.email || '';
+  // Load profile
+  try {
+    var rp = await sb.from('profiles').select('*').eq('id', u.id).single();
+    if (rp.data) {
+      var p = rp.data;
+      var name = p.full_name || (u.user_metadata||{}).full_name || '';
+      var letter = name ? name.charAt(0).toUpperCase() : 'M';
+      document.getElementById('av-letter').textContent = letter;
+      document.getElementById('p-name').textContent = name || '——';
+      document.getElementById('p-email').textContent = u.email || '——';
+      document.getElementById('p-level').textContent = 'LV' + (p.level || 0);
+      document.getElementById('s-bal').textContent = (p.balance||0).toLocaleString('fr-FR');
+      document.getElementById('s-earn').textContent = (p.total_earnings||0).toLocaleString('fr-FR');
+      document.getElementById('f-name').value = name;
+      document.getElementById('f-phone').value = p.phone || '';
+      var code = p.referral_code || ('MAR' + u.id.slice(-5).toUpperCase());
+      document.getElementById('p-refcode').textContent = code;
+    }
+  } catch(e) {}
+  // Referral count
+  try {
+    var rr = await sb.from('referrals').select('id', {count:'exact'}).eq('referrer_id', u.id);
+    document.getElementById('s-ref').textContent = rr.count || 0;
+  } catch(e) {}
+  // Active investments
+  try {
+    var ri = await sb.from('investments').select('*').eq('user_id', u.id).eq('status', 'active');
+    var div = document.getElementById('investments-list');
+    if (ri.data && ri.data.length > 0) {
+      var COLORS = {starter:'#22C55E',bronze:'#3B82F6',silver:'#F97316',gold:'#F59E0B',premium:'#EF4444',vip:'#8B5CF6',cold:'#0EA5E9'};
+      div.innerHTML = ri.data.map(function(inv) {
+        var pct = Math.round(((inv.days_total - inv.days_remaining) / inv.days_total) * 100);
+        var col = COLORS[inv.plan_id] || '#C41C1C';
+        return '<div style="border:1px solid var(--bo);border-radius:11px;padding:13px;margin-bottom:10px">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+          + '<div style="font-weight:600;font-size:13.5px">Plan '+inv.plan_name+'</div>'
+          + '<span style="background:'+col+'20;color:'+col+';font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">ACTIF</span></div>'
+          + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">'
+          + '<div style="text-align:center;background:var(--cr);border-radius:8px;padding:7px"><div style="font-size:12px;font-weight:700;color:var(--red)">'+inv.amount.toLocaleString('fr-FR')+' F</div><div style="font-size:9px;color:var(--mu)">Investi</div></div>'
+          + '<div style="text-align:center;background:var(--cr);border-radius:8px;padding:7px"><div style="font-size:12px;font-weight:700;color:var(--red)">'+inv.daily_revenue.toLocaleString('fr-FR')+' F</div><div style="font-size:9px;color:var(--mu)">/ jour</div></div>'
+          + '<div style="text-align:center;background:var(--cr);border-radius:8px;padding:7px"><div style="font-size:12px;font-weight:700;color:var(--red)">'+(inv.days_remaining||0)+' j</div><div style="font-size:9px;color:var(--mu)">Restants</div></div>'
+          + '</div>'
+          + '<div style="background:var(--cr);border-radius:6px;height:6px;overflow:hidden"><div style="background:'+col+';height:100%;width:'+pct+'%;border-radius:6px;transition:width .5s"></div></div>'
+          + '<div style="font-size:10px;color:var(--mu);text-align:right;margin-top:3px">'+pct+'% complété</div></div>';
+      }).join('');
+    } else {
+      div.innerHTML = '<div style="text-align:center;padding:20px;color:var(--mu);font-size:13px">Aucun investissement actif.<br/><a href="dashboard.html" style="color:var(--red);font-weight:600">Investir maintenant →</a></div>';
+    }
+  } catch(e) {}
+});
+
+document.getElementById('file-av').addEventListener('change', function(e) {
+  var f = e.target.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function(ev) {
+    localStorage.setItem('marathon_avatar', ev.target.result);
+    document.getElementById('av-img').src = ev.target.result;
+    document.getElementById('av-img').style.display = 'block';
+    document.getElementById('av-def').style.display = 'none';
+    toast('Photo mise à jour ✓');
+  };
+  r.readAsDataURL(f);
+});
+
+async function saveProfile() {
+  var name = document.getElementById('f-name').value.trim();
+  var phone = document.getElementById('f-phone').value.trim();
+  if (!name) { var al = document.getElementById('al'); al.className='alert err'; al.textContent='Entrez votre nom'; return; }
+  var btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Enregistrement...';
+  try {
+    await sb.from('profiles').update({full_name: name, phone: phone}).eq('id', currentUser.id);
+    await sb.auth.updateUser({data: {full_name: name, phone_number: phone}});
+    document.getElementById('p-name').textContent = name;
+    var al = document.getElementById('al'); al.className='alert ok'; al.textContent='Profil mis à jour avec succès ✓';
+    toast('Profil mis à jour ✓');
+  } catch(e) { var al = document.getElementById('al'); al.className='alert err'; al.textContent='Erreur : '+(e.message||'Réessayez'); }
+  btn.disabled = false; btn.textContent = 'Enregistrer les modifications';
+}
+
+function copyCode() {
+  var c = document.getElementById('p-refcode').textContent;
+  navigator.clipboard.writeText(window.location.origin+'/index.html?ref='+c).then(function(){ toast('Lien de parrainage copié !'); });
+}
+</script></body></html>
