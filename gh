@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Marathon — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--red:#C41C1C;
+--rd:#9E1616;
+--cr:#F7F2EC;
+--mu:#8A7070;
+--bo:rgba(196,28,28,.12);
+--t1:#1A1212;
+--t2:#4A3A3A;
+}
+body{
+font-family:"DM Sans",sans-serif;
+background:var(--cr);
+color:var(--t1);
+padding-bottom:80px;
+}
+.topbar{
+background:linear-gradient(135deg,var(--rd),var(--red));
+padding:40px 16px 20px;
+color:#fff;
+}
+.topbar h1{font-family:"Cormorant Garamond",serif;font-size:32px;}
+.topbar p{font-size:13px;opacity:.8;margin-top:4px;}
+.content{padding:16px;}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+margin-bottom:16px;
+}
+.stat{
+background:#fff;
+border-radius:16px;
+padding:16px;
+border:1px solid var(--bo);
+}
+.stat .v{font-size:24px;font-weight:700;color:var(--red);}
+.stat .k{font-size:12px;color:var(--mu);margin-top:4px;}
+
+.card{
+background:#fff;
+border-radius:18px;
+padding:18px;
+border:1px solid var(--bo);
+margin-bottom:16px;
+}
+.card h3{
+font-size:20px;
+margin-bottom:14px;
+font-family:"Cormorant Garamond",serif;
+}
+
+.table-wrap{overflow:auto;}
+table{width:100%;border-collapse:collapse;min-width:750px;}
+th,td{padding:12px;font-size:13px;text-align:left;border-bottom:1px solid #eee;}
+th{background:#faf7f5;color:var(--mu);font-size:11px;text-transform:uppercase;}
+
+.badge{
+padding:5px 10px;
+border-radius:30px;
+font-size:11px;
+font-weight:700;
+display:inline-block;
+}
+.pending{background:#FFF7ED;color:#B45309}
+.success{background:#F0FFF4;color:#166534}
+.danger{background:#FFF0F0;color:#B91C1C}
+.vip{background:#F5F3FF;color:#6D28D9}
+
+.btn{
+border:none;
+padding:9px 12px;
+border-radius:10px;
+cursor:pointer;
+font-size:12px;
+font-weight:700;
+margin:2px;
+}
+.btn-ok{background:#DCFCE7;color:#166534}
+.btn-no{background:#FEE2E2;color:#B91C1C}
+.btn-vip{background:#EDE9FE;color:#6D28D9}
+.btn-remove{background:#111;color:#fff}
+.btn-edit{background:#DBEAFE;color:#1D4ED8}
+
+.search{
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid var(--bo);
+margin-bottom:16px;
+font-size:14px;
+}
+
+select,input{
+padding:6px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+<h1>Dashboard Admin</h1>
+<p>Gestion complète Marathon</p>
+</div>
+
+<div class="content">
+
+<div class="stats">
+<div class="stat"><div class="v" id="total-users">0</div><div class="k">Utilisateurs</div></div>
+<div class="stat"><div class="v" id="pending-deposits">0</div><div class="k">Recharges en attente</div></div>
+<div class="stat"><div class="v" id="vip-users">0</div><div class="k">Comptes VIP</div></div>
+<div class="stat"><div class="v" id="total-refs">0</div><div class="k">Parrainages</div></div>
+</div>
+
+<input type="text" class="search" id="search" placeholder="Rechercher un utilisateur..." oninput="filterUsers()"/>
+
+<div class="card">
+<h3>Demandes de recharge</h3>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Utilisateur</th><th>Montant</th><th>Méthode</th><th>Statut</th><th>Actions</th>
+</tr>
+</thead>
+<tbody id="deposit-body"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h3>Gestion des utilisateurs</h3>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Nom</th><th>Téléphone</th><th>Niveau</th><th>Solde</th><th>Parrain</th><th>Actions</th>
+</tr>
+</thead>
+<tbody id="users-body"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h3>Commissions de parrainage</h3>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Utilisateur</th><th>Parrainé par</th><th>Commission</th><th>Statut</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="refs-body"></tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+<script>
+const sb = supabase.createClient(
+'https://mzxxfxkryhxnycewyryv.supabase.co',
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
+);
+
+let allUsers = [];
+
+window.addEventListener('DOMContentLoaded', async ()=>{
+await checkAdmin();
+await loadStats();
+await loadDeposits();
+await loadUsers();
+await loadReferrals();
+});
+
+/* ADMIN CHECK */
+async function checkAdmin(){
+const s = await sb.auth.getSession();
+if(!s.data.session){location.href='index.html';return;}
+
+const email = (s.data.session.user.email||'').toLowerCase();
+const admins=['abdoula13cherif@gmail.com','marieedoh@gmail.com'];
+
+if(!admins.includes(email)){
+alert('Accès refusé');
+location.href='dashboard.html';
+}
+}
+
+/* STATS */
+async function loadStats(){
+const {data:users}=await sb.from('profiles').select('*');
+const {data:deposits}=await sb.from('transactions').select('*').eq('type','depot').eq('status','pending');
+
+const vip=users.filter(u=>u.level?.includes('VIP'));
+const refs=users.filter(u=>u.referred_by);
+
+document.getElementById('total-users').textContent=users.length;
+document.getElementById('pending-deposits').textContent=deposits.length;
+document.getElementById('vip-users').textContent=vip.length;
+document.getElementById('total-refs').textContent=refs.length;
+}
+
+/* USERS */
+async function loadUsers(){
+const {data}=await sb.from('profiles').select('*');
+
+allUsers=data||[];
+renderUsers(allUsers);
+document.getElementById('total-users').textContent=allUsers.length;
+}
+
+function renderUsers(users){
+const body=document.getElementById('users-body');
+body.innerHTML='';
+
+users.forEach(u=>{
+body.innerHTML+=`
+<tr>
+<td><input value="${u.full_name||''}" onchange="updateField('${u.id}','full_name',this.value)"></td>
+<td><input value="${u.phone||''}" onchange="updateField('${u.id}','phone',this.value)"></td>
+<td>
+<select onchange="updateField('${u.id}','level',this.value)">
+<option ${u.level==='Starter'?'selected':''}>Starter</option>
+<option ${u.level==='VIP'?'selected':''}>VIP</option>
+<option ${u.level==='VIP2'?'selected':''}>VIP2</option>
+<option ${u.level==='VIP3'?'selected':''}>VIP3</option>
+</select>
+</td>
+<td><input type="number" value="${u.balance||0}" onchange="updateField('${u.id}','balance',this.value)"></td>
+<td><input value="${u.referred_by||''}" onchange="updateField('${u.id}','referred_by',this.value)"></td>
+<td>
+<button class="btn btn-edit" onclick="alert('Modifié automatiquement')">OK</button>
+</td>
+</tr>
+`;
+});
+}
+
+async function updateField(id,field,value){
+await sb.from('profiles').update({[field]:value}).eq('id',id);
+}
+
+/* FILTER */
+function filterUsers(){
+const q=document.getElementById('search').value.toLowerCase();
+renderUsers(allUsers.filter(u=>
+(u.full_name||'').toLowerCase().includes(q)||
+(u.phone||'').toLowerCase().includes(q)
+));
+}
+
+/* DEPOSITS */
+async function loadDeposits(){
+const {data}=await sb.from('transactions').select('*').eq('type','depot');
+
+const body=document.getElementById('deposit-body');
+body.innerHTML='';
+
+data.forEach(t=>{
+body.innerHTML+=`
+<tr>
+<td>${t.user_name}</td>
+<td>${Number(t.amount).toLocaleString()} FCFA</td>
+<td>${t.method}</td>
+<td><span class="badge ${t.status==='pending'?'pending':'success'}">${t.status}</span></td>
+<td>
+<button class="btn btn-ok" onclick="validateDeposit('${t.id}','${t.user_id}',${t.amount})">Valider</button>
+<button class="btn btn-no" onclick="rejectDeposit('${t.id}')">Refuser</button>
+</td>
+</tr>`;
+});
+}
+
+/* VALIDATION */
+async function validateDeposit(id,userId,amount){
+const {data}=await sb.from('profiles').select('balance').eq('id',userId).single();
+
+const newBal=Number(data.balance)+Number(amount);
+
+await sb.from('profiles').update({balance:newBal}).eq('id',userId);
+await sb.from('transactions').update({status:'success'}).eq('id',id);
+
+loadDeposits();loadStats();loadUsers();
+}
+
+/* REJECT */
+async function rejectDeposit(id){
+await sb.from('transactions').update({status:'rejected'}).eq('id',id);
+loadDeposits();
+}
+
+/* REF */
+async function loadReferrals(){
+const {data}=await sb.from('profiles').select('*').not('referred_by','is',null);
+
+const body=document.getElementById('refs-body');
+body.innerHTML='';
+
+data.forEach(r=>{
+body.innerHTML+=`
+<tr>
+<td>${r.full_name}</td>
+<td>${r.referred_by}</td>
+<td>1000 FCFA</td>
+<td><span class="badge ${r.bonus_received?'success':'danger'}">${r.bonus_received?'Payé':'Non payé'}</span></td>
+<td></td>
+</tr>`;
+});
+}
+</script>
+
+</body>
+</html>
