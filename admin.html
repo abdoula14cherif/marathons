@@ -3,101 +3,49 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Admin Panel - Marathon</title>
+<title>Admin</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body{
-  font-family: Arial;
-  margin:0;
-  background:#0f172a;
-  color:white;
-}
-
-.header{
-  padding:20px;
-  background:#111c33;
-  font-size:20px;
-  font-weight:bold;
-}
-
-.container{
-  padding:15px;
-  display:grid;
-  gap:12px;
-}
-
-.card{
-  background:#1e293b;
-  padding:12px;
-  border-radius:12px;
-}
-
-input, select{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:8px;
-  border:none;
-}
-
-button{
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-.btn1{background:#22c55e;color:white}
-.btn2{background:#ef4444;color:white}
-.btn3{background:#3b82f6;color:white}
-
-.user{
-  padding:10px;
-  background:#0b1220;
-  border-radius:10px;
-  margin-top:10px;
-}
-
-.small{font-size:12px;color:#94a3b8}
+body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
+.box{padding:15px}
+.card{background:#1e293b;padding:12px;margin-bottom:10px;border-radius:10px}
+input,select{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:none}
+button{padding:10px;border:none;border-radius:8px;margin-top:8px;cursor:pointer}
+.green{background:#22c55e;color:#fff}
+.red{background:#ef4444;color:#fff}
+.blue{background:#3b82f6;color:#fff}
+.user{background:#111827;padding:10px;margin-top:10px;border-radius:8px}
 </style>
 </head>
 
 <body>
 
-<div class="header">⚙️ ADMIN PANEL MARATHON</div>
+<div class="box">
 
-<div class="container">
-
-<!-- LOGIN SIMPLE -->
+<!-- LOGIN -->
 <div class="card" id="loginBox">
-  <h3>Connexion Admin</h3>
-  <input id="email" placeholder="Email admin">
+  <h3>Admin Login</h3>
+  <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Mot de passe">
-  <button class="btn1" onclick="login()">Connexion</button>
+  <button class="green" onclick="login()">Connexion</button>
 </div>
 
-<!-- DASHBOARD -->
+<!-- PANEL -->
 <div class="card" id="panel" style="display:none">
-
-  <h3>Liste utilisateurs</h3>
-  <button class="btn3" onclick="loadUsers()">🔄 Refresh</button>
-
+  <h3>Users</h3>
+  <button class="blue" onclick="loadUsers()">Reload</button>
   <div id="users"></div>
-
 </div>
 
-<!-- EDIT USER -->
-<div class="card" id="editor" style="display:none">
-  <h3>Modifier utilisateur</h3>
+<!-- EDIT -->
+<div class="card" id="editBox" style="display:none">
+  <h3>Edit user</h3>
 
-  <div class="small" id="uinfo"></div>
+  <div id="info"></div>
 
-  <label>VIP Plan</label>
+  <label>VIP</label>
   <select id="vip">
     <option value="0">Starter</option>
     <option value="1">Bronze</option>
@@ -108,82 +56,74 @@ button{
     <option value="6">COLD</option>
   </select>
 
-  <label>Modifier solde</label>
-  <input id="balance" type="number" placeholder="Ex: +5000 ou -2000">
+  <label>Solde (+ ou -)</label>
+  <input id="balance" type="number">
 
-  <button class="btn1" onclick="saveUser()">Sauvegarder</button>
-  <button class="btn2" onclick="closeEditor()">Fermer</button>
+  <button class="green" onclick="save()">Save</button>
+  <button class="red" onclick="closeEdit()">Close</button>
 </div>
 
 </div>
 
 <script>
 
-// =====================
-// SUPABASE
-// =====================
 const sb = supabase.createClient(
   "https://mzxxfxkryhxnycewyryv.supabase.co",
   "TON_ANON_KEY"
 );
 
-let currentUserId = null;
+let editId = null;
 
-// =====================
-// LOGIN (simple admin)
-// =====================
+// LOGIN ADMIN
 async function login(){
 
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
   const { data, error } = await sb.auth.signInWithPassword({
-    email,
-    password
+    email, password
   });
 
   if(error){
-    alert("Erreur login");
+    alert("Login incorrect");
     return;
   }
 
-  document.getElementById('loginBox').style.display = 'none';
-  document.getElementById('panel').style.display = 'block';
+  const user = data.user;
+
+  // 🔒 sécurité admin
+  if(user.email !== "admin@marathon.com"){
+    alert("Accès refusé");
+    await sb.auth.signOut();
+    return;
+  }
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("panel").style.display = "block";
 
   loadUsers();
 }
 
-// =====================
 // LOAD USERS
-// =====================
 async function loadUsers(){
 
-  const { data, error } = await sb
-    .from('profiles')
-    .select('*')
-    .order('created_at', {ascending:false});
+  const { data } = await sb.from("profiles").select("*");
 
-  if(error){
-    alert("Erreur chargement");
-    return;
-  }
-
-  const box = document.getElementById('users');
-  box.innerHTML = '';
+  const box = document.getElementById("users");
+  box.innerHTML = "";
 
   data.forEach(u => {
 
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.className = "user";
 
     div.innerHTML = `
-      <b>${u.full_name || "Utilisateur"}</b><br>
-      <span class="small">${u.id}</span><br>
-      💰 ${u.balance || 0} FCFA<br>
-      ⭐ VIP: ${u.level || 0}<br>
+      <b>${u.full_name || "User"}</b><br>
+      ${u.balance || 0} FCFA<br>
+      VIP: ${u.level || 0}<br>
 
-      <button class="btn3" onclick="editUser('${u.id}','${u.full_name}',${u.balance || 0},${u.level || 0})">
-        Modifier
+      <button class="blue" onclick="edit('${u.id}',${u.level || 0})">
+        Edit
       </button>
     `;
 
@@ -191,64 +131,47 @@ async function loadUsers(){
   });
 }
 
-// =====================
 // EDIT USER
-// =====================
-function editUser(id,name,balance,level){
+function edit(id,level){
 
-  currentUserId = id;
+  editId = id;
 
-  document.getElementById('panel').style.display = 'none';
-  document.getElementById('editor').style.display = 'block';
+  document.getElementById("panel").style.display = "none";
+  document.getElementById("editBox").style.display = "block";
 
-  document.getElementById('uinfo').innerText =
-    name + " (" + id + ")";
-
-  document.getElementById('balance').value = 0;
-  document.getElementById('vip').value = level;
+  document.getElementById("vip").value = level;
+  document.getElementById("balance").value = 0;
 }
 
-// =====================
-// SAVE USER
-// =====================
-async function saveUser(){
+// SAVE
+async function save(){
 
-  const vip = parseInt(document.getElementById('vip').value);
-  const balanceChange = parseInt(document.getElementById('balance').value || 0);
+  const vip = document.getElementById("vip").value;
+  const bal = parseInt(document.getElementById("balance").value || 0);
 
-  // get current data
-  const { data } = await sb
-    .from('profiles')
-    .select('*')
-    .eq('id', currentUserId)
+  const { data } = await sb.from("profiles")
+    .select("balance")
+    .eq("id", editId)
     .single();
 
-  let newBalance = (data.balance || 0) + balanceChange;
+  const newBal = (data.balance || 0) + bal;
 
-  const { error } = await sb
-    .from('profiles')
+  await sb.from("profiles")
     .update({
       level: vip,
-      balance: newBalance
+      balance: newBal
     })
-    .eq('id', currentUserId);
+    .eq("id", editId);
 
-  if(error){
-    alert("Erreur update");
-    return;
-  }
+  alert("Updated ✓");
 
-  alert("Utilisateur mis à jour ✓");
-  closeEditor();
+  closeEdit();
   loadUsers();
 }
 
-// =====================
-// CLOSE
-// =====================
-function closeEditor(){
-  document.getElementById('editor').style.display = 'none';
-  document.getElementById('panel').style.display = 'block';
+function closeEdit(){
+  document.getElementById("editBox").style.display = "none";
+  document.getElementById("panel").style.display = "block";
 }
 
 </script>
