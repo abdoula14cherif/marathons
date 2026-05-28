@@ -367,6 +367,7 @@ loadDeposits();
 }
 
 async function loadUsers(){
+
 const {data,error} = await sb
 .from('profiles')
 .select('*');
@@ -375,11 +376,30 @@ console.log('LOAD USERS',data,error);
 
 if(error){
 console.error(error);
+alert('Erreur chargement utilisateurs');
 return;
 }
 
 allUsers = data || [];
-renderUsers(allUsers);
+
+// Supprime les doublons éventuels
+const uniqueUsers = [];
+const ids = new Set();
+
+allUsers.forEach(u=>{
+if(!ids.has(u.id)){
+ids.add(u.id);
+uniqueUsers.push(u);
+}
+});
+
+renderUsers(uniqueUsers);
+
+// Mise à jour compteur réel
+const totalEl = document.getElementById('total-users');
+if(totalEl){
+totalEl.textContent = uniqueUsers.length;
+}
 }
 
 function renderUsers(users){
