@@ -219,7 +219,7 @@ font-size:14px;
 <script>
 const sb = supabase.createClient(
 'https://mzxxfxkryhxnycewyryv.supabase.co',
-'YOUR_SUPABASE_ANON_KEY'
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
 );
 
 let allUsers = [];
@@ -255,12 +255,15 @@ return;
 }
 
 async function loadStats(){
-const {data:users} = await sb.from('profiles').select('*');
-const {data:deposits} = await sb
+const {data:users,error:userErr} = await sb.from('profiles').select('*');
+console.log('USERS',users,userErr);
+const {data:deposits,error:depErr} = await sb
 .from('transactions')
 .select('*')
 .eq('type','depot')
 .eq('status','pending');
+
+console.log('DEPOSITS',deposits,depErr);
 
 const vip = users.filter(u=>u.level === 'VIP');
 const refs = users.filter(u=>u.referred_by);
@@ -276,7 +279,7 @@ const {data} = await sb
 .from('transactions')
 .select('*')
 .eq('type','depot')
-.order('created_at',{ascending:false});
+;
 
 const body = document.getElementById('deposit-body');
 body.innerHTML='';
@@ -337,7 +340,7 @@ async function loadUsers(){
 const {data} = await sb
 .from('profiles')
 .select('*')
-.order('created_at',{ascending:false});
+;
 
 allUsers = data;
 renderUsers(data);
