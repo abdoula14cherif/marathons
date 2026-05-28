@@ -578,26 +578,63 @@ async function doInvest() {
   if (btn) { btn.disabled = true; btn.textContent = 'Traitement...'; }
 
   try {
-    // ✅ SÉCURITÉ : toute la logique s'exécute côté serveur via RPC
-    const { data, error } = await sb.rpc('process_investment', {
-      p_plan_id:      investData.id,
-      p_plan_name:    investData.name,
-      p_amount:       investData.amount,
-      p_daily_revenue: investData.revenue
+    const today = new Date().toISOString().split('T')[0];
+
+    // 1. Créer l'investissement
+    const { data: inv, error: invErr } = await sb.from('investments').insert({
+      user_id: currentUser.id,
+      plan_id: investData.id,
+      plan_name: investData.name,
+      amount: investData.amount,
+      daily_revenue: investData.revenue,
+      days_total: 100,
+      days_remaining: 100,
+      days_completed: 0,
+      total_earned: 0,
+      status: 'active'
+    }).select('id').single();
+    if (invErr) throw invErr;
+
+    // 2. Déduire le solde
+    const newBal = currentBalance - investData.amount;
+    const { error: balErr } = await sb.from('profiles')
+      .update({ balance: newBal })
+      .eq('id', currentUser.id);
+    if (balErr) throw balErr;
+
+    // 3. Enregistrer la transaction
+    const { error: txErr } = await sb.from('transactions').insert({
+      user_id: currentUser.id,
+      type: 'depot',
+      amount: investData.amount,
+      fee: 0,
+      net_amount: investData.amount,
+      status: 'success',
+      description: 'Investissement Plan ' + investData.name
     });
+    if (txErr) throw txErr;
 
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || 'Erreur inconnue');
+    // 4. Créer la tâche du jour (non bloquant si erreur)
+    if (inv?.id) {
+      await sb.from('daily_tasks').insert({
+        user_id: currentUser.id,
+        investment_id: inv.id,
+        task_date: today,
+        reward_amount: investData.revenue,
+        plan_name: investData.name,
+        status: 'pending'
+      }).then(() => {}).catch(e => console.warn('Task:', e.message));
+    }
 
-    currentBalance -= investData.amount;
-
+    // 5. Mettre à jour l'interface
+    currentBalance = newBal;
     $('bal').innerHTML = currentBalance.toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
-    $('si-bal').textContent = currentBalance.toLocaleString('fr-FR') + ' FCFA';
+    if ($('si-bal')) $('si-bal').textContent = currentBalance.toLocaleString('fr-FR') + ' FCFA';
 
     const msgEl = $('sh-ok-msg');
-    if (msgEl) msgEl.textContent = `Plan ${investData.name} actif ! Allez dans Historique > Tâches pour recevoir vos ${investData.revenue.toLocaleString('fr-FR')} FCFA aujourd'hui.`;
-    $('sh-form').style.display = 'none';
-    $('sh-ok').classList.add('on');
+    if (msgEl) msgEl.textContent = 'Plan ' + investData.name + ' actif ! Allez dans Historique > Tâches pour recevoir vos ' + investData.revenue.toLocaleString('fr-FR') + ' FCFA aujourd\'hui.';
+    if ($('sh-form')) $('sh-form').style.display = 'none';
+    $('sh-ok')?.classList.add('on');
     toast('Plan ' + investData.name + ' activé ✓');
 
   } catch(e) {
