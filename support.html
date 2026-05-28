@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+
+<title>Marathon — Support</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+<style>
+*,*::before,*::after{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+:root{
+  --red:#C41C1C;
+  --rd:#9E1616;
+  --cr:#F7F2EC;
+  --mu:#8A7070;
+  --bo:rgba(196,28,28,.12);
+  --t1:#1A1212;
+  --t2:#4A3A3A;
+  --wh:#FFFFFF;
+}
+
+body{
+  font-family:"DM Sans",sans-serif;
+  background:var(--cr);
+  color:var(--t1);
+  min-height:100vh;
+  padding-bottom:40px;
+}
+
+/* TOPBAR */
+
+.topbar{
+  background:linear-gradient(135deg,var(--rd),var(--red));
+  padding:44px 16px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.back{
+  background:rgba(255,255,255,.18);
+  border:none;
+  border-radius:10px;
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  flex-shrink:0;
+}
+
+.back svg{
+  width:20px;
+  height:20px;
+  stroke:#fff;
+  fill:none;
+  stroke-width:2.5;
+}
+
+.topbar h1{
+  font-family:"Cormorant Garamond",serif;
+  font-size:26px;
+  font-weight:700;
+  color:#fff;
+}
+
+.topbar p{
+  color:rgba(255,255,255,.75);
+  font-size:12px;
+  margin-top:2px;
+}
+
+/* CONTENT */
+
+.content{
+  padding:16px;
+}
+
+/* HERO */
+
+.hero{
+  background:#fff;
+  border-radius:18px;
+  padding:24px 20px;
+  border:1px solid var(--bo);
+  text-align:center;
+  margin-bottom:18px;
+  box-shadow:0 4px 18px rgba(0,0,0,.05);
+}
+
+.hero-icon{
+  width:78px;
+  height:78px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--red),var(--rd));
+  margin:0 auto 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:34px;
+}
+
+.hero h2{
+  font-family:"Cormorant Garamond",serif;
+  font-size:30px;
+  font-weight:700;
+  color:var(--t1);
+  margin-bottom:10px;
+}
+
+.hero p{
+  font-size:13.5px;
+  line-height:1.7;
+  color:var(--mu);
+}
+
+/* CARD */
+
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:18px;
+  border:1px solid var(--bo);
+  margin-bottom:14px;
+  box-shadow:0 3px 14px rgba(0,0,0,.04);
+}
+
+.card-top{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:14px;
+}
+
+.icon-box{
+  width:54px;
+  height:54px;
+  border-radius:14px;
+  background:#FFF1F1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.icon-box svg{
+  width:28px;
+  height:28px;
+  stroke:var(--red);
+  fill:none;
+  stroke-width:2;
+}
+
+.card h3{
+  font-size:18px;
+  font-weight:700;
+  color:var(--t1);
+}
+
+.card small{
+  display:block;
+  margin-top:3px;
+  color:var(--mu);
+  font-size:12px;
+}
+
+/* BUTTON */
+
+.btn{
+  width:100%;
+  border:none;
+  border-radius:14px;
+  padding:15px;
+  cursor:pointer;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  background:linear-gradient(135deg,var(--red),var(--rd));
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  transition:.2s;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(196,28,28,.25);
+}
+
+.btn:active{
+  transform:scale(.98);
+}
+
+.btn svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:white;
+  stroke-width:2.4;
+}
+
+/* INFO BOX */
+
+.info{
+  background:#FFF7ED;
+  border:1px solid rgba(245,158,11,.18);
+  border-radius:15px;
+  padding:16px;
+  margin-top:18px;
+}
+
+.info h4{
+  font-size:14px;
+  color:#92400E;
+  margin-bottom:10px;
+}
+
+.info p{
+  font-size:12.8px;
+  line-height:1.7;
+  color:#92400E;
+}
+
+/* FOOTER */
+
+.footer{
+  text-align:center;
+  margin-top:24px;
+  color:var(--mu);
+  font-size:12px;
+  line-height:1.6;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+
+<div class="topbar">
+
+  <button class="back" onclick="window.location.href='dashboard.html'">
+
+    <svg viewBox="0 0 24 24">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+
+  </button>
+
+  <div>
+    <h1>Support Marathon</h1>
+    <p>Assistance · Communauté · Telegram</p>
+  </div>
+
+</div>
+
+<!-- CONTENT -->
+
+<div class="content">
+
+  <!-- HERO -->
+
+  <div class="hero">
+
+    <div class="hero-icon">
+      💬
+    </div>
+
+    <h2>Besoin d'aide ?</h2>
+
+    <p>
+      Notre équipe support est disponible pour vous aider concernant
+      les dépôts, retraits, problèmes techniques ou toute autre question
+      liée à votre compte Marathon.
+    </p>
+
+  </div>
+
+  <!-- SERVICE CLIENT -->
+
+  <div class="card">
+
+    <div class="card-top">
+
+      <div class="icon-box">
+
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+
+      </div>
+
+      <div>
+        <h3>Service Client</h3>
+        <small>Contact direct avec l'assistance</small>
+      </div>
+
+    </div>
+
+    <a href="https://t.me/marathonservic" class="btn" target="_blank">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M22 2L11 13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+
+      Ouvrir le support Telegram
+
+    </a>
+
+  </div>
+
+  <!-- CANAL -->
+
+  <div class="card">
+
+    <div class="card-top">
+
+      <div class="icon-box">
+
+        <svg viewBox="0 0 24 24">
+          <path d="M22 11V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6"/>
+          <path d="M18 19h4v-4"/>
+          <path d="M2 15v4h4"/>
+          <path d="M18 15a6 6 0 0 1-12 0"/>
+        </svg>
+
+      </div>
+
+      <div>
+        <h3>Canal Telegram</h3>
+        <small>Annonces officielles et nouveautés</small>
+      </div>
+
+    </div>
+
+    <a href="https://t.me/+K6nbNkvY2uJiYzE0" class="btn" target="_blank">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M22 2L11 13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+
+      Rejoindre le canal
+
+    </a>
+
+  </div>
+
+  <!-- GROUPE -->
+
+  <div class="card">
+
+    <div class="card-top">
+
+      <div class="icon-box">
+
+        <svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+
+      </div>
+
+      <div>
+        <h3>Groupe Communauté</h3>
+        <small>Échangez avec les membres Marathon</small>
+      </div>
+
+    </div>
+
+    <a href="https://t.me/+QqXaD7JsvyE4MjY0" class="btn" target="_blank">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M22 2L11 13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+
+      Rejoindre le groupe
+
+    </a>
+
+  </div>
+
+  <!-- INFO -->
+
+  <div class="info">
+
+    <h4>⚠️ Important</h4>
+
+    <p>
+      Ne partagez jamais votre mot de passe ou code de connexion avec
+      une autre personne. L'équipe Marathon ne vous demandera jamais
+      vos informations sensibles en message privé.
+    </p>
+
+  </div>
+
+  <!-- FOOTER -->
+
+  <div class="footer">
+    Marathon © 2026<br>
+    Support officiel de la plateforme
+  </div>
+
+</div>
+
+</body>
+</html>
