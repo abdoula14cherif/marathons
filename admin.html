@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Marathon — Admin</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -16,53 +17,44 @@
 --mu:#8A7070;
 --bo:rgba(196,28,28,.12);
 --t1:#1A1212;
---t2:#4A3A3A;
 }
+
 body{
 font-family:"DM Sans",sans-serif;
 background:var(--cr);
 color:var(--t1);
 padding-bottom:80px;
 }
+
 .topbar{
 background:linear-gradient(135deg,var(--rd),var(--red));
 padding:40px 16px 20px;
 color:#fff;
 }
+
 .topbar h1{
 font-family:"Cormorant Garamond",serif;
 font-size:32px;
 }
-.topbar p{
-font-size:13px;
-opacity:.8;
-margin-top:4px;
-}
-.content{
-padding:16px;
-}
+
+.content{padding:16px}
+
 .stats{
 display:grid;
 grid-template-columns:repeat(2,1fr);
 gap:12px;
 margin-bottom:16px;
 }
+
 .stat{
 background:#fff;
 border-radius:16px;
 padding:16px;
 border:1px solid var(--bo);
 }
-.stat .v{
-font-size:24px;
-font-weight:700;
-color:var(--red);
-}
-.stat .k{
-font-size:12px;
-color:var(--mu);
-margin-top:4px;
-}
+
+.stat .v{font-size:24px;font-weight:700;color:var(--red)}
+
 .card{
 background:#fff;
 border-radius:18px;
@@ -70,116 +62,57 @@ padding:18px;
 border:1px solid var(--bo);
 margin-bottom:16px;
 }
-.card h3{
-font-size:20px;
-margin-bottom:14px;
-font-family:"Cormorant Garamond",serif;
-}
-.table-wrap{
-overflow:auto;
-}
-table{
-width:100%;
-border-collapse:collapse;
-min-width:700px;
-}
+
+table{width:100%;border-collapse:collapse;min-width:700px}
+
 th,td{
-padding:12px;
+padding:10px;
 font-size:13px;
-text-align:left;
 border-bottom:1px solid #eee;
 }
-th{
-background:#faf7f5;
-color:var(--mu);
-font-size:11px;
-text-transform:uppercase;
-}
-.badge{
-padding:5px 10px;
-border-radius:30px;
-font-size:11px;
-font-weight:700;
-display:inline-block;
-}
-.pending{background:#FFF7ED;color:#B45309}
-.success{background:#F0FFF4;color:#166534}
-.danger{background:#FFF0F0;color:#B91C1C}
-.vip{background:#F5F3FF;color:#6D28D9}
+
+th{background:#faf7f5;color:var(--mu);text-transform:uppercase;font-size:11px}
+
 .btn{
+padding:6px 10px;
 border:none;
-padding:9px 12px;
-border-radius:10px;
+border-radius:8px;
 cursor:pointer;
 font-size:12px;
-font-weight:700;
 margin:2px;
 }
-.btn-ok{background:#DCFCE7;color:#166534}
-.btn-no{background:#FEE2E2;color:#B91C1C}
-.btn-vip{background:#EDE9FE;color:#6D28D9}
+
+.btn-ok{background:#DCFCE7}
 .btn-remove{background:#111;color:#fff}
-.search{
-width:100%;
-padding:14px;
-border-radius:14px;
-border:1px solid var(--bo);
-margin-bottom:16px;
-font-size:14px;
+
+select,input{
+padding:6px;
+border-radius:8px;
+border:1px solid #ddd;
 }
 </style>
 </head>
+
 <body>
 
 <div class="topbar">
 <h1>Dashboard Admin</h1>
-<p>Gestion complète Marathon</p>
+<p>Gestion complète système</p>
 </div>
 
 <div class="content">
 
 <div class="stats">
-<div class="stat">
-<div class="v" id="total-users">0</div>
-<div class="k">Utilisateurs</div>
-</div>
-<div class="stat">
-<div class="v" id="pending-deposits">0</div>
-<div class="k">Recharges en attente</div>
-</div>
-<div class="stat">
-<div class="v" id="vip-users">0</div>
-<div class="k">Comptes VIP</div>
-</div>
-<div class="stat">
-<div class="v" id="total-refs">0</div>
-<div class="k">Parrainages</div>
-</div>
+<div class="stat"><div class="v" id="total-users">0</div><div>Utilisateurs</div></div>
+<div class="stat"><div class="v" id="pending-deposits">0</div><div>Recharges</div></div>
+<div class="stat"><div class="v" id="vip-users">0</div><div>VIP</div></div>
+<div class="stat"><div class="v" id="total-refs">0</div><div>Parrainages</div></div>
 </div>
 
-<input type="text" class="search" id="search" placeholder="Rechercher un utilisateur..." oninput="filterUsers()"/>
+<input id="search" placeholder="Rechercher..." oninput="filterUsers()" style="width:100%;padding:10px;margin-bottom:10px"/>
 
 <div class="card">
-<h3>Demandes de recharge</h3>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Utilisateur</th>
-<th>Montant</th>
-<th>Méthode</th>
-<th>Statut</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="deposit-body"></tbody>
-</table>
-</div>
-</div>
-
-<div class="card">
-<h3>Gestion des utilisateurs</h3>
-<div class="table-wrap">
+<h3>Utilisateurs</h3>
 <table>
 <thead>
 <tr>
@@ -194,24 +127,19 @@ font-size:14px;
 <tbody id="users-body"></tbody>
 </table>
 </div>
-</div>
 
 <div class="card">
-<h3>Commissions de parrainage</h3>
-<div class="table-wrap">
+<h3>Recharges</h3>
 <table>
 <thead>
 <tr>
 <th>Utilisateur</th>
-<th>Parrainé par</th>
-<th>Commission</th>
+<th>Montant</th>
 <th>Statut</th>
-<th>Action</th>
 </tr>
 </thead>
-<tbody id="refs-body"></tbody>
+<tbody id="deposit-body"></tbody>
 </table>
-</div>
 </div>
 
 </div>
@@ -224,182 +152,55 @@ const sb = supabase.createClient(
 
 let allUsers = [];
 
-window.addEventListener('DOMContentLoaded', async ()=>{
+window.onload = async () => {
 await checkAdmin();
-await loadStats();
-await loadDeposits();
-await loadUsers();
-await loadReferrals();
-});
+await loadAll();
+};
 
-async function checkAdmin(){
-const s = await sb.auth.getSession();
-if(!s.data.session){
-location.href='index.html';
+async function checkAdmin() {
+const { data } = await sb.auth.getSession();
+const session = data?.session;
+
+if(!session){
+location.href="index.html";
 return;
 }
 
-const user = s.data.session.user;
-const email = (user.email || '').toLowerCase();
+const email = session.user.email.toLowerCase();
 
 const admins = [
-'abdoula13cherif@gmail.com',
-'marieedoh@gmail.com'
+"abdoula13cherif@gmail.com",
+"marieedoh@gmail.com"
 ];
 
 if(!admins.includes(email)){
-alert('Accès refusé');
-location.href='dashboard.html';
-return;
+alert("Accès refusé");
+location.href="dashboard.html";
 }
+}
+
+async function loadAll(){
+await loadUsers();
+await loadDeposits();
+await loadStats();
 }
 
 async function loadStats(){
-const {data:users,error:userErr} = await sb.from('profiles').select('*');
-console.log('USERS',users,userErr);
-const {data:deposits,error:depErr} = await sb
-.from('transactions')
-.select('*')
-.eq('type','depot')
-.eq('status','pending');
-
-console.log('DEPOSITS',deposits,depErr);
-
-const vip = users.filter(u=>u.level === 'VIP');
-const refs = users.filter(u=>u.referred_by);
+const { data: users=[] } = await sb.from('profiles').select('*');
+const { data: deposits=[] } = await sb.from('transactions').select('*').eq('type','depot');
 
 document.getElementById('total-users').textContent = users.length;
-document.getElementById('pending-deposits').textContent = deposits.length;
-document.getElementById('vip-users').textContent = vip.length;
-document.getElementById('total-refs').textContent = refs.length;
-}
-
-async function loadDeposits(){
-const {data} = await sb
-.from('transactions')
-.select('*')
-.eq('type','depot')
-;
-
-const body = document.getElementById('deposit-body');
-body.innerHTML='';
-
-data.forEach(t=>{
-body.innerHTML += `
-<tr>
-<td>${t.user_name || 'Utilisateur'}</td>
-<td>${Number(t.amount).toLocaleString('fr-FR')} FCFA</td>
-<td>${t.method || 'Mobile Money'}</td>
-<td>
-<span class="badge ${t.status==='success'?'success':t.status==='pending'?'pending':'danger'}">
-${t.status}
-</span>
-</td>
-<td>
-<button class="btn btn-ok" onclick="validateDeposit('${t.id}','${t.user_id}',${t.amount})">Valider</button>
-<button class="btn btn-no" onclick="rejectDeposit('${t.id}')">Refuser</button>
-</td>
-</tr>
-`;
-});
-}
-
-async function validateDeposit(id,userId,amount){
-try {
-
-const {data:user,error:userErr} = await sb
-.from('profiles')
-.select('balance')
-.eq('id',userId)
-.single();
-
-if(userErr){
-console.error(userErr);
-alert('Utilisateur introuvable');
-return;
-}
-
-const oldBal = Number(user.balance || 0);
-const newBal = oldBal + Number(amount);
-
-const {error:updateErr} = await sb
-.from('profiles')
-.update({balance:newBal})
-.eq('id',userId);
-
-if(updateErr){
-console.error(updateErr);
-alert('Erreur mise à jour solde');
-return;
-}
-
-const {error:trxErr} = await sb
-.from('transactions')
-.update({status:'success'})
-.eq('id',id);
-
-if(trxErr){
-console.error(trxErr);
-alert('Erreur validation transaction');
-return;
-}
-
-alert('Recharge validée avec succès');
-
-await loadDeposits();
-await loadStats();
-await loadUsers();
-
-} catch(e){
-console.error(e);
-alert('Erreur serveur');
-}
-}
-
-async function rejectDeposit(id){
-await sb
-.from('transactions')
-.update({status:'rejected'})
-.eq('id',id);
-
-alert('Recharge refusée');
-loadDeposits();
+document.getElementById('pending-deposits').textContent = deposits.filter(d=>d.status==='pending').length;
+document.getElementById('vip-users').textContent = users.filter(u=>u.level!=='Starter').length;
+document.getElementById('total-refs').textContent = users.filter(u=>u.referred_by).length;
 }
 
 async function loadUsers(){
+const { data=[] } = await sb.from('profiles').select('*');
 
-const {data,error} = await sb
-.from('profiles')
-.select('*');
+allUsers = data;
 
-console.log('LOAD USERS',data,error);
-
-if(error){
-console.error(error);
-alert('Erreur chargement utilisateurs');
-return;
-}
-
-allUsers = data || [];
-
-// Supprime les doublons éventuels
-const uniqueUsers = [];
-const ids = new Set();
-
-allUsers.forEach(u=>{
-if(!ids.has(u.id)){
-ids.add(u.id);
-uniqueUsers.push(u);
-}
-});
-
-renderUsers(uniqueUsers);
-
-// Mise à jour compteur réel
-const totalEl = document.getElementById('total-users');
-if(totalEl){
-totalEl.textContent = uniqueUsers.length;
-}
+renderUsers(data);
 }
 
 function renderUsers(users){
@@ -409,105 +210,72 @@ body.innerHTML='';
 users.forEach(u=>{
 body.innerHTML += `
 <tr>
-<td>${u.full_name || '---'}</td>
-<td>${u.phone || '---'}</td>
+<td>${u.full_name||'-'}</td>
+<td>${u.phone||'-'}</td>
+
 <td>
-<span class="badge ${u.level==='VIP'?'vip':'pending'}">
-${u.level || 'Starter'}
-</span>
+<select onchange="changeVip('${u.id}',this.value)">
+<option ${u.level==='Starter'?'selected':''}>Starter</option>
+<option ${u.level==='VIP1'?'selected':''}>VIP1</option>
+<option ${u.level==='VIP2'?'selected':''}>VIP2</option>
+<option ${u.level==='VIP3'?'selected':''}>VIP3</option>
+</select>
 </td>
-<td>${Number(u.balance || 0).toLocaleString('fr-FR')} FCFA</td>
-<td>${u.referred_by || 'Aucun'}</td>
+
 <td>
-<button class="btn btn-vip" onclick="makeVip('${u.id}')">Mettre VIP</button>
-<button class="btn btn-remove" onclick="removeVip('${u.id}')">Enlever VIP</button>
+<input type="number" id="bal-${u.id}" value="${u.balance||0}" style="width:80px"/>
+<button class="btn btn-ok" onclick="updateBalance('${u.id}')">OK</button>
+</td>
+
+<td>${u.referred_by||'-'}</td>
+
+<td>
+<button class="btn btn-remove" onclick="deleteUser('${u.id}')">Supprimer</button>
 </td>
 </tr>
 `;
 });
+}
+
+async function changeVip(id,level){
+await sb.from('profiles').update({level}).eq('id',id);
+loadAll();
+}
+
+async function updateBalance(id){
+const val=document.getElementById(`bal-${id}`).value;
+await sb.from('profiles').update({balance:Number(val)}).eq('id',id);
+loadAll();
+}
+
+async function deleteUser(id){
+if(!confirm("Supprimer ?"))return;
+await sb.from('profiles').delete().eq('id',id);
+loadAll();
 }
 
 function filterUsers(){
-const q = document.getElementById('search').value.toLowerCase();
-const filtered = allUsers.filter(u=>
-(u.full_name || '').toLowerCase().includes(q) ||
-(u.phone || '').toLowerCase().includes(q)
-);
-renderUsers(filtered);
+const q=document.getElementById('search').value.toLowerCase();
+renderUsers(allUsers.filter(u=>
+(u.full_name||'').toLowerCase().includes(q) ||
+(u.phone||'').toLowerCase().includes(q)
+));
 }
 
-async function makeVip(id){
-await sb.from('profiles')
-.update({level:'VIP'})
-.eq('id',id);
+async function loadDeposits(){
+const { data=[] } = await sb.from('transactions').select('*').eq('type','depot');
 
-alert('Utilisateur VIP');
-loadUsers();
-loadStats();
-}
-
-async function removeVip(id){
-await sb.from('profiles')
-.update({level:'Starter'})
-.eq('id',id);
-
-alert('VIP retiré');
-loadUsers();
-loadStats();
-}
-
-async function loadReferrals(){
-const {data} = await sb
-.from('profiles')
-.select('*')
-.not('referred_by','is',null);
-
-const body = document.getElementById('refs-body');
+const body=document.getElementById('deposit-body');
 body.innerHTML='';
 
-data.forEach(r=>{
-body.innerHTML += `
+data.forEach(t=>{
+body.innerHTML+=`
 <tr>
-<td>${r.full_name || 'Utilisateur'}</td>
-<td>${r.referred_by}</td>
-<td>1000 FCFA</td>
-<td>
-<span class="badge ${r.bonus_received ? 'success':'danger'}">
-${r.bonus_received ? 'Payé':'Non payé'}
-</span>
-</td>
-<td>
-${!r.bonus_received ? `<button class="btn btn-ok" onclick="payCommission('${r.id}', '${r.referred_by}')">Payer</button>` : ''}
-</td>
-</tr>
-`;
+<td>${t.user_name||'User'}</td>
+<td>${t.amount}</td>
+<td>${t.status}</td>
+</tr>`;
 });
-}
-
-async function payCommission(userId,refCode){
-const {data:referrer} = await sb
-.from('profiles')
-.select('*')
-.eq('referral_code',refCode)
-.single();
-
-if(!referrer){
-alert('Parrain introuvable');
-return;
-}
-
-const newBal = (referrer.balance || 0) + 1000;
-
-await sb.from('profiles')
-.update({balance:newBal})
-.eq('id',referrer.id);
-
-await sb.from('profiles')
-.update({bonus_received:true})
-.eq('id',userId);
-
-alert('Commission envoyée');
-loadReferrals();
 }
 </script>
 
