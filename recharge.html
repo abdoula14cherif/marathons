@@ -4,158 +4,307 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>Marathon — Recharge</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--red:#C41C1C;--rd:#9E1616;--cr:#F7F2EC;--mu:#8A7070;--bo:rgba(196,28,28,.12);--t1:#1A1212;--t2:#4A3A3A}
 body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-height:100vh;padding-bottom:40px}
 .topbar{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;display:flex;align-items:center;gap:12px}
-.back{background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.back{background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .back svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5}
-.topbar h1{font-family:"Cormorant Garamond",serif;font-size:24px;color:#fff}
-.topbar p{color:rgba(255,255,255,.72);font-size:12px}
+.topbar h1{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:#fff}
+.topbar p{color:rgba(255,255,255,.72);font-size:12px;margin-top:2px}
 .content{padding:16px}
-
-.bal-card,.card{background:#fff;border-radius:14px;padding:16px;border:1px solid var(--bo);margin-bottom:16px}
-.bal-val{font-size:28px;font-weight:700;color:var(--red)}
-
-.amount-display{text-align:center;padding:20px;background:var(--cr);border-radius:12px}
-.amount-display .amt{font-size:42px;font-weight:700;color:var(--red)}
-
-.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.preset{padding:10px;background:var(--cr);border-radius:10px;text-align:center;cursor:pointer}
-
-.pay-btn{width:100%;padding:15px;border:none;border-radius:12px;
-background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;font-weight:700}
-.pay-btn:disabled{opacity:.6}
-
-.alert{display:none;padding:10px;border-radius:8px;margin-bottom:10px}
-.alert.err{background:#ffe5e5;color:#b00000}
-.alert.ok{background:#e7ffe7;color:#0a7a0a}
-
-.success{display:none;text-align:center;padding:30px}
+.bal-card{background:#fff;border-radius:14px;padding:16px 18px;border:1px solid var(--bo);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.bal-lbl{font-size:11px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.bal-val{font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:700;color:var(--red)}
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.info-box{background:#fff;border-radius:12px;padding:12px;border:1px solid var(--bo);text-align:center}
+.info-box .v{font-size:15px;font-weight:700;color:var(--t1)}
+.info-box .k{font-size:10px;color:var(--mu);margin-top:3px}
+.card{background:#fff;border-radius:14px;padding:18px;border:1px solid var(--bo);margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.card h3{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:var(--t1);margin-bottom:16px}
+.amount-display{text-align:center;padding:20px;background:var(--cr);border-radius:12px;margin-bottom:14px}
+.amount-display .amt{font-family:"Cormorant Garamond",serif;font-size:42px;font-weight:700;color:var(--red);line-height:1}
+.amount-display .cur{font-size:14px;color:var(--mu);margin-top:4px}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.preset{display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 6px;background:var(--cr);border-radius:11px;border:2px solid transparent;cursor:pointer;transition:all .2s}
+.preset.on{border-color:var(--red);background:#FFF0F0}
+.preset:active{transform:scale(.94)}
+.preset .pa{font-size:14px;font-weight:700;color:var(--t1)}
+.preset .pp{font-size:10px;color:var(--mu)}
+.custom-wrap{display:flex;align-items:center;gap:8px;background:var(--cr);border:1.5px solid var(--bo);border-radius:11px;padding:10px 14px;margin-bottom:16px;transition:all .2s}
+.custom-wrap:focus-within{border-color:var(--red);background:#fff}
+.custom-wrap span{font-size:13.5px;font-weight:600;color:var(--mu);white-space:nowrap}
+.custom-wrap input{flex:1;border:none;background:transparent;font-family:"DM Sans",sans-serif;font-size:16px;font-weight:600;color:var(--t1);outline:none}
+.custom-wrap input::placeholder{color:#C4B0B0;font-weight:400}
+.pay-btn{width:100%;padding:15px;border-radius:13px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.pay-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(196,28,28,.35)}
+.pay-btn:active{transform:scale(.98)}
+.pay-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.methods-info{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.mtag{background:var(--cr);border:1px solid var(--bo);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--t2);font-weight:500}
+.alert{padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
+.alert.err{display:block;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC}
+.alert.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0}
+.success{display:none;text-align:center;padding:40px 20px}
 .success.on{display:block}
+.success .ico{font-size:64px;margin-bottom:16px}
+.success h3{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600;color:var(--t1);margin-bottom:10px}
+.success p{font-size:13.5px;color:var(--mu);line-height:1.65;max-width:300px;margin:0 auto 22px}
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
-
 <body>
-
+<div id="toast"></div>
 <div class="topbar">
   <button class="back" onclick="window.location.href='dashboard.html'">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <div>
-    <h1>Recharger mon compte</h1>
-    <p>Paiement sécurisé via LeekPay</p>
-  </div>
+  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé via MoneyFusion</p></div>
 </div>
 
 <div class="content">
-
   <div class="bal-card">
     <div>
-      <div>Solde actuel</div>
+      <div class="bal-lbl">Solde actuel</div>
       <div class="bal-val" id="bal-val">— FCFA</div>
     </div>
+    <svg width="38" height="38" fill="none" stroke="var(--red)" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:.35"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
   </div>
 
-  <div class="card">
-    <h3>Choisir montant</h3>
-
-    <div class="alert err" id="al"></div>
-
-    <div class="amount-display">
-      <div class="amt" id="amt-display">0</div>
-      <div>FCFA</div>
-    </div>
-
-    <div class="presets">
-      <div class="preset" onclick="setAmt(3000,this)">3000</div>
-      <div class="preset" onclick="setAmt(6000,this)">6000</div>
-      <div class="preset" onclick="setAmt(10000,this)">10000</div>
-      <div class="preset" onclick="setAmt(20000,this)">20000</div>
-      <div class="preset" onclick="setAmt(50000,this)">50000</div>
-      <div class="preset" onclick="setAmt(100000,this)">100000</div>
-    </div>
-
-    <input type="number" id="custom-input" placeholder="Autre montant" oninput="onCustom()"
-      style="width:100%;padding:10px;margin-top:10px;border-radius:10px;border:1px solid #ddd"/>
-
-    <button class="pay-btn" id="pay-btn" onclick="startPayment()" disabled>
-      Payer avec LeekPay
-    </button>
+  <div class="info-row">
+    <div class="info-box"><div class="v">3 000 F</div><div class="k">Dépôt minimum</div></div>
+    <div class="info-box"><div class="v">Instantané</div><div class="k">Crédit</div></div>
   </div>
 
+  <!-- Vérification paiement retour -->
+  <div class="alert ok" id="return-alert" style="display:none">
+    ✅ Paiement détecté ! Vérification en cours...
+  </div>
+
+  <div id="recharge-form">
+    <div class="card">
+      <h3>Choisir le montant</h3>
+      <div class="alert" id="al"></div>
+
+      <div class="amount-display">
+        <div class="amt" id="amt-display">0</div>
+        <div class="cur">FCFA</div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Plans disponibles</div>
+      <div class="presets">
+        <div class="preset" onclick="setAmt(3000,this)"><span class="pa">3 000 F</span><span class="pp">🟢 Starter</span></div>
+        <div class="preset" onclick="setAmt(6000,this)"><span class="pa">6 000 F</span><span class="pp">🔵 Bronze</span></div>
+        <div class="preset" onclick="setAmt(10000,this)"><span class="pa">10 000 F</span><span class="pp">🟠 Silver</span></div>
+        <div class="preset" onclick="setAmt(20000,this)"><span class="pa">20 000 F</span><span class="pp">🟣 Gold</span></div>
+        <div class="preset" onclick="setAmt(50000,this)"><span class="pa">50 000 F</span><span class="pp">🔴 Premium</span></div>
+        <div class="preset" onclick="setAmt(100000,this)"><span class="pa">100 000 F</span><span class="pp">👑 VIP</span></div>
+        <div class="preset" onclick="setAmt(300000,this)"><span class="pa">300 000 F</span><span class="pp">❄️ COLD</span></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Ou entrez un montant</div>
+      <div class="custom-wrap">
+        <span>FCFA</span>
+        <input type="number" id="custom-input" placeholder="Autre montant..." min="3000" oninput="onCustom()"/>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Méthodes acceptées</div>
+      <div class="methods-info">
+        <span class="mtag">📱 MTN Mobile Money</span>
+        <span class="mtag">🟠 Orange Money</span>
+        <span class="mtag">🌊 Wave</span>
+        <span class="mtag">💛 Moov Money</span>
+        <span class="mtag">💳 Carte bancaire</span>
+      </div>
+
+      <button class="pay-btn" id="pay-btn" onclick="startPayment()" disabled>
+        <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payer avec MoneyFusion
+      </button>
+    </div>
+
+    <div style="background:#EFF6FF;border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:13px 14px;font-size:12.5px;color:#1D4ED8;line-height:1.65">
+      🔒 Paiement 100% sécurisé via <strong>MoneyFusion</strong>. Vos fonds sont crédités automatiquement après confirmation.
+    </div>
+  </div>
+
+  <div class="success" id="success-screen">
+    <div class="ico">🎉</div>
+    <h3>Paiement réussi !</h3>
+    <p id="success-msg">Votre compte a été rechargé avec succès.</p>
+    <button class="pay-btn" onclick="window.location.href='dashboard.html'">Retour au dashboard</button>
+    <button class="pay-btn" style="background:var(--cr);color:var(--red);border:1.5px solid rgba(196,28,28,.22);margin-top:10px;box-shadow:none" onclick="window.location.href='historique.html'">Voir l'historique</button>
+  </div>
 </div>
 
 <script>
-let sb=null,currentUser=null,selectedAmount=0;
+let sb = null, currentUser = null, selectedAmount = 0;
+const $ = id => document.getElementById(id);
 
-const $=id=>document.getElementById(id);
+try {
+  sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');
+} catch(e) { console.error(e); }
 
-sb = supabase.createClient(
-  "https://mzxxfxkryhxnycewyryv.supabase.co",
-  "SUPABASE_ANON_KEY"
-);
+const MF_PAYMENT_URL = 'https://my.moneyfusion.net/6a17df1a9b44f35769ccfca6';
 
-/* 🔐 LEEKPAY CONFIG (NE PAS METTRE DE CLÉ SECRÈTE ICI) */
-const LEEKPAY_PUBLIC_KEY = "YOUR_PUBLIC_KEY";
-const LEEKPAY_BASE_URL = "https://api.leekpay.com/pay"; // à adapter selon doc
+function toast(msg) {
+  const t = $('toast'); if (!t) return;
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
 
 window.addEventListener('DOMContentLoaded', async () => {
-  const {data:{session}} = await sb.auth.getSession();
-  if(!session) return window.location.href="index.html";
-  currentUser=session.user;
+  try {
+    if (!sb) return;
+    const { data: sd } = await sb.auth.getSession();
+    if (!sd?.session) { window.location.href = 'index.html'; return; }
+    currentUser = sd.session.user;
 
-  const {data:p}=await sb.from('profiles').select('balance').eq('id',currentUser.id).single();
-  if(p) $("bal-val").textContent=p.balance.toLocaleString()+" FCFA";
+    // Charger le solde
+    const { data: p } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
+    if (p) $('bal-val').textContent = (p.balance || 0).toLocaleString('fr-FR') + ' FCFA';
+
+    // ✅ Vérifier si on revient d'un paiement MoneyFusion
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payment_status') || params.get('status');
+    const txId   = params.get('transaction_id') || params.get('tx_id') || params.get('paymentId');
+    const amtParam = parseInt(params.get('amount') || params.get('montant') || '0');
+
+    if ((status === 'success' || status === 'paid' || status === 'completed') && amtParam > 0) {
+      $('return-alert').style.display = 'block';
+      await handlePaymentSuccess(amtParam, txId || 'MF-' + Date.now());
+    }
+  } catch(e) {
+    console.error('Init error:', e);
+  }
 });
 
-function setAmt(v,el){
-  selectedAmount=v;
-  $("amt-display").textContent=v.toLocaleString();
-  document.querySelectorAll(".preset").forEach(e=>e.classList.remove("on"));
-  el.classList.add("on");
-  updateBtn(v);
+function showAlert(msg, type) {
+  const el = $('al');
+  el.className = 'alert ' + (type || 'err');
+  el.textContent = msg;
 }
 
-function onCustom(){
-  selectedAmount=parseInt($("custom-input").value)||0;
-  $("amt-display").textContent=selectedAmount;
-  updateBtn(selectedAmount);
+function setAmt(amt, el) {
+  selectedAmount = amt;
+  $('amt-display').textContent = amt.toLocaleString('fr-FR');
+  $('custom-input').value = '';
+  document.querySelectorAll('.preset').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  updatePayBtn(amt);
 }
 
-function updateBtn(v){
-  $("pay-btn").disabled=v<3000;
+function onCustom() {
+  const v = parseInt($('custom-input').value) || 0;
+  selectedAmount = v;
+  $('amt-display').textContent = v > 0 ? v.toLocaleString('fr-FR') : '0';
+  document.querySelectorAll('.preset').forEach(p => p.classList.remove('on'));
+  updatePayBtn(v);
 }
 
-function showErr(msg){
-  const el=$("al");
-  el.style.display="block";
-  el.textContent=msg;
+function updatePayBtn(amt) {
+  const btn = $('pay-btn');
+  if (amt >= 3000) {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ${amt.toLocaleString('fr-FR')} FCFA`;
+  } else {
+    btn.disabled = true;
+    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec MoneyFusion`;
+  }
 }
 
-function startPayment(){
-  if(selectedAmount<3000) return showErr("Minimum 3000 FCFA");
+function startPayment() {
+  if (selectedAmount < 3000) return showAlert('Montant minimum : 3 000 FCFA');
+  if (!currentUser) return showAlert('Session expirée. Reconnectez-vous.');
 
-  const payload={
-    amount:selectedAmount,
-    currency:"XOF",
-    customer:{
-      id:currentUser.id
-    },
-    return_url:window.location.origin+"/recharge.html?status=success&amount="+selectedAmount
-  };
+  const btn = $('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Redirection vers MoneyFusion...';
 
-  const url=LEEKPAY_BASE_URL+"?data="+encodeURIComponent(JSON.stringify(payload))
-    +"&key="+LEEKPAY_PUBLIC_KEY;
+  // Construire l'URL de retour avec les infos nécessaires
+  const returnUrl = encodeURIComponent(
+    window.location.origin + '/recharge.html?payment_status=success&amount=' + selectedAmount + '&user=' + currentUser.id
+  );
+  const cancelUrl = encodeURIComponent(window.location.origin + '/recharge.html?payment_status=cancel');
 
-  window.location.href=url;
+  const m = currentUser.user_metadata || {};
+  const phone = encodeURIComponent(m.phone_number || '');
+  const name  = encodeURIComponent(m.full_name || '');
+  const desc  = encodeURIComponent('Recharge Marathon - ' + selectedAmount.toLocaleString('fr-FR') + ' FCFA');
+
+  // URL MoneyFusion avec paramètres
+  const payUrl = MF_PAYMENT_URL
+    + '?amount=' + selectedAmount
+    + '&description=' + desc
+    + '&telephone=' + phone
+    + '&customerName=' + name
+    + '&return_url=' + returnUrl
+    + '&cancel_url=' + cancelUrl
+    + '&currency=XOF';
+
+  // Stocker le montant en attente dans localStorage
+  localStorage.setItem('mf_pending_amount', selectedAmount.toString());
+  localStorage.setItem('mf_pending_user', currentUser.id);
+
+  setTimeout(() => { window.location.href = payUrl; }, 800);
+}
+
+async function handlePaymentSuccess(amount, txId) {
+  try {
+    // Vérifier qu'on n'a pas déjà crédité ce paiement
+    const txKey = 'mf_credited_' + txId;
+    if (localStorage.getItem(txKey)) {
+      showAlert('Ce paiement a déjà été crédité.', 'ok');
+      return;
+    }
+
+    // Récupérer le solde actuel
+    const { data: p, error: pe } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
+    if (pe) throw pe;
+
+    const oldBal = p?.balance || 0;
+    const newBal = oldBal + amount;
+
+    // Mettre à jour le solde
+    const { error: ue } = await sb.from('profiles').update({ balance: newBal }).eq('id', currentUser.id);
+    if (ue) throw ue;
+
+    // Enregistrer la transaction
+    await sb.from('transactions').insert({
+      user_id: currentUser.id,
+      type: 'depot',
+      amount: amount,
+      fee: 0,
+      net_amount: amount,
+      status: 'success',
+      description: 'Recharge via MoneyFusion · ' + txId,
+      method: 'MoneyFusion'
+    });
+
+    // Marquer comme crédité
+    localStorage.setItem(txKey, '1');
+    localStorage.removeItem('mf_pending_amount');
+    localStorage.removeItem('mf_pending_user');
+
+    // Afficher succès
+    $('recharge-form').style.display = 'none';
+    $('return-alert').style.display = 'none';
+    $('success-msg').textContent = '+' + amount.toLocaleString('fr-FR') + ' FCFA crédités ! Nouveau solde : ' + newBal.toLocaleString('fr-FR') + ' FCFA.';
+    $('success-screen').classList.add('on');
+    toast('🎉 +' + amount.toLocaleString('fr-FR') + ' FCFA crédités !');
+
+  } catch(e) {
+    console.error('handlePaymentSuccess error:', e);
+    showAlert('Paiement reçu mais erreur de crédit. Contactez le support avec le code : ' + txId);
+    $('return-alert').style.display = 'none';
+  }
 }
 </script>
-
 </body>
 </html>
