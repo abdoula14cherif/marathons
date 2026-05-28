@@ -29,18 +29,10 @@ background:linear-gradient(135deg,var(--rd),var(--red));
 padding:40px 16px 20px;
 color:#fff;
 }
-.topbar h1{
-font-family:"Cormorant Garamond",serif;
-font-size:32px;
-}
-.topbar p{
-font-size:13px;
-opacity:.8;
-margin-top:4px;
-}
-.content{
-padding:16px;
-}
+.topbar h1{font-family:"Cormorant Garamond",serif;font-size:32px;}
+.topbar p{font-size:13px;opacity:.8;margin-top:4px;}
+.content{padding:16px;}
+
 .stats{
 display:grid;
 grid-template-columns:repeat(2,1fr);
@@ -53,16 +45,9 @@ border-radius:16px;
 padding:16px;
 border:1px solid var(--bo);
 }
-.stat .v{
-font-size:24px;
-font-weight:700;
-color:var(--red);
-}
-.stat .k{
-font-size:12px;
-color:var(--mu);
-margin-top:4px;
-}
+.stat .v{font-size:24px;font-weight:700;color:var(--red);}
+.stat .k{font-size:12px;color:var(--mu);margin-top:4px;}
+
 .card{
 background:#fff;
 border-radius:18px;
@@ -75,26 +60,12 @@ font-size:20px;
 margin-bottom:14px;
 font-family:"Cormorant Garamond",serif;
 }
-.table-wrap{
-overflow:auto;
-}
-table{
-width:100%;
-border-collapse:collapse;
-min-width:700px;
-}
-th,td{
-padding:12px;
-font-size:13px;
-text-align:left;
-border-bottom:1px solid #eee;
-}
-th{
-background:#faf7f5;
-color:var(--mu);
-font-size:11px;
-text-transform:uppercase;
-}
+
+.table-wrap{overflow:auto;}
+table{width:100%;border-collapse:collapse;min-width:750px;}
+th,td{padding:12px;font-size:13px;text-align:left;border-bottom:1px solid #eee;}
+th{background:#faf7f5;color:var(--mu);font-size:11px;text-transform:uppercase;}
+
 .badge{
 padding:5px 10px;
 border-radius:30px;
@@ -106,6 +77,7 @@ display:inline-block;
 .success{background:#F0FFF4;color:#166534}
 .danger{background:#FFF0F0;color:#B91C1C}
 .vip{background:#F5F3FF;color:#6D28D9}
+
 .btn{
 border:none;
 padding:9px 12px;
@@ -119,6 +91,8 @@ margin:2px;
 .btn-no{background:#FEE2E2;color:#B91C1C}
 .btn-vip{background:#EDE9FE;color:#6D28D9}
 .btn-remove{background:#111;color:#fff}
+.btn-edit{background:#DBEAFE;color:#1D4ED8}
+
 .search{
 width:100%;
 padding:14px;
@@ -127,8 +101,15 @@ border:1px solid var(--bo);
 margin-bottom:16px;
 font-size:14px;
 }
+
+select,input{
+padding:6px;
+border-radius:8px;
+border:1px solid #ddd;
+}
 </style>
 </head>
+
 <body>
 
 <div class="topbar">
@@ -139,22 +120,10 @@ font-size:14px;
 <div class="content">
 
 <div class="stats">
-<div class="stat">
-<div class="v" id="total-users">0</div>
-<div class="k">Utilisateurs</div>
-</div>
-<div class="stat">
-<div class="v" id="pending-deposits">0</div>
-<div class="k">Recharges en attente</div>
-</div>
-<div class="stat">
-<div class="v" id="vip-users">0</div>
-<div class="k">Comptes VIP</div>
-</div>
-<div class="stat">
-<div class="v" id="total-refs">0</div>
-<div class="k">Parrainages</div>
-</div>
+<div class="stat"><div class="v" id="total-users">0</div><div class="k">Utilisateurs</div></div>
+<div class="stat"><div class="v" id="pending-deposits">0</div><div class="k">Recharges en attente</div></div>
+<div class="stat"><div class="v" id="vip-users">0</div><div class="k">Comptes VIP</div></div>
+<div class="stat"><div class="v" id="total-refs">0</div><div class="k">Parrainages</div></div>
 </div>
 
 <input type="text" class="search" id="search" placeholder="Rechercher un utilisateur..." oninput="filterUsers()"/>
@@ -165,11 +134,7 @@ font-size:14px;
 <table>
 <thead>
 <tr>
-<th>Utilisateur</th>
-<th>Montant</th>
-<th>Méthode</th>
-<th>Statut</th>
-<th>Actions</th>
+<th>Utilisateur</th><th>Montant</th><th>Méthode</th><th>Statut</th><th>Actions</th>
 </tr>
 </thead>
 <tbody id="deposit-body"></tbody>
@@ -183,12 +148,7 @@ font-size:14px;
 <table>
 <thead>
 <tr>
-<th>Nom</th>
-<th>Téléphone</th>
-<th>Niveau</th>
-<th>Solde</th>
-<th>Parrain</th>
-<th>Actions</th>
+<th>Nom</th><th>Téléphone</th><th>Niveau</th><th>Solde</th><th>Parrain</th><th>Actions</th>
 </tr>
 </thead>
 <tbody id="users-body"></tbody>
@@ -202,11 +162,7 @@ font-size:14px;
 <table>
 <thead>
 <tr>
-<th>Utilisateur</th>
-<th>Parrainé par</th>
-<th>Commission</th>
-<th>Statut</th>
-<th>Action</th>
+<th>Utilisateur</th><th>Parrainé par</th><th>Commission</th><th>Statut</th><th>Action</th>
 </tr>
 </thead>
 <tbody id="refs-body"></tbody>
@@ -232,282 +188,140 @@ await loadUsers();
 await loadReferrals();
 });
 
+/* ADMIN CHECK */
 async function checkAdmin(){
 const s = await sb.auth.getSession();
-if(!s.data.session){
-location.href='index.html';
-return;
-}
+if(!s.data.session){location.href='index.html';return;}
 
-const user = s.data.session.user;
-const email = (user.email || '').toLowerCase();
-
-const admins = [
-'abdoula13cherif@gmail.com',
-'marieedoh@gmail.com'
-];
+const email = (s.data.session.user.email||'').toLowerCase();
+const admins=['abdoula13cherif@gmail.com','marieedoh@gmail.com'];
 
 if(!admins.includes(email)){
 alert('Accès refusé');
 location.href='dashboard.html';
-return;
 }
 }
 
+/* STATS */
 async function loadStats(){
-const {data:users,error:userErr} = await sb.from('profiles').select('*');
-console.log('USERS',users,userErr);
-const {data:deposits,error:depErr} = await sb
-.from('transactions')
-.select('*')
-.eq('type','depot')
-.eq('status','pending');
+const {data:users}=await sb.from('profiles').select('*');
+const {data:deposits}=await sb.from('transactions').select('*').eq('type','depot').eq('status','pending');
 
-console.log('DEPOSITS',deposits,depErr);
+const vip=users.filter(u=>u.level?.includes('VIP'));
+const refs=users.filter(u=>u.referred_by);
 
-const vip = users.filter(u=>u.level === 'VIP');
-const refs = users.filter(u=>u.referred_by);
-
-document.getElementById('total-users').textContent = users.length;
-document.getElementById('pending-deposits').textContent = deposits.length;
-document.getElementById('vip-users').textContent = vip.length;
-document.getElementById('total-refs').textContent = refs.length;
+document.getElementById('total-users').textContent=users.length;
+document.getElementById('pending-deposits').textContent=deposits.length;
+document.getElementById('vip-users').textContent=vip.length;
+document.getElementById('total-refs').textContent=refs.length;
 }
 
-async function loadDeposits(){
-const {data} = await sb
-.from('transactions')
-.select('*')
-.eq('type','depot')
-;
+/* USERS */
+async function loadUsers(){
+const {data}=await sb.from('profiles').select('*');
 
-const body = document.getElementById('deposit-body');
+allUsers=data||[];
+renderUsers(allUsers);
+document.getElementById('total-users').textContent=allUsers.length;
+}
+
+function renderUsers(users){
+const body=document.getElementById('users-body');
+body.innerHTML='';
+
+users.forEach(u=>{
+body.innerHTML+=`
+<tr>
+<td><input value="${u.full_name||''}" onchange="updateField('${u.id}','full_name',this.value)"></td>
+<td><input value="${u.phone||''}" onchange="updateField('${u.id}','phone',this.value)"></td>
+<td>
+<select onchange="updateField('${u.id}','level',this.value)">
+<option ${u.level==='Starter'?'selected':''}>Starter</option>
+<option ${u.level==='VIP'?'selected':''}>VIP</option>
+<option ${u.level==='VIP2'?'selected':''}>VIP2</option>
+<option ${u.level==='VIP3'?'selected':''}>VIP3</option>
+</select>
+</td>
+<td><input type="number" value="${u.balance||0}" onchange="updateField('${u.id}','balance',this.value)"></td>
+<td><input value="${u.referred_by||''}" onchange="updateField('${u.id}','referred_by',this.value)"></td>
+<td>
+<button class="btn btn-edit" onclick="alert('Modifié automatiquement')">OK</button>
+</td>
+</tr>
+`;
+});
+}
+
+async function updateField(id,field,value){
+await sb.from('profiles').update({[field]:value}).eq('id',id);
+}
+
+/* FILTER */
+function filterUsers(){
+const q=document.getElementById('search').value.toLowerCase();
+renderUsers(allUsers.filter(u=>
+(u.full_name||'').toLowerCase().includes(q)||
+(u.phone||'').toLowerCase().includes(q)
+));
+}
+
+/* DEPOSITS */
+async function loadDeposits(){
+const {data}=await sb.from('transactions').select('*').eq('type','depot');
+
+const body=document.getElementById('deposit-body');
 body.innerHTML='';
 
 data.forEach(t=>{
-body.innerHTML += `
+body.innerHTML+=`
 <tr>
-<td>${t.user_name || 'Utilisateur'}</td>
-<td>${Number(t.amount).toLocaleString('fr-FR')} FCFA</td>
-<td>${t.method || 'Mobile Money'}</td>
-<td>
-<span class="badge ${t.status==='success'?'success':t.status==='pending'?'pending':'danger'}">
-${t.status}
-</span>
-</td>
+<td>${t.user_name}</td>
+<td>${Number(t.amount).toLocaleString()} FCFA</td>
+<td>${t.method}</td>
+<td><span class="badge ${t.status==='pending'?'pending':'success'}">${t.status}</span></td>
 <td>
 <button class="btn btn-ok" onclick="validateDeposit('${t.id}','${t.user_id}',${t.amount})">Valider</button>
 <button class="btn btn-no" onclick="rejectDeposit('${t.id}')">Refuser</button>
 </td>
-</tr>
-`;
+</tr>`;
 });
 }
 
+/* VALIDATION */
 async function validateDeposit(id,userId,amount){
-try {
+const {data}=await sb.from('profiles').select('balance').eq('id',userId).single();
 
-const {data:user,error:userErr} = await sb
-.from('profiles')
-.select('balance')
-.eq('id',userId)
-.single();
+const newBal=Number(data.balance)+Number(amount);
 
-if(userErr){
-console.error(userErr);
-alert('Utilisateur introuvable');
-return;
+await sb.from('profiles').update({balance:newBal}).eq('id',userId);
+await sb.from('transactions').update({status:'success'}).eq('id',id);
+
+loadDeposits();loadStats();loadUsers();
 }
 
-const oldBal = Number(user.balance || 0);
-const newBal = oldBal + Number(amount);
-
-const {error:updateErr} = await sb
-.from('profiles')
-.update({balance:newBal})
-.eq('id',userId);
-
-if(updateErr){
-console.error(updateErr);
-alert('Erreur mise à jour solde');
-return;
-}
-
-const {error:trxErr} = await sb
-.from('transactions')
-.update({status:'success'})
-.eq('id',id);
-
-if(trxErr){
-console.error(trxErr);
-alert('Erreur validation transaction');
-return;
-}
-
-alert('Recharge validée avec succès');
-
-await loadDeposits();
-await loadStats();
-await loadUsers();
-
-} catch(e){
-console.error(e);
-alert('Erreur serveur');
-}
-}
-
+/* REJECT */
 async function rejectDeposit(id){
-await sb
-.from('transactions')
-.update({status:'rejected'})
-.eq('id',id);
-
-alert('Recharge refusée');
+await sb.from('transactions').update({status:'rejected'}).eq('id',id);
 loadDeposits();
 }
 
-async function loadUsers(){
-
-const {data,error} = await sb
-.from('profiles')
-.select('*');
-
-console.log('LOAD USERS',data,error);
-
-if(error){
-console.error(error);
-alert('Erreur chargement utilisateurs');
-return;
-}
-
-allUsers = data || [];
-
-// Supprime les doublons éventuels
-const uniqueUsers = [];
-const ids = new Set();
-
-allUsers.forEach(u=>{
-if(!ids.has(u.id)){
-ids.add(u.id);
-uniqueUsers.push(u);
-}
-});
-
-renderUsers(uniqueUsers);
-
-// Mise à jour compteur réel
-const totalEl = document.getElementById('total-users');
-if(totalEl){
-totalEl.textContent = uniqueUsers.length;
-}
-}
-
-function renderUsers(users){
-const body = document.getElementById('users-body');
-body.innerHTML='';
-
-users.forEach(u=>{
-body.innerHTML += `
-<tr>
-<td>${u.full_name || '---'}</td>
-<td>${u.phone || '---'}</td>
-<td>
-<span class="badge ${u.level==='VIP'?'vip':'pending'}">
-${u.level || 'Starter'}
-</span>
-</td>
-<td>${Number(u.balance || 0).toLocaleString('fr-FR')} FCFA</td>
-<td>${u.referred_by || 'Aucun'}</td>
-<td>
-<button class="btn btn-vip" onclick="makeVip('${u.id}')">Mettre VIP</button>
-<button class="btn btn-remove" onclick="removeVip('${u.id}')">Enlever VIP</button>
-</td>
-</tr>
-`;
-});
-}
-
-function filterUsers(){
-const q = document.getElementById('search').value.toLowerCase();
-const filtered = allUsers.filter(u=>
-(u.full_name || '').toLowerCase().includes(q) ||
-(u.phone || '').toLowerCase().includes(q)
-);
-renderUsers(filtered);
-}
-
-async function makeVip(id){
-await sb.from('profiles')
-.update({level:'VIP'})
-.eq('id',id);
-
-alert('Utilisateur VIP');
-loadUsers();
-loadStats();
-}
-
-async function removeVip(id){
-await sb.from('profiles')
-.update({level:'Starter'})
-.eq('id',id);
-
-alert('VIP retiré');
-loadUsers();
-loadStats();
-}
-
+/* REF */
 async function loadReferrals(){
-const {data} = await sb
-.from('profiles')
-.select('*')
-.not('referred_by','is',null);
+const {data}=await sb.from('profiles').select('*').not('referred_by','is',null);
 
-const body = document.getElementById('refs-body');
+const body=document.getElementById('refs-body');
 body.innerHTML='';
 
 data.forEach(r=>{
-body.innerHTML += `
+body.innerHTML+=`
 <tr>
-<td>${r.full_name || 'Utilisateur'}</td>
+<td>${r.full_name}</td>
 <td>${r.referred_by}</td>
 <td>1000 FCFA</td>
-<td>
-<span class="badge ${r.bonus_received ? 'success':'danger'}">
-${r.bonus_received ? 'Payé':'Non payé'}
-</span>
-</td>
-<td>
-${!r.bonus_received ? `<button class="btn btn-ok" onclick="payCommission('${r.id}', '${r.referred_by}')">Payer</button>` : ''}
-</td>
-</tr>
-`;
+<td><span class="badge ${r.bonus_received?'success':'danger'}">${r.bonus_received?'Payé':'Non payé'}</span></td>
+<td></td>
+</tr>`;
 });
-}
-
-async function payCommission(userId,refCode){
-const {data:referrer} = await sb
-.from('profiles')
-.select('*')
-.eq('referral_code',refCode)
-.single();
-
-if(!referrer){
-alert('Parrain introuvable');
-return;
-}
-
-const newBal = (referrer.balance || 0) + 1000;
-
-await sb.from('profiles')
-.update({balance:newBal})
-.eq('id',referrer.id);
-
-await sb.from('profiles')
-.update({bonus_received:true})
-.eq('id',userId);
-
-alert('Commission envoyée');
-loadReferrals();
 }
 </script>
 
