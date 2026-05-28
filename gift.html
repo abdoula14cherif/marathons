@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+
+<title>Marathon — Gift Code</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*,*::before,*::after{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+:root{
+  --red:#C41C1C;
+  --rd:#9E1616;
+  --cr:#F7F2EC;
+  --mu:#8A7070;
+  --bo:rgba(196,28,28,.12);
+  --t1:#1A1212;
+  --t2:#4A3A3A;
+}
+
+body{
+  font-family:"DM Sans",sans-serif;
+  background:var(--cr);
+  color:var(--t1);
+  min-height:100vh;
+  padding-bottom:40px;
+}
+
+/* TOPBAR */
+
+.topbar{
+  background:linear-gradient(135deg,var(--rd),var(--red));
+  padding:44px 16px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.back{
+  background:rgba(255,255,255,.18);
+  border:none;
+  border-radius:10px;
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  flex-shrink:0;
+}
+
+.back svg{
+  width:20px;
+  height:20px;
+  stroke:#fff;
+  fill:none;
+  stroke-width:2.5;
+}
+
+.topbar h1{
+  font-family:"Cormorant Garamond",serif;
+  font-size:25px;
+  font-weight:700;
+  color:#fff;
+}
+
+.topbar p{
+  color:rgba(255,255,255,.75);
+  font-size:12px;
+  margin-top:2px;
+}
+
+/* CONTENT */
+
+.content{
+  padding:16px;
+}
+
+/* HERO */
+
+.hero{
+  background:#fff;
+  border-radius:18px;
+  padding:24px 20px;
+  border:1px solid var(--bo);
+  text-align:center;
+  margin-bottom:18px;
+  box-shadow:0 3px 15px rgba(0,0,0,.05);
+}
+
+.hero-icon{
+  width:82px;
+  height:82px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--red),var(--rd));
+  margin:0 auto 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:38px;
+  color:#fff;
+}
+
+.hero h2{
+  font-family:"Cormorant Garamond",serif;
+  font-size:32px;
+  font-weight:700;
+  color:var(--t1);
+  margin-bottom:10px;
+}
+
+.hero p{
+  font-size:13.5px;
+  line-height:1.7;
+  color:var(--mu);
+}
+
+/* CARD */
+
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:18px;
+  border:1px solid var(--bo);
+  margin-bottom:16px;
+  box-shadow:0 3px 14px rgba(0,0,0,.04);
+}
+
+.card h3{
+  font-family:"Cormorant Garamond",serif;
+  font-size:22px;
+  margin-bottom:14px;
+  color:var(--t1);
+}
+
+/* INPUT */
+
+.input-wrap{
+  background:var(--cr);
+  border:1.5px solid var(--bo);
+  border-radius:14px;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.input-wrap input{
+  flex:1;
+  border:none;
+  outline:none;
+  background:transparent;
+  font-size:16px;
+  font-weight:700;
+  color:var(--t1);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-family:"DM Sans",sans-serif;
+}
+
+.input-wrap input::placeholder{
+  color:#B9A7A7;
+  font-weight:500;
+}
+
+/* BUTTON */
+
+.btn{
+  width:100%;
+  border:none;
+  border-radius:14px;
+  padding:15px;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--red),var(--rd));
+  color:#fff;
+  font-size:15px;
+  font-weight:700;
+  transition:.2s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(196,28,28,.28);
+}
+
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.btn svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:white;
+  stroke-width:2.5;
+}
+
+/* ALERT */
+
+.alert{
+  padding:13px;
+  border-radius:12px;
+  font-size:13px;
+  margin-bottom:14px;
+  display:none;
+  line-height:1.6;
+}
+
+.alert.ok{
+  display:block;
+  background:#F0FFF4;
+  color:#166534;
+  border:1px solid #BBF7D0;
+}
+
+.alert.err{
+  display:block;
+  background:#FFF0F0;
+  color:#B91C1C;
+  border:1px solid #FECACA;
+}
+
+/* INFO */
+
+.info{
+  background:#FFF7ED;
+  border:1px solid rgba(245,158,11,.18);
+  border-radius:15px;
+  padding:16px;
+}
+
+.info h4{
+  color:#92400E;
+  margin-bottom:10px;
+  font-size:14px;
+}
+
+.info p{
+  color:#92400E;
+  line-height:1.7;
+  font-size:12.8px;
+}
+
+/* TOAST */
+
+#toast{
+  position:fixed;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%) translateY(-70px);
+  background:var(--t1);
+  color:#fff;
+  padding:10px 18px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:500;
+  z-index:9999;
+  transition:transform .3s;
+  white-space:nowrap;
+  max-width:88vw;
+}
+
+#toast.show{
+  transform:translateX(-50%) translateY(0);
+}
+
+/* SPIN */
+
+.spin{
+  width:18px;
+  height:18px;
+  border:2.5px solid rgba(255,255,255,.35);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:sp .6s linear infinite;
+}
+
+@keyframes sp{
+  to{
+    transform:rotate(360deg);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="toast"></div>
+
+<!-- TOPBAR -->
+
+<div class="topbar">
+
+  <button class="back" onclick="window.location.href='dashboard.html'">
+
+    <svg viewBox="0 0 24 24">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+
+  </button>
+
+  <div>
+    <h1>Gift Code</h1>
+    <p>Activez un code cadeau Marathon</p>
+  </div>
+
+</div>
+
+<!-- CONTENT -->
+
+<div class="content">
+
+  <!-- HERO -->
+
+  <div class="hero">
+
+    <div class="hero-icon">
+      🎁
+    </div>
+
+    <h2>Code Cadeau</h2>
+
+    <p>
+      Entrez un code partagé par l’administrateur dans les canaux
+      officiels Marathon afin de recevoir automatiquement un bonus
+      sur votre compte.
+    </p>
+
+  </div>
+
+  <!-- FORM -->
+
+  <div class="card">
+
+    <h3>Entrer un code</h3>
+
+    <div class="alert" id="alert"></div>
+
+    <div class="input-wrap">
+
+      <svg width="22" height="22" fill="none" stroke="var(--red)" stroke-width="2.3" viewBox="0 0 24 24">
+        <path d="M20 12V22H4V12"/>
+        <path d="M22 7H2V12H22V7Z"/>
+        <path d="M12 22V7"/>
+        <path d="M12 7H8.5A2.5 2.5 0 1 1 8.5 2C11 2 12 7 12 7Z"/>
+        <path d="M12 7H15.5A2.5 2.5 0 1 0 15.5 2C13 2 12 7 12 7Z"/>
+      </svg>
+
+      <input
+        type="text"
+        id="gift-code"
+        placeholder="EX: MARATHON500"
+      />
+
+    </div>
+
+    <button class="btn" id="claim-btn" onclick="claimGift()">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M20 12V22H4V12"/>
+        <path d="M22 7H2V12H22V7Z"/>
+      </svg>
+
+      Activer le code
+
+    </button>
+
+  </div>
+
+  <!-- INFO -->
+
+  <div class="info">
+
+    <h4>⚠️ Règlement des codes cadeaux</h4>
+
+    <p>
+      • Chaque code possède une date d’expiration.<br><br>
+
+      • Certains codes ont un nombre limité d’utilisations.<br><br>
+
+      • Un utilisateur ne peut utiliser le même code qu’une seule fois.<br><br>
+
+      • Les récompenses sont créditées automatiquement après validation.
+    </p>
+
+  </div>
+
+</div>
+
+<script>
+
+var sb = null;
+var currentUser = null;
+
+try {
+
+  sb = supabase.createClient(
+    'https://mzxxfxkryhxnycewyryv.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
+  );
+
+} catch(e){}
+
+window.addEventListener('DOMContentLoaded', async function(){
+
+  try {
+
+    var s = await sb.auth.getSession();
+
+    if (!s.data || !s.data.session){
+
+      window.location.href = 'index.html';
+      return;
+    }
+
+    currentUser = s.data.session.user;
+
+  } catch(e){
+
+    console.warn(e);
+
+  }
+
+});
+
+function showAlert(msg,type){
+
+  var el = document.getElementById('alert');
+
+  el.className = 'alert ' + type;
+
+  el.innerHTML = msg;
+}
+
+function toast(msg){
+
+  var t = document.getElementById('toast');
+
+  t.textContent = msg;
+
+  t.classList.add('show');
+
+  setTimeout(function(){
+
+    t.classList.remove('show');
+
+  },3000);
+}
+
+async function claimGift(){
+
+  var code = document
+    .getElementById('gift-code')
+    .value
+    .trim()
+    .toUpperCase();
+
+  if (!code){
+
+    return showAlert(
+      'Veuillez entrer un code cadeau.',
+      'err'
+    );
+  }
+
+  var btn = document.getElementById('claim-btn');
+
+  btn.disabled = true;
+
+  btn.innerHTML =
+    '<span class="spin"></span> Vérification du code...';
+
+  try {
+
+    // CHECK CODE
+
+    var gift = await sb
+      .from('gift_codes')
+      .select('*')
+      .eq('code', code)
+      .single();
+
+    if (!gift.data){
+
+      btn.disabled = false;
+
+      btn.innerHTML = 'Activer le code';
+
+      return showAlert(
+        'Code cadeau invalide.',
+        'err'
+      );
+    }
+
+    var data = gift.data;
+
+    // EXPIRE
+
+    if (data.expires_at){
+
+      var now = new Date();
+
+      var exp = new Date(data.expires_at);
+
+      if (now > exp){
+
+        btn.disabled = false;
+
+        btn.innerHTML = 'Activer le code';
+
+        return showAlert(
+          'Ce code cadeau a expiré.',
+          'err'
+        );
+      }
+    }
+
+    // LIMIT
+
+    if (
+      data.max_uses &&
+      data.used_count >= data.max_uses
+    ){
+
+      btn.disabled = false;
+
+      btn.innerHTML = 'Activer le code';
+
+      return showAlert(
+        'Le nombre maximum d’utilisations a été atteint.',
+        'err'
+      );
+    }
+
+    // ALREADY USED
+
+    var used = await sb
+      .from('gift_claims')
+      .select('*')
+      .eq('gift_id', data.id)
+      .eq('user_id', currentUser.id)
+      .single();
+
+    if (used.data){
+
+      btn.disabled = false;
+
+      btn.innerHTML = 'Activer le code';
+
+      return showAlert(
+        'Vous avez déjà utilisé ce code cadeau.',
+        'err'
+      );
+    }
+
+    // GET BALANCE
+
+    var prof = await sb
+      .from('profiles')
+      .select('balance')
+      .eq('id', currentUser.id)
+      .single();
+
+    var oldBal =
+      prof.data
+      ? (prof.data.balance || 0)
+      : 0;
+
+    var newBal =
+      oldBal + data.amount;
+
+    // UPDATE BALANCE
+
+    await sb
+      .from('profiles')
+      .update({
+        balance: newBal
+      })
+      .eq('id', currentUser.id);
+
+    // UPDATE GIFT COUNT
+
+    await sb
+      .from('gift_codes')
+      .update({
+        used_count:
+          (data.used_count || 0) + 1
+      })
+      .eq('id', data.id);
+
+    // SAVE CLAIM
+
+    await sb
+      .from('gift_claims')
+      .insert({
+
+        gift_id: data.id,
+
+        user_id: currentUser.id,
+
+        amount: data.amount
+
+      });
+
+    // TRANSACTION
+
+    await sb
+      .from('transactions')
+      .insert({
+
+        user_id: currentUser.id,
+
+        type: 'gift',
+
+        amount: data.amount,
+
+        fee: 0,
+
+        net_amount: data.amount,
+
+        status: 'success',
+
+        description:
+          'Gift code : ' + code,
+
+        method: 'Gift Code'
+
+      });
+
+    btn.disabled = false;
+
+    btn.innerHTML = 'Activer le code';
+
+    document.getElementById('gift-code').value = '';
+
+    showAlert(
+
+      '🎉 Félicitations !<br><br>' +
+
+      '+' +
+      data.amount.toLocaleString('fr-FR') +
+      ' FCFA ont été ajoutés à votre compte.',
+
+      'ok'
+    );
+
+    toast(
+      '+' +
+      data.amount.toLocaleString('fr-FR') +
+      ' FCFA crédités'
+    );
+
+  } catch(e){
+
+    console.error(e);
+
+    btn.disabled = false;
+
+    btn.innerHTML = 'Activer le code';
+
+    showAlert(
+      'Erreur lors de l’activation du code.',
+      'err'
+    );
+  }
+}
+
+</script>
+
+</body>
+</html>
