@@ -15,9 +15,29 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 .topbar{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;display:flex;align-items:center;gap:12px}
 .back{background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .back svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5}
+.topbar h1{font-family:"Cormorant Garamond",serif;font-size:24px;color:#fff}
+.topbar p{color:rgba(255,255,255,.72);font-size:12px}
 .content{padding:16px}
-.card{background:#fff;border-radius:14px;padding:18px;border:1px solid var(--bo)}
-.pay-btn{width:100%;padding:15px;border-radius:13px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff}
+
+.bal-card,.card{background:#fff;border-radius:14px;padding:16px;border:1px solid var(--bo);margin-bottom:16px}
+.bal-val{font-size:28px;font-weight:700;color:var(--red)}
+
+.amount-display{text-align:center;padding:20px;background:var(--cr);border-radius:12px}
+.amount-display .amt{font-size:42px;font-weight:700;color:var(--red)}
+
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.preset{padding:10px;background:var(--cr);border-radius:10px;text-align:center;cursor:pointer}
+
+.pay-btn{width:100%;padding:15px;border:none;border-radius:12px;
+background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;font-weight:700}
+.pay-btn:disabled{opacity:.6}
+
+.alert{display:none;padding:10px;border-radius:8px;margin-bottom:10px}
+.alert.err{background:#ffe5e5;color:#b00000}
+.alert.ok{background:#e7ffe7;color:#0a7a0a}
+
+.success{display:none;text-align:center;padding:30px}
+.success.on{display:block}
 </style>
 </head>
 
@@ -35,13 +55,36 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 
 <div class="content">
 
+  <div class="bal-card">
+    <div>
+      <div>Solde actuel</div>
+      <div class="bal-val" id="bal-val">— FCFA</div>
+    </div>
+  </div>
+
   <div class="card">
-    <h3>Montant</h3>
+    <h3>Choisir montant</h3>
 
-    <input type="number" id="amount" placeholder="Minimum 3000 FCFA" min="3000"
-      style="width:100%;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #ddd"/>
+    <div class="alert err" id="al"></div>
 
-    <button class="pay-btn" onclick="payWithLeekPay()" style="margin-top:15px">
+    <div class="amount-display">
+      <div class="amt" id="amt-display">0</div>
+      <div>FCFA</div>
+    </div>
+
+    <div class="presets">
+      <div class="preset" onclick="setAmt(3000,this)">3000</div>
+      <div class="preset" onclick="setAmt(6000,this)">6000</div>
+      <div class="preset" onclick="setAmt(10000,this)">10000</div>
+      <div class="preset" onclick="setAmt(20000,this)">20000</div>
+      <div class="preset" onclick="setAmt(50000,this)">50000</div>
+      <div class="preset" onclick="setAmt(100000,this)">100000</div>
+    </div>
+
+    <input type="number" id="custom-input" placeholder="Autre montant" oninput="onCustom()"
+      style="width:100%;padding:10px;margin-top:10px;border-radius:10px;border:1px solid #ddd"/>
+
+    <button class="pay-btn" id="pay-btn" onclick="startPayment()" disabled>
       Payer avec LeekPay
     </button>
   </div>
@@ -49,70 +92,68 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 </div>
 
 <script>
-const sb = supabase.createClient(
-  'https://mzxxfxkryhxnycewyryv.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
+let sb=null,currentUser=null,selectedAmount=0;
+
+const $=id=>document.getElementById(id);
+
+sb = supabase.createClient(
+  "https://mzxxfxkryhxnycewyryv.supabase.co",
+  "SUPABASE_ANON_KEY"
 );
 
-let user = null;
+/* 🔐 LEEKPAY CONFIG (NE PAS METTRE DE CLÉ SECRÈTE ICI) */
+const LEEKPAY_PUBLIC_KEY = "YOUR_PUBLIC_KEY";
+const LEEKPAY_BASE_URL = "https://api.leekpay.com/pay"; // à adapter selon doc
 
-/* =========================
-   LEEKPAY CONFIG
-   ========================= */
-const LEEKPAY_PUBLIC_KEY = "pk_live_h0RQu365IhnhdXkW2YeWZiDmKQGo7Pn1";
-const LEEKPAY_URL = "https://api.leekpay.com/v1/pay";
+window.addEventListener('DOMContentLoaded', async () => {
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session) return window.location.href="index.html";
+  currentUser=session.user;
 
-window.addEventListener("DOMContentLoaded", async () => {
-  const { data } = await sb.auth.getSession();
-  if (!data.session) return window.location.href = "index.html";
-  user = data.session.user;
+  const {data:p}=await sb.from('profiles').select('balance').eq('id',currentUser.id).single();
+  if(p) $("bal-val").textContent=p.balance.toLocaleString()+" FCFA";
 });
 
-/* =========================
-   PAYMENT FUNCTION
-   ========================= */
-function payWithLeekPay() {
-  const amount = parseInt(document.getElementById("amount").value);
+function setAmt(v,el){
+  selectedAmount=v;
+  $("amt-display").textContent=v.toLocaleString();
+  document.querySelectorAll(".preset").forEach(e=>e.classList.remove("on"));
+  el.classList.add("on");
+  updateBtn(v);
+}
 
-  if (!amount || amount < 3000) {
-    alert("Montant minimum 3000 FCFA");
-    return;
-  }
+function onCustom(){
+  selectedAmount=parseInt($("custom-input").value)||0;
+  $("amt-display").textContent=selectedAmount;
+  updateBtn(selectedAmount);
+}
 
-  const payload = {
-    amount: amount,
-    currency: "XOF",
-    customer: {
-      id: user.id,
-      email: user.email
+function updateBtn(v){
+  $("pay-btn").disabled=v<3000;
+}
+
+function showErr(msg){
+  const el=$("al");
+  el.style.display="block";
+  el.textContent=msg;
+}
+
+function startPayment(){
+  if(selectedAmount<3000) return showErr("Minimum 3000 FCFA");
+
+  const payload={
+    amount:selectedAmount,
+    currency:"XOF",
+    customer:{
+      id:currentUser.id
     },
-    metadata: {
-      source: "marathon_app"
-    },
-    return_url: window.location.origin + "/recharge.html?status=success",
-    cancel_url: window.location.origin + "/recharge.html?status=cancel"
+    return_url:window.location.origin+"/recharge.html?status=success&amount="+selectedAmount
   };
 
-  fetch(LEEKPAY_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + LEEKPAY_PUBLIC_KEY
-    },
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data?.payment_url) {
-      window.location.href = data.payment_url;
-    } else {
-      alert("Erreur LeekPay");
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    alert("Erreur réseau");
-  });
+  const url=LEEKPAY_BASE_URL+"?data="+encodeURIComponent(JSON.stringify(payload))
+    +"&key="+LEEKPAY_PUBLIC_KEY;
+
+  window.location.href=url;
 }
 </script>
 
