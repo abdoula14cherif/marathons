@@ -353,221 +353,274 @@ input[type=file]{display:none}
 </div>
 
 <script>
-// ── Supabase ──
-var sb = null;
-try {
-  sb = supabase.createClient(
-    'https://mzxxfxkryhxnycewyryv.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
-  );
-} catch(e) { console.warn('Supabase error', e); }
+// ═══════════════════════════════════════════════════════
+// MARATHON DASHBOARD — Version corrigée
+// Fixes: currentUser, double query, session null-check,
+// error handling, sécurité invest via RPC, bonus logic
+// ═══════════════════════════════════════════════════════
 
-// ── Auth: non-blocking, page always visible ──
-window.addEventListener('DOMContentLoaded', function() {
+// ── SUPABASE ─────────────────────────────────────────
+let sb = null;
+try {
+  sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');
+} catch(e) { console.error('Supabase init error:', e); }
+
+// ── STATE (centralisé) ───────────────────────────────
+let currentUser  = null;
+let currentBalance = 0;
+let investData   = null;
+
+// ── DOM REFS (centralisés) ───────────────────────────
+const $ = id => document.getElementById(id);
+
+// ── INIT ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
   startBanner();
   loadAvatar();
-  if (sb) {
-    sb.auth.getSession().then(function(res) {
-      var session = res.data && res.data.session;
-      if (!session) { window.location.href = 'index.html'; return; }
-      var u = session.user;
-      var m = u.user_metadata || {};
-      var name = m.full_name || u.email.split('@')[0] || 'Utilisateur';
-      var phone = m.phone_number || '——';
-      var letter = name.charAt(0).toUpperCase();
-      document.getElementById('hname').textContent = name;
-      document.getElementById('hphone').textContent = phone;
-      document.getElementById('avl').textContent = letter;
-      document.getElementById('acn').textContent = name;
-      document.getElementById('acp').textContent = phone;
-      document.getElementById('ace').textContent = u.email || '——';
-      document.getElementById('acav').textContent = letter;
-      var code = 'MAR' + u.id.slice(-5).toUpperCase();
-      document.getElementById('rcode').textContent = code;
-      sb.from('profiles').select('balance,total_earnings,level,referral_code').eq('id', u.id).single().then(function(r) {
-        if (r.data) {
-          document.getElementById('bal').innerHTML = (r.data.balance||0).toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
-          currentBalance = r.data.balance || 0;
-          document.getElementById('earn').innerHTML = (r.data.total_earnings||0).toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
-          // Show bonus banner if it's a new account
-          if (r.data.bonus_received) {
-            var bb = document.getElementById('bonus-banner');
-            if (bb) bb.style.display = 'block';
-          }
-          document.getElementById('hlv').textContent = 'LV' + (r.data.level||0);
-          if (r.data.referral_code) document.getElementById('rcode').textContent = r.data.referral_code;
-        }
-      }).catch(function(){})
-    loadTeam(u.id);;
-      sb.from('referrals').select('*').eq('referrer_id', u.id).then(function(r) {
-        if (r.data && r.data.length) {
-          document.getElementById('tcount').textContent = r.data.length;
-          var tot = r.data.reduce(function(s,x){ return s+(x.commission||0); }, 0);
-          document.getElementById('tcom').textContent = tot.toLocaleString('fr-FR') + ' F';
-          document.getElementById('mlist').innerHTML = r.data.map(function(m) {
-            return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bo)">'
-              + '<div style="width:36px;height:36px;border-radius:50%;background:rgba(196,28,28,.1);display:flex;align-items:center;justify-content:center;font-family:Cormorant Garamond,serif;font-size:16px;font-weight:700;color:var(--red);flex-shrink:0">'+((m.referred_name||'U').charAt(0).toUpperCase())+'</div>'
-              + '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+(m.referred_name||'Membre')+'</div>'
-              + '<div style="font-size:11px;color:var(--mu)">'+new Date(m.created_at).toLocaleDateString('fr-FR')+'</div></div>'
-              + '<span style="background:#FFF0F0;color:var(--red);font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px">+'+(m.commission||0).toLocaleString('fr-FR')+' F</span></div>';
-          }).join('');
-        }
-      }).catch(function(){});
-    }).catch(function(e) { console.warn(e); });
+  if (!sb) { console.error('Supabase non disponible'); return; }
+  try {
+    const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+    if (sessionError) throw sessionError;
+
+    const session = sessionData?.session;
+    if (!session) { window.location.href = 'index.html'; return; }
+
+    currentUser = session.user;
+    await Promise.all([ loadProfile(), loadTeam() ]);
+  } catch(e) {
+    console.error('Init error:', e);
   }
 });
 
-// ── Avatar ──
+// ── PROFILE ───────────────────────────────────────────
+async function loadProfile() {
+  const u = currentUser;
+  const m = u.user_metadata || {};
+  const name   = m.full_name || u.email?.split('@')[0] || 'Utilisateur';
+  const phone  = m.phone_number || '——';
+  const letter = name.charAt(0).toUpperCase();
+
+  $('hname').textContent  = name;
+  $('hphone').textContent = phone;
+  $('avl').textContent    = letter;
+  $('acn').textContent    = name;
+  $('acp').textContent    = phone;
+  $('ace').textContent    = u.email || '——';
+  $('acav').textContent   = letter;
+
+  const fallbackCode = 'MAR' + u.id.slice(-5).toUpperCase();
+  $('rcode').textContent = fallbackCode;
+
+  try {
+    const { data: p, error } = await sb.from('profiles')
+      .select('balance, total_earnings, level, referral_code, bonus_received')
+      .eq('id', u.id)
+      .single();
+
+    if (error) throw error;
+    if (!p) return;
+
+    currentBalance = p.balance || 0;
+
+    $('bal').innerHTML  = currentBalance.toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+    $('earn').innerHTML = (p.total_earnings || 0).toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+    $('hlv').textContent = 'LV' + (p.level || 0);
+
+    if (p.referral_code) $('rcode').textContent = p.referral_code;
+
+    // Bonus banner : afficher SEULEMENT si bonus reçu
+    const bonusBanner = $('bonus-banner');
+    if (bonusBanner && p.bonus_received) bonusBanner.style.display = 'block';
+
+  } catch(e) {
+    console.error('loadProfile error:', e);
+  }
+}
+
+// ── TEAM (une seule requête) ──────────────────────────
+async function loadTeam() {
+  try {
+    const { data, error } = await sb.from('referrals')
+      .select('id, referred_name, commission, level, invested_amount, created_at')
+      .eq('referrer_id', currentUser.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    const list = data || [];
+
+    $('tcount').textContent = list.length;
+    const total = list.reduce((s, x) => s + (x.commission || 0), 0);
+    $('tcom').textContent = total.toLocaleString('fr-FR') + ' F';
+
+    if (list.length > 0) {
+      $('mlist').innerHTML = list.map(m => {
+        const name   = m.referred_name || 'Membre';
+        const letter = name.charAt(0).toUpperCase();
+        const date   = new Date(m.created_at).toLocaleDateString('fr-FR');
+        const com    = (m.commission || 0).toLocaleString('fr-FR');
+        const badge  = m.invested_amount > 0
+          ? '<span style="background:#F0FFF4;color:#166534;font-size:9px;padding:2px 6px;border-radius:20px;margin-left:5px">Investi ✓</span>'
+          : '';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bo)">
+          <div style="width:38px;height:38px;border-radius:50%;background:rgba(196,28,28,.1);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;color:var(--red);flex-shrink:0">${letter}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${name}${badge}</div>
+            <div style="font-size:11px;color:var(--mu);margin-top:1px">${date} · Niveau ${m.level || 1}</div>
+          </div>
+          <span style="background:#FFF0F0;color:var(--red);font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px">+${com} F</span>
+        </div>`;
+      }).join('');
+    }
+  } catch(e) {
+    console.error('loadTeam error:', e);
+  }
+}
+
+// ── AVATAR ────────────────────────────────────────────
 function loadAvatar() {
-  var a = localStorage.getItem('marathon_avatar');
-  if (a) setAvatar(a);
+  const saved = localStorage.getItem('marathon_avatar');
+  if (saved) setAvatar(saved);
 }
 function setAvatar(src) {
-  var i = document.getElementById('avi'), d = document.getElementById('avd');
-  i.src = src; i.style.display = 'block'; d.style.display = 'none';
-  document.getElementById('acav').innerHTML = '<img src="' + src + '"/>';
+  const img = $('avi'), def = $('avd');
+  if (!img || !def) return;
+  img.src = src; img.style.display = 'block'; def.style.display = 'none';
+  const ac = $('acav');
+  if (ac) ac.innerHTML = `<img src="${src}" style="width:60px;height:60px;border-radius:50%;object-fit:cover"/>`;
 }
-document.getElementById('file-avatar').addEventListener('change', function(e) {
-  var f = e.target.files[0]; if (!f) return;
-  var r = new FileReader();
-  r.onload = function(ev) {
-    localStorage.setItem('marathon_avatar', ev.target.result);
-    setAvatar(ev.target.result);
-    toast('Photo mise à jour ✓');
-  };
-  r.readAsDataURL(f);
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = $('file-avatar');
+  if (!fileInput) return;
+  fileInput.addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      localStorage.setItem('marathon_avatar', ev.target.result);
+      setAvatar(ev.target.result);
+      toast('Photo mise à jour ✓');
+    };
+    reader.readAsDataURL(f);
+  });
 });
 
-// ── Navigation ──
-function nav(n) {
-  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('on'); });
-  document.querySelectorAll('.ni').forEach(function(b) { b.classList.remove('on'); });
-  document.getElementById('p-'+n).classList.add('on');
-  document.getElementById('n-'+n).classList.add('on');
-  document.getElementById('p-'+n).scrollTop = 0;
+// ── NAVIGATION ────────────────────────────────────────
+function nav(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(b => b.classList.remove('on'));
+  const page = $('p-' + name);
+  const btn  = $('n-' + name);
+  if (page) { page.classList.add('on'); page.scrollTop = 0; }
+  if (btn)  btn.classList.add('on');
 }
 
-// ── Banner ──
-var bi = 0;
+// ── BANNER ────────────────────────────────────────────
+let bi = 0;
 function gS(n) {
   bi = n;
-  document.getElementById('btrack').style.transform = 'translateX(-' + (100/3*n) + '%)';
-  document.querySelectorAll('.dot').forEach(function(d,i) { d.classList.toggle('on', i===n); });
+  const track = $('btrack');
+  if (track) track.style.transform = `translateX(-${(100/3)*n}%)`;
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('on', i === n));
 }
-function startBanner() { setInterval(function() { gS((bi+1)%3); }, 4000); }
+function startBanner() { setInterval(() => gS((bi+1)%3), 4000); }
 
-// ── Referral ──
+// ── PARRAINAGE ────────────────────────────────────────
 function copyCode() {
-  var c = document.getElementById('rcode').textContent;
-  navigator.clipboard.writeText(window.location.origin+'/index.html?ref='+c).then(function(){ toast('Lien copié !'); }).catch(function(){ toast('Code : '+c); });
+  const code = $('rcode')?.textContent || '';
+  const link = `${window.location.origin}/index.html?ref=${code}`;
+  navigator.clipboard.writeText(link)
+    .then(() => toast('Lien copié !'))
+    .catch(() => toast('Code : ' + code));
 }
 function shareWA() {
-  var c = document.getElementById('rcode').textContent;
-  window.open('https://wa.me/?text='+encodeURIComponent('Rejoignez Marathon ! '+window.location.origin+'/index.html?ref='+c));
+  const code = $('rcode')?.textContent || '';
+  const link = `${window.location.origin}/index.html?ref=${code}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent('Rejoignez Marathon ! ' + link));
 }
 function shareLink() {
-  var c = document.getElementById('rcode').textContent;
-  var l = window.location.origin+'/index.html?ref='+c;
-  if (navigator.share) { navigator.share({title:'Marathon',url:l}); }
-  else { navigator.clipboard.writeText(l).then(function(){ toast('Lien copié !'); }); }
+  const code = $('rcode')?.textContent || '';
+  const link = `${window.location.origin}/index.html?ref=${code}`;
+  if (navigator.share) navigator.share({ title: 'Marathon', url: link });
+  else navigator.clipboard.writeText(link).then(() => toast('Lien copié !'));
 }
 
-// ── Logout ──
-function doLogout() {
+// ── INVEST SÉCURISÉ (via RPC serveur) ─────────────────
+function openInvest(planId, planName, amount, revenue) {
+  investData = { id: planId, name: planName, amount, revenue };
+  const insufficient = currentBalance < amount;
+
+  $('si-name').textContent    = planName;
+  $('si-amt').textContent     = amount.toLocaleString('fr-FR') + ' FCFA';
+  $('si-rev').textContent     = revenue.toLocaleString('fr-FR') + ' FCFA / jour';
+  $('si-total').textContent   = (revenue * 100).toLocaleString('fr-FR') + ' FCFA';
+  $('si-bal').textContent     = currentBalance.toLocaleString('fr-FR') + ' FCFA';
+  $('sh-ok').classList.remove('on');
+  $('sh-form').style.display  = 'block';
+
+  const insuf = $('si-insuf');
+  const btn   = $('si-btn');
+  if (insuf) insuf.style.display = insufficient ? 'block' : 'none';
+  if (btn) {
+    btn.disabled    = insufficient;
+    btn.textContent = insufficient ? 'Solde insuffisant' : "Confirmer l'investissement";
+  }
+  $('inv-sheet').classList.add('on');
+}
+
+function closeSheet() {
+  $('inv-sheet')?.classList.remove('on');
+}
+
+async function doInvest() {
+  if (!investData || !currentUser) return;
+  if (currentBalance < investData.amount) { toast('Solde insuffisant'); return; }
+
+  const btn = $('si-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Traitement...'; }
+
+  try {
+    // ✅ SÉCURITÉ : toute la logique s'exécute côté serveur via RPC
+    const { data, error } = await sb.rpc('process_investment', {
+      p_plan_id:      investData.id,
+      p_plan_name:    investData.name,
+      p_amount:       investData.amount,
+      p_daily_revenue: investData.revenue
+    });
+
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || 'Erreur inconnue');
+
+    currentBalance -= investData.amount;
+
+    $('bal').innerHTML = currentBalance.toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+    $('si-bal').textContent = currentBalance.toLocaleString('fr-FR') + ' FCFA';
+
+    const msgEl = $('sh-ok-msg');
+    if (msgEl) msgEl.textContent = `Plan ${investData.name} actif ! Allez dans Historique > Tâches pour recevoir vos ${investData.revenue.toLocaleString('fr-FR')} FCFA aujourd'hui.`;
+    $('sh-form').style.display = 'none';
+    $('sh-ok').classList.add('on');
+    toast('Plan ' + investData.name + ' activé ✓');
+
+  } catch(e) {
+    console.error('doInvest error:', e);
+    toast('Erreur : ' + (e.message || 'Réessayez'));
+    if (btn) { btn.disabled = false; btn.textContent = "Confirmer l'investissement"; }
+  }
+}
+
+// ── LOGOUT ────────────────────────────────────────────
+async function doLogout() {
   if (!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
-  if (sb) { sb.auth.signOut().catch(function(){}); }
+  try { await sb?.auth.signOut(); } catch(e) { console.warn(e); }
   window.location.href = 'index.html';
 }
 
-// ── Toast ──
+// ── TOAST ─────────────────────────────────────────────
 function toast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, 2600);
-}
-
-var investData = null, currentBalance = 0;
-function openInvest(pid, pname, amt, rev) {
-  investData = {id:pid, name:pname, amount:amt, revenue:rev};
-  document.getElementById('si-name').textContent = pname;
-  document.getElementById('si-amt').textContent = amt.toLocaleString('fr-FR') + ' FCFA';
-  document.getElementById('si-rev').textContent = rev.toLocaleString('fr-FR') + ' FCFA / jour';
-  document.getElementById('si-total').textContent = (rev * 100).toLocaleString('fr-FR') + ' FCFA';
-  document.getElementById('si-bal').textContent = currentBalance.toLocaleString('fr-FR') + ' FCFA';
-  document.getElementById('sh-ok').classList.remove('on');
-  document.getElementById('sh-form').style.display = 'block';
-  var insuf = document.getElementById('si-insuf');
-  var btn = document.getElementById('si-btn');
-  if (currentBalance < amt) {
-    insuf.style.display = 'block'; btn.disabled = true; btn.textContent = 'Solde insuffisant';
-  } else {
-    insuf.style.display = 'none'; btn.disabled = false; btn.textContent = 'Confirmer l\'investissement';
-  }
-  document.getElementById('inv-sheet').classList.add('on');
-}
-function closeSheet() {
-  document.getElementById('inv-sheet').classList.remove('on');
-}
-async function doInvest() {
-  if (!investData || !currentUser || currentBalance < investData.amount) return;
-  var btn = document.getElementById('si-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle"></span>Investissement...';
-  try {
-    var ri = await sb.from('investments').insert({
-      user_id: currentUser.id, plan_id: investData.id, plan_name: investData.name,
-      amount: investData.amount, daily_revenue: investData.revenue,
-      days_total: 100, days_remaining: 100, days_completed: 0, total_earned: 0, status: 'active'
-    }).select().single();
-    if (ri.error) throw ri.error;
-    var newBal = currentBalance - investData.amount;
-    await sb.from('profiles').update({balance: newBal}).eq('id', currentUser.id);
-    await sb.from('transactions').insert({
-      user_id: currentUser.id, type: 'depot', amount: investData.amount,
-      fee: 0, net_amount: investData.amount, status: 'success',
-      description: 'Investissement Plan ' + investData.name
-    });
-    var today = new Date().toISOString().split('T')[0];
-    await sb.from('daily_tasks').insert({
-      user_id: currentUser.id, investment_id: ri.data.id,
-      task_date: today, reward_amount: investData.revenue,
-      plan_name: investData.name, status: 'pending'
-    }).then(function(){}).catch(function(){});
-    currentBalance = newBal;
-    document.getElementById('bal').innerHTML = newBal.toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
-    document.getElementById('sh-ok-msg').textContent = 'Plan ' + investData.name + ' actif ! Allez dans Historique > Tâches pour recevoir vos ' + investData.revenue.toLocaleString('fr-FR') + ' FCFA aujourd\'hui.';
-    document.getElementById('sh-form').style.display = 'none';
-    document.getElementById('sh-ok').classList.add('on');
-    toast('Plan ' + investData.name + ' activé ✓');
-  } catch(e) {
-    toast('Erreur : ' + (e.message || 'Réessayez'));
-    btn.disabled = false; btn.textContent = 'Confirmer l\'investissement';
-  }
-}
-
-async function loadTeam(userId) {
-  try {
-    var r = await sb.from('referrals').select('*').eq('referrer_id', userId).order('created_at', {ascending:false});
-    if (r.error) { console.warn('Referral error:', r.error); return; }
-    var data = r.data || [];
-    document.getElementById('tcount').textContent = data.length;
-    var tot = data.reduce(function(s,x){ return s+(x.commission||0); }, 0);
-    document.getElementById('tcom').textContent = tot.toLocaleString('fr-FR') + ' F';
-    if (data.length > 0) {
-      document.getElementById('mlist').innerHTML = data.map(function(m) {
-        var name = m.referred_name || 'Membre';
-        var letter = name.charAt(0).toUpperCase();
-        var date = new Date(m.created_at).toLocaleDateString('fr-FR');
-        var com = (m.commission||0).toLocaleString('fr-FR');
-        var invested = m.invested_amount > 0 ? '<span style="background:#F0FFF4;color:#166534;font-size:9px;padding:2px 6px;border-radius:20px;margin-left:4px">A investi</span>' : '';
-        return '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bo)">'
-          + '<div style="width:38px;height:38px;border-radius:50%;background:rgba(196,28,28,.1);display:flex;align-items:center;justify-content:center;font-family:Cormorant Garamond,serif;font-size:17px;font-weight:700;color:var(--red);flex-shrink:0">'+letter+'</div>'
-          + '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+name+invested+'</div>'
-          + '<div style="font-size:11px;color:var(--mu);margin-top:1px">'+date+' · Niveau '+( m.level||1)+'</div></div>'
-          + '<span style="background:#FFF0F0;color:var(--red);font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px">+'+com+' F</span></div>';
-      }).join('');
-    }
-  } catch(e) { console.warn('loadTeam error:', e); }
+  const t = $('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
 }
 </script>
 </body>
