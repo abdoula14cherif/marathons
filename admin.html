@@ -238,16 +238,19 @@ if(!s.data.session){
 location.href='index.html';
 return;
 }
-const user = s.data.session.user;
-const {data} = await sb
-.from('profiles')
-.select('role')
-.eq('id',user.id)
-.single();
 
-if(!data || data.role !== 'admin'){
+const user = s.data.session.user;
+const email = (user.email || '').toLowerCase();
+
+const admins = [
+'abdoula13cherif@gmail.com',
+'marieedoh@gmail.com'
+];
+
+if(!admins.includes(email)){
 alert('Accès refusé');
 location.href='dashboard.html';
+return;
 }
 }
 
