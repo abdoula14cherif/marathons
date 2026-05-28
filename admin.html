@@ -305,25 +305,55 @@ ${t.status}
 }
 
 async function validateDeposit(id,userId,amount){
-const {data:user} = await sb
+try {
+
+const {data:user,error:userErr} = await sb
 .from('profiles')
 .select('balance')
 .eq('id',userId)
 .single();
 
-const newBal = (user.balance || 0) + amount;
+if(userErr){
+console.error(userErr);
+alert('Utilisateur introuvable');
+return;
+}
 
-await sb.from('profiles')
+const oldBal = Number(user.balance || 0);
+const newBal = oldBal + Number(amount);
+
+const {error:updateErr} = await sb
+.from('profiles')
 .update({balance:newBal})
 .eq('id',userId);
 
-await sb.from('transactions')
+if(updateErr){
+console.error(updateErr);
+alert('Erreur mise à jour solde');
+return;
+}
+
+const {error:trxErr} = await sb
+.from('transactions')
 .update({status:'success'})
 .eq('id',id);
 
-alert('Recharge validée');
-loadDeposits();
-loadStats();
+if(trxErr){
+console.error(trxErr);
+alert('Erreur validation transaction');
+return;
+}
+
+alert('Recharge validée avec succès');
+
+await loadDeposits();
+await loadStats();
+await loadUsers();
+
+} catch(e){
+console.error(e);
+alert('Erreur serveur');
+}
 }
 
 async function rejectDeposit(id){
@@ -337,13 +367,19 @@ loadDeposits();
 }
 
 async function loadUsers(){
-const {data} = await sb
+const {data,error} = await sb
 .from('profiles')
-.select('*')
-;
+.select('*');
 
-allUsers = data;
-renderUsers(data);
+console.log('LOAD USERS',data,error);
+
+if(error){
+console.error(error);
+return;
+}
+
+allUsers = data || [];
+renderUsers(allUsers);
 }
 
 function renderUsers(users){
