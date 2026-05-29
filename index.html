@@ -78,7 +78,7 @@ body{font-family:"DM Sans",sans-serif;background:#F7F2EC;min-height:100vh;displa
 .phone-input{flex:1;padding:12px 13px;border:none;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--t1);background:transparent;outline:none}
 .phone-input::placeholder{color:#C4B0B0}
 /* DROPDOWN */
-.drop{display:none;position:absolute;z-index:50;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);border:1px solid rgba(196,28,28,.1);overflow:hidden;width:240px;animation:fdrop .18s ease}
+.drop{display:none;position:absolute;z-index:50;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);border:1px solid rgba(196,28,28,.1);overflow:hidden;overflow-y:auto;max-height:320px;width:240px;animation:fdrop .18s ease}
 .drop.open{display:block}
 @keyframes fdrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 .drop-item{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;transition:background .15s}
@@ -137,6 +137,10 @@ body{font-family:"DM Sans",sans-serif;background:#F7F2EC;min-height:100vh;displa
           <div class="drop-item" onclick="setPays('🇧🇫','+226','Burkina')"><span class="dflag">🇧🇫</span><span class="dname">Burkina Faso</span><span class="dcode">+226</span></div>
           <div class="drop-item" onclick="setPays('🇨🇮','+225','Côte d\'Ivoire')"><span class="dflag">🇨🇮</span><span class="dname">Côte d'Ivoire</span><span class="dcode">+225</span></div>
           <div class="drop-item on" onclick="setPays('🇨🇲','+237','Cameroun')"><span class="dflag">🇨🇲</span><span class="dname">Cameroun</span><span class="dcode">+237</span></div>
+          <div class="drop-item" onclick="setPays('🇳🇪','+227','Niger')"><span class="dflag">🇳🇪</span><span class="dname">Niger</span><span class="dcode">+227</span></div>
+          <div class="drop-item" onclick="setPays('🇸🇳','+221','Sénégal')"><span class="dflag">🇸🇳</span><span class="dname">Sénégal</span><span class="dcode">+221</span></div>
+          <div class="drop-item" onclick="setPays('🇲🇱','+223','Mali')"><span class="dflag">🇲🇱</span><span class="dname">Mali</span><span class="dcode">+223</span></div>
+          <div class="drop-item" onclick="setPays('🇨🇩','+243','RDC')"><span class="dflag">🇨🇩</span><span class="dname">RD Congo</span><span class="dcode">+243</span></div>
         </div>
       </div>
       <div class="field"><label>Email</label><div class="iw">
