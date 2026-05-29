@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Marathon — Recharge</title>
+<title>Marathon — Recharge SoinaPay</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -48,6 +48,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 .alert{padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
 .alert.err{display:block;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC}
 .alert.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0}
+.alert.warning{display:block;background:#FFFBEB;color:#B45309;border:1px solid #FDE68A}
 .success{display:none;text-align:center;padding:40px 20px}
 .success.on{display:block}
 .success .ico{font-size:64px;margin-bottom:16px}
@@ -57,12 +58,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 @keyframes sp{to{transform:rotate(360deg)}}
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
 #toast.show{transform:translateX(-50%) translateY(0)}
-.soinapay-badge{text-align:center;margin-top:12px;font-size:11px;color:var(--mu);background:#fff;padding:6px 12px;border-radius:30px;display:inline-block;width:auto;margin-left:auto;margin-right:auto}
-.loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:10000;visibility:hidden;opacity:0;transition:all .2s}
+.loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:10000;visibility:hidden;opacity:0;transition:all .2s}
 .loader-overlay.active{visibility:visible;opacity:1}
-.loader-card{background:#fff;padding:24px 30px;border-radius:20px;text-align:center;box-shadow:0 20px 35px rgba(0,0,0,0.2);max-width:300px}
-.loader-card .spinner{width:42px;height:42px;border:4px solid #f1e6e6;border-top-color:var(--red);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 16px}
-.loader-card p{font-weight:500;color:var(--t1);font-size:15px}
+.loader-card{background:#fff;padding:28px 32px;border-radius:24px;text-align:center;box-shadow:0 25px 40px rgba(0,0,0,0.2);max-width:340px}
+.loader-card .spinner{width:44px;height:44px;border:4px solid #f1e6e6;border-top-color:var(--red);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 16px}
+.loader-card p{font-weight:600;color:var(--t1);font-size:16px;margin-bottom:8px}
 .loader-card small{color:var(--mu);font-size:12px}
 </style>
 </head>
@@ -72,7 +72,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   <button class="back" onclick="window.location.href='dashboard.html'">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé SoinaPay</p></div>
+  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé SoinaPay API</p></div>
 </div>
 
 <div class="content">
@@ -125,12 +125,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
         <span class="mtag">💳 Carte bancaire</span>
       </div>
 
-      <!-- Bouton qui redirige vers le lien SoinaPay spécifique -->
-      <button class="pay-btn" id="pay-btn" onclick="redirectToSoinaPay()">
+      <button class="pay-btn" id="pay-btn" onclick="initiateSoinaPayPayment()" disabled>
         <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         Payer avec SoinaPay
       </button>
-      <div class="soinapay-badge">🔒 Paiement 100% sécurisé par SoinaPay • Mobile Money & Cartes</div>
+      <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--mu);background:#f9f6f2;padding:6px 12px;border-radius:30px;">🔐 Paiement sécurisé • API SoinaPay v1</div>
     </div>
   </div>
 
@@ -143,21 +142,24 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   </div>
 </div>
 
-<!-- Loader overlay pour la redirection / simulation callback -->
 <div id="payment-loader" class="loader-overlay">
   <div class="loader-card">
     <div class="spinner"></div>
-    <p>Redirection vers SoinaPay...</p>
-    <small>Vous allez être redirigé vers la plateforme sécurisée</small>
+    <p>Génération du paiement...</p>
+    <small>Connexion sécurisée à SoinaPay</small>
   </div>
 </div>
 
 <script>
-const SOINAPAY_URL = 'https://soinapay.com/pay/h3pz7oka';
+// CONFIGURATION API SOINAPAY
+const SOINAPAY_API_URL = 'https://soinapay.com/v1';
+const SOINAPAY_SECRET_KEY = 'sk_live_6eade994bcca4f013a7fd386733aac6694b42ccb724a596c';
+const SOINAPAY_PUBLIC_KEY = 'pk_live_23427779af69ebefb129c76879b883fc';
+
 let sb = null, currentUser = null, selectedAmount = 0;
 const $ = id => document.getElementById(id);
 
-// Configuration Supabase
+// Supabase initialization
 try {
   sb = supabase.createClient(
     'https://mzxxfxkryhxnycewyryv.supabase.co',
@@ -173,7 +175,7 @@ function toast(msg) {
 
 window.addEventListener('DOMContentLoaded', async () => {
   try {
-    if (!sb) return;
+    if (!sb) { console.warn("Supabase non initialisé"); return; }
     const { data: sd } = await sb.auth.getSession();
     if (!sd?.session) { window.location.href = 'index.html'; return; }
     currentUser = sd.session.user;
@@ -181,16 +183,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     const { data: p } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
     if (p) $('bal-val').textContent = (p.balance || 0).toLocaleString('fr-FR') + ' FCFA';
 
-    // Vérification callback de paiement (paramètre ?payment=success&amount=XXX&tx_ref=...)
+    // Vérifier callback après retour de paiement (avec paramètres transaction_id & status)
     const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get('payment');
-    const callbackAmount = urlParams.get('amount');
-    const txRef = urlParams.get('tx_ref') || urlParams.get('transaction_id');
+    const paymentStatus = urlParams.get('status');
+    const transactionId = urlParams.get('transaction_id');
+    const amountParam = urlParams.get('amount');
     
-    if (paymentStatus === 'success' && callbackAmount) {
-      // Processus de crédit après retour SoinaPay
-      await handleSoinaPayReturn(parseInt(callbackAmount), txRef || ('SOINA-'+Date.now()));
-      // Nettoyer l'URL pour éviter double exécution
+    if (paymentStatus === 'success' && transactionId) {
+      await handlePaymentConfirmation(transactionId, amountParam ? parseInt(amountParam) : null);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   } catch(e) {
@@ -202,8 +202,8 @@ function showAlert(msg, type) {
   const el = $('al');
   el.className = 'alert ' + (type || 'err');
   el.textContent = msg;
-  setTimeout(() => { if(el) el.style.display = 'none'; }, 4000);
-  if(el) el.style.display = 'block';
+  el.style.display = 'block';
+  setTimeout(() => { if(el) el.style.display = 'none'; }, 5000);
 }
 
 function setAmt(amt, el) {
@@ -227,18 +227,17 @@ function updatePayBtn() {
   const btn = $('pay-btn');
   if (selectedAmount >= 3000) {
     btn.disabled = false;
-    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ${selectedAmount.toLocaleString('fr-FR')} FCFA (SoinaPay)`;
+    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ${selectedAmount.toLocaleString('fr-FR')} FCFA`;
   } else {
     btn.disabled = true;
     btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec SoinaPay`;
   }
 }
 
-// Fonction de redirection directe vers le lien fixe SoinaPay
-// On ajoute en sessionStorage le montant choisi pour le récupérer après retour
-function redirectToSoinaPay() {
+// Fonction principale : appel API SoinaPay pour créer une transaction
+async function initiateSoinaPayPayment() {
   if (selectedAmount < 3000) {
-    showAlert('Montant minimum : 3 000 FCFA', 'err');
+    showAlert('Montant minimum requis : 3 000 FCFA', 'err');
     return;
   }
   if (!currentUser) {
@@ -246,130 +245,191 @@ function redirectToSoinaPay() {
     return;
   }
 
-  // Sauvegarder la demande de recharge en sessionStorage pour traitement au retour
-  const pendingRecharge = {
-    amount: selectedAmount,
-    userId: currentUser.id,
-    timestamp: Date.now(),
-    email: currentUser.email
-  };
-  sessionStorage.setItem('pending_soinapay_recharge', JSON.stringify(pendingRecharge));
-
-  // Afficher un loader sympa
-  const loaderDiv = document.getElementById('payment-loader');
-  if(loaderDiv) loaderDiv.classList.add('active');
+  const loader = document.getElementById('payment-loader');
+  const btn = $('pay-btn');
+  const originalBtnText = btn.innerHTML;
   
-  // Redirection vers le lien SoinaPay fourni
-  // On peut éventuellement ajouter des paramètres dynamiques ? Le lien est fixe mais conservons montant dans storage.
-  // Petite astuce : on ouvre dans la même fenêtre (remplacement) comme un vrai checkout
-  window.location.href = SOINAPAY_URL;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Création de la transaction...';
+  if(loader) loader.classList.add('active');
+
+  // Générer un ID unique pour la transaction (référence interne)
+  const internalRef = `MAR_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  
+  // Préparer l'URL de redirection après paiement (callback vers cette même page)
+  const redirectUrl = `${window.location.origin}${window.location.pathname}?status=success&transaction_id=${internalRef}&amount=${selectedAmount}`;
+  
+  // Corps de la requête selon documentation SoinaPay
+  const payload = {
+    amount: selectedAmount,
+    currency: "XOF",
+    description: `Recharge Marathon - ${currentUser.email || currentUser.id} - ${internalRef}`,
+    redirect_url: redirectUrl,
+    customer_email: currentUser.email || "",
+    customer_name: currentUser.user_metadata?.full_name || "Client Marathon",
+    reference: internalRef
+  };
+
+  try {
+    // Appel à l'API SoinaPay pour générer checkout_url
+    const response = await fetch(`${SOINAPAY_API_URL}/transactions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SOINAPAY_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+        'X-Api-Key': SOINAPAY_PUBLIC_KEY
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('Erreur API SoinaPay:', data);
+      throw new Error(data.message || 'Impossible de générer le lien de paiement');
+    }
+    
+    // La réponse doit contenir checkout_url (selon la doc SoinaPay)
+    const checkoutUrl = data.checkout_url || data.payment_url || data.redirect_url;
+    
+    if (!checkoutUrl) {
+      throw new Error('URL de paiement non reçue de SoinaPay');
+    }
+    
+    // Sauvegarder les infos de transaction en sessionStorage pour vérification ultérieure
+    const pendingTx = {
+      transaction_id: data.id || internalRef,
+      amount: selectedAmount,
+      user_id: currentUser.id,
+      timestamp: Date.now(),
+      internal_ref: internalRef
+    };
+    sessionStorage.setItem('soinapay_pending_tx', JSON.stringify(pendingTx));
+    
+    // Rediriger l'utilisateur vers la page de paiement SoinaPay
+    window.location.href = checkoutUrl;
+    
+  } catch (error) {
+    console.error('SoinaPay API error:', error);
+    showAlert(`Erreur: ${error.message || 'Impossible de contacter SoinaPay. Réessayez.'}`, 'err');
+    if(loader) loader.classList.remove('active');
+    btn.disabled = false;
+    btn.innerHTML = originalBtnText;
+  }
 }
 
-// Fonction appelée au retour du paiement SoinaPay (via paramètres URL)
-async function handleSoinaPayReturn(amount, transactionId = null) {
-  // Récupérer la demande de recharge sauvegardée avant redirection
-  let pending = null;
+// Fonction appelée après retour de SoinaPay (via redirect_url)
+async function handlePaymentConfirmation(transactionRef, amountFromUrl) {
+  const loader = document.getElementById('payment-loader');
+  if(loader) loader.classList.add('active');
+  
+  // Récupérer la transaction en attente depuis sessionStorage
+  let pendingTx = null;
   try {
-    const raw = sessionStorage.getItem('pending_soinapay_recharge');
-    if(raw) pending = JSON.parse(raw);
-  } catch(e) { console.warn(e); }
+    const raw = sessionStorage.getItem('soinapay_pending_tx');
+    if(raw) pendingTx = JSON.parse(raw);
+  } catch(e) {}
   
-  // Vérifier la cohérence du montant
-  const expectedAmount = pending?.amount;
-  if(expectedAmount && expectedAmount !== amount) {
-    // tolérance : on prend le montant reçu par callback si différent (sécurité)
-    console.warn(`Montant incohérent: attendu ${expectedAmount}, reçu ${amount}`);
-  }
-  
-  const finalAmount = amount || expectedAmount;
-  if(!finalAmount || finalAmount < 3000) {
-    showAlert('Montant invalide lors du retour de paiement.', 'err');
-    if(pending) sessionStorage.removeItem('pending_soinapay_recharge');
+  // Vérifier si cette transaction a déjà été créditée (anti-doublon)
+  const creditKey = `soinapay_credited_${transactionRef}`;
+  if (localStorage.getItem(creditKey)) {
+    toast("Cette transaction a déjà été traitée.");
+    if(loader) loader.classList.remove('active');
+    // Afficher succès si déjà crédité
+    $('recharge-form').style.display = 'none';
+    $('success-screen').classList.add('on');
+    $('success-msg').innerHTML = `✅ Transaction déjà validée.<br>Votre solde a été mis à jour précédemment.`;
+    sessionStorage.removeItem('soinapay_pending_tx');
     return;
   }
   
-  if(!currentUser) {
-    // tenter de récupérer l'utilisateur actuel à nouveau via session
+  // Déterminer le montant réel (depuis URL ou depuis sessionStorage)
+  let creditedAmount = amountFromUrl || pendingTx?.amount;
+  if (!creditedAmount || creditedAmount < 3000) {
+    showAlert("Montant invalide lors du retour de paiement. Contactez le support.", "err");
+    if(loader) loader.classList.remove('active');
+    return;
+  }
+  
+  // Vérifier que l'utilisateur est toujours connecté
+  if (!currentUser) {
     const { data: sd } = await sb.auth.getSession();
-    if(!sd?.session) {
-      showAlert('Session expirée. Veuillez vous reconnecter pour créditer votre compte.', 'err');
-      sessionStorage.removeItem('pending_soinapay_recharge');
+    if (!sd?.session) {
+      showAlert("Session expirée. Veuillez vous reconnecter pour créditer votre compte.", "err");
+      if(loader) loader.classList.remove('active');
       return;
     }
     currentUser = sd.session.user;
   }
   
-  // Vérifier si on a déjà traité cette transaction via un identifiant unique (anti-doublon)
-  const txUnique = transactionId || (`SOINA_${finalAmount}_${pending?.timestamp || Date.now()}`);
-  const txKey = `credited_soinapay_${txUnique}`;
-  if(localStorage.getItem(txKey)) {
-    toast("Cette transaction a déjà été créditée.");
-    // Afficher quand même l'écran de succès ?
-    $('recharge-form').style.display = 'none';
-    $('success-screen').classList.add('on');
-    $('success-msg').innerHTML = `⚠️ Transaction déjà traitée.<br>Si le solde n'est pas à jour, contactez le support.`;
-    return;
+  // Vérifier cohérence avec l'utilisateur qui a initié le paiement
+  if (pendingTx && pendingTx.user_id !== currentUser.id) {
+    console.warn("Incohérence utilisateur pour la transaction");
   }
   
   try {
-    // Récupérer profil actuel
+    // Récupérer le solde actuel
     const { data: profile, error: fetchErr } = await sb
       .from('profiles')
       .select('balance')
       .eq('id', currentUser.id)
       .single();
-    if(fetchErr) throw fetchErr;
+    if (fetchErr) throw fetchErr;
     
     const oldBalance = profile?.balance || 0;
-    const newBalance = oldBalance + finalAmount;
+    const newBalance = oldBalance + creditedAmount;
     
     // Mise à jour du solde
     const { error: updateErr } = await sb
       .from('profiles')
       .update({ balance: newBalance })
       .eq('id', currentUser.id);
-    if(updateErr) throw updateErr;
+    if (updateErr) throw updateErr;
     
-    // Enregistrer la transaction
+    // Enregistrer la transaction dans l'historique
     const txObj = {
       user_id: currentUser.id,
       type: 'depot',
-      amount: finalAmount,
+      amount: creditedAmount,
       fee: 0,
-      net_amount: finalAmount,
+      net_amount: creditedAmount,
       status: 'success',
-      description: `Recharge SoinaPay · ${txUnique}`,
-      method: 'SoinaPay'
+      description: `Recharge SoinaPay · Ref: ${transactionRef}`,
+      method: 'SoinaPay (API)',
+      reference: transactionRef
     };
     await sb.from('transactions').insert(txObj);
     
     // Marquer comme crédité
-    localStorage.setItem(txKey, '1');
-    sessionStorage.removeItem('pending_soinapay_recharge');
+    localStorage.setItem(creditKey, '1');
+    sessionStorage.removeItem('soinapay_pending_tx');
     
     // Mettre à jour l'affichage du solde
     $('bal-val').textContent = newBalance.toLocaleString('fr-FR') + ' FCFA';
     
     // Afficher l'écran de succès
     $('recharge-form').style.display = 'none';
-    $('success-msg').innerHTML = `+${finalAmount.toLocaleString('fr-FR')} FCFA crédités !<br>Nouveau solde : ${newBalance.toLocaleString('fr-FR')} FCFA.`;
+    $('success-msg').innerHTML = `+${creditedAmount.toLocaleString('fr-FR')} FCFA crédités !<br>Nouveau solde : ${newBalance.toLocaleString('fr-FR')} FCFA.<br>Référence: ${transactionRef.substring(0,12)}`;
     $('success-screen').classList.add('on');
-    toast(`🎉 +${finalAmount.toLocaleString('fr-FR')} FCFA ajoutés avec succès !`);
+    toast(`🎉 Recharge réussie ! +${creditedAmount.toLocaleString('fr-FR')} FCFA`);
     
-  } catch(error) {
-    console.error("Erreur lors du crédit SoinaPay:", error);
-    showAlert(`Le paiement a été effectué mais une erreur technique est survenue. Veuillez contacter le support avec la référence ${txUnique}. Montant: ${finalAmount} FCFA`, 'err');
+  } catch (error) {
+    console.error('Erreur lors du crédit:', error);
+    showAlert(`Le paiement semble avoir été effectué, mais une erreur technique est survenue. Contactez le support avec la référence ${transactionRef}. Montant: ${creditedAmount} FCFA`, 'err');
+  } finally {
+    if(loader) loader.classList.remove('active');
   }
 }
 
-// Fonction optionnelle pour les webhooks (mais on utilise callback URL classique)
-// Permet aussi de tester avec des paramètres mockés en développement
-// Si la page est rechargée après succès sans paramètres, mais qu'une transaction est en attente, on vérifie le sessionStorage par sécurité ?
-window.addEventListener('pageshow', (event) => {
-  // Réactiver le bouton si nécessaire
-  if($('pay-btn')) updatePayBtn();
-  // Si l'utilisateur revient sans paramètre et qu'il y avait un pending très récent (< 10min) on pourrait demander confirmation
-  // mais on laisse le mécanisme explicite de callback.
+// Option: si l'utilisateur revient sans callback clair mais avec une sessionStorage en attente (cas rare)
+window.addEventListener('pageshow', () => {
+  updatePayBtn();
+  // Vérifier s'il y a un paiement en attente non confirmé depuis longtemps (au cas où)
+  const pending = sessionStorage.getItem('soinapay_pending_tx');
+  if(pending && !window.location.search.includes('status=success')) {
+    // On ne fait rien automatiquement, l'utilisateur devra reinitier ou attendre webhook
+    console.log("Transaction en attente mais non confirmée");
+  }
 });
 </script>
 </body>
