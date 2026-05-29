@@ -6,8 +6,6 @@
 <title>Marathon — Recharge</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- SDK LeekPay -->
-<script src="https://leekpay.fr/js/leekpay.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--red:#C41C1C;--rd:#9E1616;--cr:#F7F2EC;--mu:#8A7070;--bo:rgba(196,28,28,.12);--t1:#1A1212;--t2:#4A3A3A}
@@ -67,7 +65,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   <button class="back" onclick="window.location.href='dashboard.html'">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé via LeekPay</p></div>
+  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé via MoneyFusion</p></div>
 </div>
 
 <div class="content">
@@ -82,6 +80,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   <div class="info-row">
     <div class="info-box"><div class="v">3 000 F</div><div class="k">Dépôt minimum</div></div>
     <div class="info-box"><div class="v">Instantané</div><div class="k">Crédit</div></div>
+  </div>
+
+  <!-- Vérification paiement retour -->
+  <div class="alert ok" id="return-alert" style="display:none">
+    ✅ Paiement détecté ! Vérification en cours...
   </div>
 
   <div id="recharge-form">
@@ -122,12 +125,12 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 
       <button class="pay-btn" id="pay-btn" onclick="startPayment()" disabled>
         <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Payer avec LeekPay
+        Payer avec MoneyFusion
       </button>
     </div>
 
     <div style="background:#EFF6FF;border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:13px 14px;font-size:12.5px;color:#1D4ED8;line-height:1.65">
-      🔒 Paiement 100% sécurisé via <strong>LeekPay</strong>. Vos fonds sont crédités automatiquement après confirmation.
+      🔒 Paiement 100% sécurisé via <strong>MoneyFusion</strong>. Vos fonds sont crédités automatiquement après confirmation.
     </div>
   </div>
 
@@ -141,17 +144,14 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 </div>
 
 <script>
-const LEEKPAY_KEY = 'pk_live_h0RQu365IhnhdXkW2YeWZiDmKQGo7Pn1';
-
 let sb = null, currentUser = null, selectedAmount = 0;
 const $ = id => document.getElementById(id);
 
 try {
-  sb = supabase.createClient(
-    'https://mzxxfxkryhxnycewyryv.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
-  );
+  sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');
 } catch(e) { console.error(e); }
+
+const MF_PAYMENT_URL = 'https://my.moneyfusion.net/6a17df1a9b44f35769ccfca6';
 
 function toast(msg) {
   const t = $('toast'); if (!t) return;
@@ -170,6 +170,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     const { data: p } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
     if (p) $('bal-val').textContent = (p.balance || 0).toLocaleString('fr-FR') + ' FCFA';
 
+    // ✅ Vérifier si on revient d'un paiement MoneyFusion
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payment_status') || params.get('status');
+    const txId   = params.get('transaction_id') || params.get('tx_id') || params.get('paymentId');
+    const amtParam = parseInt(params.get('amount') || params.get('montant') || '0');
+
+    if ((status === 'success' || status === 'paid' || status === 'completed') && amtParam > 0) {
+      $('return-alert').style.display = 'block';
+      await handlePaymentSuccess(amtParam, txId || 'MF-' + Date.now());
+    }
   } catch(e) {
     console.error('Init error:', e);
   }
@@ -205,7 +215,7 @@ function updatePayBtn(amt) {
     btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ${amt.toLocaleString('fr-FR')} FCFA`;
   } else {
     btn.disabled = true;
-    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec LeekPay`;
+    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec MoneyFusion`;
   }
 }
 
@@ -213,42 +223,42 @@ function startPayment() {
   if (selectedAmount < 3000) return showAlert('Montant minimum : 3 000 FCFA');
   if (!currentUser) return showAlert('Session expirée. Reconnectez-vous.');
 
-  // Désactiver le bouton pendant la transaction
   const btn = $('pay-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Ouverture du paiement...';
+  btn.innerHTML = '<span class="spin"></span> Redirection vers MoneyFusion...';
+
+  // Construire l'URL de retour avec les infos nécessaires
+  const returnUrl = encodeURIComponent(
+    window.location.origin + '/recharge.html?payment_status=success&amount=' + selectedAmount + '&user=' + currentUser.id
+  );
+  const cancelUrl = encodeURIComponent(window.location.origin + '/recharge.html?payment_status=cancel');
 
   const m = currentUser.user_metadata || {};
+  const phone = encodeURIComponent(m.phone_number || '');
+  const name  = encodeURIComponent(m.full_name || '');
+  const desc  = encodeURIComponent('Recharge Marathon - ' + selectedAmount.toLocaleString('fr-FR') + ' FCFA');
 
-  // Lancer le checkout LeekPay via le SDK JS
-  LeekPay.checkout({
-    amount: selectedAmount,
-    currency: 'XOF',
-    apiKey: LEEKPAY_KEY,
-    description: 'Recharge Marathon - ' + selectedAmount.toLocaleString('fr-FR') + ' FCFA',
-    customerEmail: m.email || currentUser.email || '',
-    customerName: m.full_name || '',
-    customerPhone: m.phone_number || '',
+  // URL MoneyFusion avec paramètres
+  const payUrl = MF_PAYMENT_URL
+    + '?amount=' + selectedAmount
+    + '&description=' + desc
+    + '&telephone=' + phone
+    + '&customerName=' + name
+    + '&return_url=' + returnUrl
+    + '&cancel_url=' + cancelUrl
+    + '&currency=XOF';
 
-    onSuccess: async function(data) {
-      // data contient : status, amount, currency, payment_id
-      const txId = data.payment_id || ('LP-' + Date.now());
-      await handlePaymentSuccess(data.amount || selectedAmount, txId);
-    },
+  // Stocker le montant en attente dans localStorage
+  localStorage.setItem('mf_pending_amount', selectedAmount.toString());
+  localStorage.setItem('mf_pending_user', currentUser.id);
 
-    onCancel: function() {
-      // L'utilisateur a fermé ou annulé
-      btn.disabled = false;
-      updatePayBtn(selectedAmount);
-      showAlert('Paiement annulé. Vous pouvez réessayer.', 'err');
-    }
-  });
+  setTimeout(() => { window.location.href = payUrl; }, 800);
 }
 
 async function handlePaymentSuccess(amount, txId) {
   try {
-    // Anti-doublon : vérifier si ce paiement a déjà été crédité
-    const txKey = 'lp_credited_' + txId;
+    // Vérifier qu'on n'a pas déjà crédité ce paiement
+    const txKey = 'mf_credited_' + txId;
     if (localStorage.getItem(txKey)) {
       showAlert('Ce paiement a déjà été crédité.', 'ok');
       return;
@@ -273,15 +283,18 @@ async function handlePaymentSuccess(amount, txId) {
       fee: 0,
       net_amount: amount,
       status: 'success',
-      description: 'Recharge via LeekPay · ' + txId,
-      method: 'LeekPay'
+      description: 'Recharge via MoneyFusion · ' + txId,
+      method: 'MoneyFusion'
     });
 
-    // Marquer comme crédité (anti-doublon)
+    // Marquer comme crédité
     localStorage.setItem(txKey, '1');
+    localStorage.removeItem('mf_pending_amount');
+    localStorage.removeItem('mf_pending_user');
 
-    // Afficher l'écran de succès
+    // Afficher succès
     $('recharge-form').style.display = 'none';
+    $('return-alert').style.display = 'none';
     $('success-msg').textContent = '+' + amount.toLocaleString('fr-FR') + ' FCFA crédités ! Nouveau solde : ' + newBal.toLocaleString('fr-FR') + ' FCFA.';
     $('success-screen').classList.add('on');
     toast('🎉 +' + amount.toLocaleString('fr-FR') + ' FCFA crédités !');
@@ -289,6 +302,7 @@ async function handlePaymentSuccess(amount, txId) {
   } catch(e) {
     console.error('handlePaymentSuccess error:', e);
     showAlert('Paiement reçu mais erreur de crédit. Contactez le support avec le code : ' + txId);
+    $('return-alert').style.display = 'none';
   }
 }
 </script>
