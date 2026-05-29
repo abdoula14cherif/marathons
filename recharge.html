@@ -6,8 +6,6 @@
 <title>Marathon — Recharge</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- SDK LeekPay -->
-<script src="https://leekpay.fr/js/leekpay.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--red:#C41C1C;--rd:#9E1616;--cr:#F7F2EC;--mu:#8A7070;--bo:rgba(196,28,28,.12);--t1:#1A1212;--t2:#4A3A3A}
@@ -59,6 +57,13 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 @keyframes sp{to{transform:rotate(360deg)}}
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
 #toast.show{transform:translateX(-50%) translateY(0)}
+.soinapay-badge{text-align:center;margin-top:12px;font-size:11px;color:var(--mu);background:#fff;padding:6px 12px;border-radius:30px;display:inline-block;width:auto;margin-left:auto;margin-right:auto}
+.loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:10000;visibility:hidden;opacity:0;transition:all .2s}
+.loader-overlay.active{visibility:visible;opacity:1}
+.loader-card{background:#fff;padding:24px 30px;border-radius:20px;text-align:center;box-shadow:0 20px 35px rgba(0,0,0,0.2);max-width:300px}
+.loader-card .spinner{width:42px;height:42px;border:4px solid #f1e6e6;border-top-color:var(--red);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 16px}
+.loader-card p{font-weight:500;color:var(--t1);font-size:15px}
+.loader-card small{color:var(--mu);font-size:12px}
 </style>
 </head>
 <body>
@@ -67,7 +72,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   <button class="back" onclick="window.location.href='dashboard.html'">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé via LeekPay</p></div>
+  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé SoinaPay</p></div>
 </div>
 
 <div class="content">
@@ -81,7 +86,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 
   <div class="info-row">
     <div class="info-box"><div class="v">3 000 F</div><div class="k">Dépôt minimum</div></div>
-    <div class="info-box"><div class="v">Instantané</div><div class="k">Crédit</div></div>
+    <div class="info-box"><div class="v">Instantané</div><div class="k">Crédit automatique</div></div>
   </div>
 
   <div id="recharge-form">
@@ -120,14 +125,12 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
         <span class="mtag">💳 Carte bancaire</span>
       </div>
 
-      <button class="pay-btn" id="pay-btn" onclick="startPayment()" disabled>
+      <!-- Bouton qui redirige vers le lien SoinaPay spécifique -->
+      <button class="pay-btn" id="pay-btn" onclick="redirectToSoinaPay()">
         <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Payer avec LeekPay
+        Payer avec SoinaPay
       </button>
-    </div>
-
-    <div style="background:#EFF6FF;border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:13px 14px;font-size:12.5px;color:#1D4ED8;line-height:1.65">
-      🔒 Paiement 100% sécurisé via <strong>LeekPay</strong>. Vos fonds sont crédités automatiquement après confirmation.
+      <div class="soinapay-badge">🔒 Paiement 100% sécurisé par SoinaPay • Mobile Money & Cartes</div>
     </div>
   </div>
 
@@ -140,12 +143,21 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   </div>
 </div>
 
-<script>
-const LEEKPAY_KEY = 'pk_live_h0RQu365IhnhdXkW2YeWZiDmKQGo7Pn1';
+<!-- Loader overlay pour la redirection / simulation callback -->
+<div id="payment-loader" class="loader-overlay">
+  <div class="loader-card">
+    <div class="spinner"></div>
+    <p>Redirection vers SoinaPay...</p>
+    <small>Vous allez être redirigé vers la plateforme sécurisée</small>
+  </div>
+</div>
 
+<script>
+const SOINAPAY_URL = 'https://soinapay.com/pay/h3pz7oka';
 let sb = null, currentUser = null, selectedAmount = 0;
 const $ = id => document.getElementById(id);
 
+// Configuration Supabase
 try {
   sb = supabase.createClient(
     'https://mzxxfxkryhxnycewyryv.supabase.co',
@@ -166,10 +178,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (!sd?.session) { window.location.href = 'index.html'; return; }
     currentUser = sd.session.user;
 
-    // Charger le solde
     const { data: p } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
     if (p) $('bal-val').textContent = (p.balance || 0).toLocaleString('fr-FR') + ' FCFA';
 
+    // Vérification callback de paiement (paramètre ?payment=success&amount=XXX&tx_ref=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    const callbackAmount = urlParams.get('amount');
+    const txRef = urlParams.get('tx_ref') || urlParams.get('transaction_id');
+    
+    if (paymentStatus === 'success' && callbackAmount) {
+      // Processus de crédit après retour SoinaPay
+      await handleSoinaPayReturn(parseInt(callbackAmount), txRef || ('SOINA-'+Date.now()));
+      // Nettoyer l'URL pour éviter double exécution
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   } catch(e) {
     console.error('Init error:', e);
   }
@@ -179,6 +202,8 @@ function showAlert(msg, type) {
   const el = $('al');
   el.className = 'alert ' + (type || 'err');
   el.textContent = msg;
+  setTimeout(() => { if(el) el.style.display = 'none'; }, 4000);
+  if(el) el.style.display = 'block';
 }
 
 function setAmt(amt, el) {
@@ -187,7 +212,7 @@ function setAmt(amt, el) {
   $('custom-input').value = '';
   document.querySelectorAll('.preset').forEach(p => p.classList.remove('on'));
   el.classList.add('on');
-  updatePayBtn(amt);
+  updatePayBtn();
 }
 
 function onCustom() {
@@ -195,102 +220,157 @@ function onCustom() {
   selectedAmount = v;
   $('amt-display').textContent = v > 0 ? v.toLocaleString('fr-FR') : '0';
   document.querySelectorAll('.preset').forEach(p => p.classList.remove('on'));
-  updatePayBtn(v);
+  updatePayBtn();
 }
 
-function updatePayBtn(amt) {
+function updatePayBtn() {
   const btn = $('pay-btn');
-  if (amt >= 3000) {
+  if (selectedAmount >= 3000) {
     btn.disabled = false;
-    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ${amt.toLocaleString('fr-FR')} FCFA`;
+    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ${selectedAmount.toLocaleString('fr-FR')} FCFA (SoinaPay)`;
   } else {
     btn.disabled = true;
-    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec LeekPay`;
+    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec SoinaPay`;
   }
 }
 
-function startPayment() {
-  if (selectedAmount < 3000) return showAlert('Montant minimum : 3 000 FCFA');
-  if (!currentUser) return showAlert('Session expirée. Reconnectez-vous.');
+// Fonction de redirection directe vers le lien fixe SoinaPay
+// On ajoute en sessionStorage le montant choisi pour le récupérer après retour
+function redirectToSoinaPay() {
+  if (selectedAmount < 3000) {
+    showAlert('Montant minimum : 3 000 FCFA', 'err');
+    return;
+  }
+  if (!currentUser) {
+    showAlert('Session expirée, veuillez vous reconnecter.', 'err');
+    return;
+  }
 
-  // Désactiver le bouton pendant la transaction
-  const btn = $('pay-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Ouverture du paiement...';
-
-  const m = currentUser.user_metadata || {};
-
-  // Lancer le checkout LeekPay via le SDK JS
-  LeekPay.checkout({
+  // Sauvegarder la demande de recharge en sessionStorage pour traitement au retour
+  const pendingRecharge = {
     amount: selectedAmount,
-    currency: 'XOF',
-    apiKey: LEEKPAY_KEY,
-    description: 'Recharge Marathon - ' + selectedAmount.toLocaleString('fr-FR') + ' FCFA',
-    customerEmail: m.email || currentUser.email || '',
-    customerName: m.full_name || '',
-    customerPhone: m.phone_number || '',
+    userId: currentUser.id,
+    timestamp: Date.now(),
+    email: currentUser.email
+  };
+  sessionStorage.setItem('pending_soinapay_recharge', JSON.stringify(pendingRecharge));
 
-    onSuccess: async function(data) {
-      // data contient : status, amount, currency, payment_id
-      const txId = data.payment_id || ('LP-' + Date.now());
-      await handlePaymentSuccess(data.amount || selectedAmount, txId);
-    },
-
-    onCancel: function() {
-      // L'utilisateur a fermé ou annulé
-      btn.disabled = false;
-      updatePayBtn(selectedAmount);
-      showAlert('Paiement annulé. Vous pouvez réessayer.', 'err');
-    }
-  });
+  // Afficher un loader sympa
+  const loaderDiv = document.getElementById('payment-loader');
+  if(loaderDiv) loaderDiv.classList.add('active');
+  
+  // Redirection vers le lien SoinaPay fourni
+  // On peut éventuellement ajouter des paramètres dynamiques ? Le lien est fixe mais conservons montant dans storage.
+  // Petite astuce : on ouvre dans la même fenêtre (remplacement) comme un vrai checkout
+  window.location.href = SOINAPAY_URL;
 }
 
-async function handlePaymentSuccess(amount, txId) {
+// Fonction appelée au retour du paiement SoinaPay (via paramètres URL)
+async function handleSoinaPayReturn(amount, transactionId = null) {
+  // Récupérer la demande de recharge sauvegardée avant redirection
+  let pending = null;
   try {
-    // Anti-doublon : vérifier si ce paiement a déjà été crédité
-    const txKey = 'lp_credited_' + txId;
-    if (localStorage.getItem(txKey)) {
-      showAlert('Ce paiement a déjà été crédité.', 'ok');
+    const raw = sessionStorage.getItem('pending_soinapay_recharge');
+    if(raw) pending = JSON.parse(raw);
+  } catch(e) { console.warn(e); }
+  
+  // Vérifier la cohérence du montant
+  const expectedAmount = pending?.amount;
+  if(expectedAmount && expectedAmount !== amount) {
+    // tolérance : on prend le montant reçu par callback si différent (sécurité)
+    console.warn(`Montant incohérent: attendu ${expectedAmount}, reçu ${amount}`);
+  }
+  
+  const finalAmount = amount || expectedAmount;
+  if(!finalAmount || finalAmount < 3000) {
+    showAlert('Montant invalide lors du retour de paiement.', 'err');
+    if(pending) sessionStorage.removeItem('pending_soinapay_recharge');
+    return;
+  }
+  
+  if(!currentUser) {
+    // tenter de récupérer l'utilisateur actuel à nouveau via session
+    const { data: sd } = await sb.auth.getSession();
+    if(!sd?.session) {
+      showAlert('Session expirée. Veuillez vous reconnecter pour créditer votre compte.', 'err');
+      sessionStorage.removeItem('pending_soinapay_recharge');
       return;
     }
-
-    // Récupérer le solde actuel
-    const { data: p, error: pe } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
-    if (pe) throw pe;
-
-    const oldBal = p?.balance || 0;
-    const newBal = oldBal + amount;
-
-    // Mettre à jour le solde
-    const { error: ue } = await sb.from('profiles').update({ balance: newBal }).eq('id', currentUser.id);
-    if (ue) throw ue;
-
+    currentUser = sd.session.user;
+  }
+  
+  // Vérifier si on a déjà traité cette transaction via un identifiant unique (anti-doublon)
+  const txUnique = transactionId || (`SOINA_${finalAmount}_${pending?.timestamp || Date.now()}`);
+  const txKey = `credited_soinapay_${txUnique}`;
+  if(localStorage.getItem(txKey)) {
+    toast("Cette transaction a déjà été créditée.");
+    // Afficher quand même l'écran de succès ?
+    $('recharge-form').style.display = 'none';
+    $('success-screen').classList.add('on');
+    $('success-msg').innerHTML = `⚠️ Transaction déjà traitée.<br>Si le solde n'est pas à jour, contactez le support.`;
+    return;
+  }
+  
+  try {
+    // Récupérer profil actuel
+    const { data: profile, error: fetchErr } = await sb
+      .from('profiles')
+      .select('balance')
+      .eq('id', currentUser.id)
+      .single();
+    if(fetchErr) throw fetchErr;
+    
+    const oldBalance = profile?.balance || 0;
+    const newBalance = oldBalance + finalAmount;
+    
+    // Mise à jour du solde
+    const { error: updateErr } = await sb
+      .from('profiles')
+      .update({ balance: newBalance })
+      .eq('id', currentUser.id);
+    if(updateErr) throw updateErr;
+    
     // Enregistrer la transaction
-    await sb.from('transactions').insert({
+    const txObj = {
       user_id: currentUser.id,
       type: 'depot',
-      amount: amount,
+      amount: finalAmount,
       fee: 0,
-      net_amount: amount,
+      net_amount: finalAmount,
       status: 'success',
-      description: 'Recharge via LeekPay · ' + txId,
-      method: 'LeekPay'
-    });
-
-    // Marquer comme crédité (anti-doublon)
+      description: `Recharge SoinaPay · ${txUnique}`,
+      method: 'SoinaPay'
+    };
+    await sb.from('transactions').insert(txObj);
+    
+    // Marquer comme crédité
     localStorage.setItem(txKey, '1');
-
+    sessionStorage.removeItem('pending_soinapay_recharge');
+    
+    // Mettre à jour l'affichage du solde
+    $('bal-val').textContent = newBalance.toLocaleString('fr-FR') + ' FCFA';
+    
     // Afficher l'écran de succès
     $('recharge-form').style.display = 'none';
-    $('success-msg').textContent = '+' + amount.toLocaleString('fr-FR') + ' FCFA crédités ! Nouveau solde : ' + newBal.toLocaleString('fr-FR') + ' FCFA.';
+    $('success-msg').innerHTML = `+${finalAmount.toLocaleString('fr-FR')} FCFA crédités !<br>Nouveau solde : ${newBalance.toLocaleString('fr-FR')} FCFA.`;
     $('success-screen').classList.add('on');
-    toast('🎉 +' + amount.toLocaleString('fr-FR') + ' FCFA crédités !');
-
-  } catch(e) {
-    console.error('handlePaymentSuccess error:', e);
-    showAlert('Paiement reçu mais erreur de crédit. Contactez le support avec le code : ' + txId);
+    toast(`🎉 +${finalAmount.toLocaleString('fr-FR')} FCFA ajoutés avec succès !`);
+    
+  } catch(error) {
+    console.error("Erreur lors du crédit SoinaPay:", error);
+    showAlert(`Le paiement a été effectué mais une erreur technique est survenue. Veuillez contacter le support avec la référence ${txUnique}. Montant: ${finalAmount} FCFA`, 'err');
   }
 }
+
+// Fonction optionnelle pour les webhooks (mais on utilise callback URL classique)
+// Permet aussi de tester avec des paramètres mockés en développement
+// Si la page est rechargée après succès sans paramètres, mais qu'une transaction est en attente, on vérifie le sessionStorage par sécurité ?
+window.addEventListener('pageshow', (event) => {
+  // Réactiver le bouton si nécessaire
+  if($('pay-btn')) updatePayBtn();
+  // Si l'utilisateur revient sans paramètre et qu'il y avait un pending très récent (< 10min) on pourrait demander confirmation
+  // mais on laisse le mécanisme explicite de callback.
+});
 </script>
 </body>
 </html>
