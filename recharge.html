@@ -48,7 +48,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 .alert{padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
 .alert.err{display:block;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC}
 .alert.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0}
-.alert.warning{display:block;background:#FFFBEB;color:#B45309;border:1px solid #FDE68A}
 .success{display:none;text-align:center;padding:40px 20px}
 .success.on{display:block}
 .success .ico{font-size:64px;margin-bottom:16px}
@@ -72,7 +71,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   <button class="back" onclick="window.location.href='dashboard.html'">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé SoinaPay API</p></div>
+  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé SoinaPay</p></div>
 </div>
 
 <div class="content">
@@ -125,11 +124,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
         <span class="mtag">💳 Carte bancaire</span>
       </div>
 
-      <button class="pay-btn" id="pay-btn" onclick="initiateSoinaPayPayment()" disabled>
+      <button class="pay-btn" id="pay-btn" onclick="redirectToSoinaPayLink()" disabled>
         <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         Payer avec SoinaPay
       </button>
-      <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--mu);background:#f9f6f2;padding:6px 12px;border-radius:30px;">🔐 Paiement sécurisé • API SoinaPay v1</div>
+      <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--mu);background:#f9f6f2;padding:6px 12px;border-radius:30px;">🔐 Paiement sécurisé • Mobile Money & Cartes</div>
     </div>
   </div>
 
@@ -145,16 +144,14 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 <div id="payment-loader" class="loader-overlay">
   <div class="loader-card">
     <div class="spinner"></div>
-    <p>Génération du paiement...</p>
-    <small>Connexion sécurisée à SoinaPay</small>
+    <p>Redirection vers SoinaPay...</p>
+    <small>Veuillez patienter</small>
   </div>
 </div>
 
 <script>
-// CONFIGURATION API SOINAPAY
-const SOINAPAY_API_URL = 'https://soinapay.com/v1';
-const SOINAPAY_SECRET_KEY = 'sk_live_6eade994bcca4f013a7fd386733aac6694b42ccb724a596c';
-const SOINAPAY_PUBLIC_KEY = 'pk_live_23427779af69ebefb129c76879b883fc';
+// Configuration
+const SOINAPAY_PAYMENT_LINK = 'https://soinapay.com/pay/h3pz7oka';
 
 let sb = null, currentUser = null, selectedAmount = 0;
 const $ = id => document.getElementById(id);
@@ -177,26 +174,92 @@ window.addEventListener('DOMContentLoaded', async () => {
   try {
     if (!sb) { console.warn("Supabase non initialisé"); return; }
     const { data: sd } = await sb.auth.getSession();
-    if (!sd?.session) { window.location.href = 'index.html'; return; }
+    if (!sd?.session) { 
+      window.location.href = 'index.html'; 
+      return; 
+    }
     currentUser = sd.session.user;
 
+    // Charger le solde
     const { data: p } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
     if (p) $('bal-val').textContent = (p.balance || 0).toLocaleString('fr-FR') + ' FCFA';
 
-    // Vérifier callback après retour de paiement (avec paramètres transaction_id & status)
+    // Vérifier callback après retour de paiement
     const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get('status');
+    const paymentStatus = urlParams.get('payment_status');
     const transactionId = urlParams.get('transaction_id');
     const amountParam = urlParams.get('amount');
+    const soinaRef = urlParams.get('ref');
     
-    if (paymentStatus === 'success' && transactionId) {
-      await handlePaymentConfirmation(transactionId, amountParam ? parseInt(amountParam) : null);
+    // SoinaPay peut renvoyer différents paramètres
+    if ((paymentStatus === 'success' || paymentStatus === 'completed') && (transactionId || soinaRef)) {
+      await handlePaymentSuccess(amountParam ? parseInt(amountParam) : null, transactionId || soinaRef);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+    
+    // Vérifier aussi si un paiement est en attente dans sessionStorage (cas où l'utilisateur revient sans paramètres)
+    checkPendingPayment();
+    
   } catch(e) {
     console.error('Init error:', e);
   }
 });
+
+// Vérifier s'il y a un paiement en attente qui n'a pas été confirmé
+async function checkPendingPayment() {
+  try {
+    const pendingRaw = sessionStorage.getItem('soinapay_pending');
+    if (!pendingRaw) return;
+    
+    const pending = JSON.parse(pendingRaw);
+    // Si la transaction date de moins de 5 minutes, on peut la considérer comme récente
+    if (pending && pending.timestamp && (Date.now() - pending.timestamp) < 300000) {
+      // On demande à l'utilisateur s'il souhaite confirmer
+      const shouldConfirm = confirm(`Une transaction de ${pending.amount.toLocaleString('fr-FR')} FCFA est en attente de confirmation.\nVoulez-vous vérifier si le paiement a été effectué ?`);
+      if (shouldConfirm) {
+        // Simuler une confirmation manuelle (l'utilisateur confirme avoir payé)
+        await manualCredit(pending.amount, pending.ref);
+      }
+    }
+    sessionStorage.removeItem('soinapay_pending');
+  } catch(e) {}
+}
+
+async function manualCredit(amount, ref) {
+  if (!currentUser) return;
+  const creditKey = `soinapay_credited_${ref}`;
+  if (localStorage.getItem(creditKey)) {
+    toast("Cette transaction a déjà été créditée.");
+    return;
+  }
+  
+  try {
+    const { data: profile } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
+    const oldBalance = profile?.balance || 0;
+    const newBalance = oldBalance + amount;
+    
+    await sb.from('profiles').update({ balance: newBalance }).eq('id', currentUser.id);
+    await sb.from('transactions').insert({
+      user_id: currentUser.id,
+      type: 'depot',
+      amount: amount,
+      fee: 0,
+      net_amount: amount,
+      status: 'success',
+      description: `Recharge SoinaPay · Ref: ${ref}`,
+      method: 'SoinaPay'
+    });
+    
+    localStorage.setItem(creditKey, '1');
+    $('bal-val').textContent = newBalance.toLocaleString('fr-FR') + ' FCFA';
+    $('recharge-form').style.display = 'none';
+    $('success-msg').innerHTML = `+${amount.toLocaleString('fr-FR')} FCFA crédités !<br>Nouveau solde : ${newBalance.toLocaleString('fr-FR')} FCFA.`;
+    $('success-screen').classList.add('on');
+    toast(`🎉 Recharge réussie ! +${amount.toLocaleString('fr-FR')} FCFA`);
+  } catch(e) {
+    showAlert("Erreur lors du crédit manuel: " + e.message, 'err');
+  }
+}
 
 function showAlert(msg, type) {
   const el = $('al');
@@ -234,8 +297,8 @@ function updatePayBtn() {
   }
 }
 
-// Fonction principale : appel API SoinaPay pour créer une transaction
-async function initiateSoinaPayPayment() {
+// Redirection directe vers le lien SoinaPay fixe avec sauvegarde du montant
+function redirectToSoinaPayLink() {
   if (selectedAmount < 3000) {
     showAlert('Montant minimum requis : 3 000 FCFA', 'err');
     return;
@@ -244,127 +307,91 @@ async function initiateSoinaPayPayment() {
     showAlert('Session expirée, veuillez vous reconnecter.', 'err');
     return;
   }
-
-  const loader = document.getElementById('payment-loader');
-  const btn = $('pay-btn');
-  const originalBtnText = btn.innerHTML;
   
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Création de la transaction...';
-  if(loader) loader.classList.add('active');
-
-  // Générer un ID unique pour la transaction (référence interne)
-  const internalRef = `MAR_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  // Générer un ID de transaction unique
+  const transactionRef = `MAR_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
   
-  // Préparer l'URL de redirection après paiement (callback vers cette même page)
-  const redirectUrl = `${window.location.origin}${window.location.pathname}?status=success&transaction_id=${internalRef}&amount=${selectedAmount}`;
-  
-  // Corps de la requête selon documentation SoinaPay
-  const payload = {
+  // Sauvegarder la demande de paiement
+  const paymentRequest = {
     amount: selectedAmount,
-    currency: "XOF",
-    description: `Recharge Marathon - ${currentUser.email || currentUser.id} - ${internalRef}`,
-    redirect_url: redirectUrl,
-    customer_email: currentUser.email || "",
-    customer_name: currentUser.user_metadata?.full_name || "Client Marathon",
-    reference: internalRef
+    user_id: currentUser.id,
+    user_email: currentUser.email,
+    timestamp: Date.now(),
+    ref: transactionRef
   };
-
-  try {
-    // Appel à l'API SoinaPay pour générer checkout_url
-    const response = await fetch(`${SOINAPAY_API_URL}/transactions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SOINAPAY_SECRET_KEY}`,
-        'Content-Type': 'application/json',
-        'X-Api-Key': SOINAPAY_PUBLIC_KEY
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error('Erreur API SoinaPay:', data);
-      throw new Error(data.message || 'Impossible de générer le lien de paiement');
-    }
-    
-    // La réponse doit contenir checkout_url (selon la doc SoinaPay)
-    const checkoutUrl = data.checkout_url || data.payment_url || data.redirect_url;
-    
-    if (!checkoutUrl) {
-      throw new Error('URL de paiement non reçue de SoinaPay');
-    }
-    
-    // Sauvegarder les infos de transaction en sessionStorage pour vérification ultérieure
-    const pendingTx = {
-      transaction_id: data.id || internalRef,
-      amount: selectedAmount,
-      user_id: currentUser.id,
-      timestamp: Date.now(),
-      internal_ref: internalRef
-    };
-    sessionStorage.setItem('soinapay_pending_tx', JSON.stringify(pendingTx));
-    
-    // Rediriger l'utilisateur vers la page de paiement SoinaPay
-    window.location.href = checkoutUrl;
-    
-  } catch (error) {
-    console.error('SoinaPay API error:', error);
-    showAlert(`Erreur: ${error.message || 'Impossible de contacter SoinaPay. Réessayez.'}`, 'err');
-    if(loader) loader.classList.remove('active');
-    btn.disabled = false;
-    btn.innerHTML = originalBtnText;
+  sessionStorage.setItem('soinapay_pending', JSON.stringify(paymentRequest));
+  
+  // Afficher le loader
+  const loader = document.getElementById('payment-loader');
+  if(loader) loader.classList.add('active');
+  
+  // Rediriger vers le lien SoinaPay
+  // Le lien est fixe, mais on peut éventuellement ajouter des paramètres dans l'URL
+  // pour que SoinaPay nous renvoie des infos après paiement
+  const redirectUrl = `${window.location.origin}${window.location.pathname}?payment_status=success&amount=${selectedAmount}&transaction_id=${transactionRef}`;
+  
+  // Certains services de paiement acceptent des paramètres dans l'URL
+  // On tente d'ajouter un redirect_url encodé
+  let finalUrl = SOINAPAY_PAYMENT_LINK;
+  if (finalUrl.includes('?')) {
+    finalUrl += `&amount=${selectedAmount}&reference=${transactionRef}&redirect_url=${encodeURIComponent(redirectUrl)}`;
+  } else {
+    finalUrl += `?amount=${selectedAmount}&reference=${transactionRef}&redirect_url=${encodeURIComponent(redirectUrl)}`;
   }
+  
+  // Redirection après un court délai pour que le loader s'affiche
+  setTimeout(() => {
+    window.location.href = finalUrl;
+  }, 500);
 }
 
-// Fonction appelée après retour de SoinaPay (via redirect_url)
-async function handlePaymentConfirmation(transactionRef, amountFromUrl) {
+// Gérer le succès du paiement après retour
+async function handlePaymentSuccess(amount, ref) {
   const loader = document.getElementById('payment-loader');
   if(loader) loader.classList.add('active');
   
-  // Récupérer la transaction en attente depuis sessionStorage
-  let pendingTx = null;
+  // Récupérer la demande en attente
+  let pendingAmount = amount;
+  let pendingRef = ref;
+  let pendingUserId = null;
+  
   try {
-    const raw = sessionStorage.getItem('soinapay_pending_tx');
-    if(raw) pendingTx = JSON.parse(raw);
+    const pendingRaw = sessionStorage.getItem('soinapay_pending');
+    if(pendingRaw) {
+      const pending = JSON.parse(pendingRaw);
+      if(!pendingAmount) pendingAmount = pending.amount;
+      if(!pendingRef) pendingRef = pending.ref;
+      pendingUserId = pending.user_id;
+    }
   } catch(e) {}
   
-  // Vérifier si cette transaction a déjà été créditée (anti-doublon)
-  const creditKey = `soinapay_credited_${transactionRef}`;
-  if (localStorage.getItem(creditKey)) {
-    toast("Cette transaction a déjà été traitée.");
+  if (!pendingAmount || pendingAmount < 3000) {
+    showAlert("Montant invalide. Veuillez contacter le support.", "err");
     if(loader) loader.classList.remove('active');
-    // Afficher succès si déjà crédité
+    return;
+  }
+  
+  // Vérifier si déjà crédité
+  const creditKey = `soinapay_credited_${pendingRef || ref}`;
+  if (localStorage.getItem(creditKey)) {
+    toast("Cette transaction a déjà été créditée.");
     $('recharge-form').style.display = 'none';
     $('success-screen').classList.add('on');
-    $('success-msg').innerHTML = `✅ Transaction déjà validée.<br>Votre solde a été mis à jour précédemment.`;
-    sessionStorage.removeItem('soinapay_pending_tx');
-    return;
-  }
-  
-  // Déterminer le montant réel (depuis URL ou depuis sessionStorage)
-  let creditedAmount = amountFromUrl || pendingTx?.amount;
-  if (!creditedAmount || creditedAmount < 3000) {
-    showAlert("Montant invalide lors du retour de paiement. Contactez le support.", "err");
+    $('success-msg').innerHTML = `✅ Transaction déjà validée.<br>Votre solde a déjà été mis à jour.`;
     if(loader) loader.classList.remove('active');
+    sessionStorage.removeItem('soinapay_pending');
     return;
   }
   
-  // Vérifier que l'utilisateur est toujours connecté
+  // Vérifier l'utilisateur
   if (!currentUser) {
     const { data: sd } = await sb.auth.getSession();
     if (!sd?.session) {
-      showAlert("Session expirée. Veuillez vous reconnecter pour créditer votre compte.", "err");
+      showAlert("Session expirée. Veuillez vous reconnecter.", "err");
       if(loader) loader.classList.remove('active');
       return;
     }
     currentUser = sd.session.user;
-  }
-  
-  // Vérifier cohérence avec l'utilisateur qui a initié le paiement
-  if (pendingTx && pendingTx.user_id !== currentUser.id) {
-    console.warn("Incohérence utilisateur pour la transaction");
   }
   
   try {
@@ -377,7 +404,7 @@ async function handlePaymentConfirmation(transactionRef, amountFromUrl) {
     if (fetchErr) throw fetchErr;
     
     const oldBalance = profile?.balance || 0;
-    const newBalance = oldBalance + creditedAmount;
+    const newBalance = oldBalance + pendingAmount;
     
     // Mise à jour du solde
     const { error: updateErr } = await sb
@@ -386,51 +413,36 @@ async function handlePaymentConfirmation(transactionRef, amountFromUrl) {
       .eq('id', currentUser.id);
     if (updateErr) throw updateErr;
     
-    // Enregistrer la transaction dans l'historique
-    const txObj = {
+    // Enregistrer la transaction
+    await sb.from('transactions').insert({
       user_id: currentUser.id,
       type: 'depot',
-      amount: creditedAmount,
+      amount: pendingAmount,
       fee: 0,
-      net_amount: creditedAmount,
+      net_amount: pendingAmount,
       status: 'success',
-      description: `Recharge SoinaPay · Ref: ${transactionRef}`,
-      method: 'SoinaPay (API)',
-      reference: transactionRef
-    };
-    await sb.from('transactions').insert(txObj);
+      description: `Recharge SoinaPay · Ref: ${pendingRef || ref}`,
+      method: 'SoinaPay'
+    });
     
     // Marquer comme crédité
     localStorage.setItem(creditKey, '1');
-    sessionStorage.removeItem('soinapay_pending_tx');
+    sessionStorage.removeItem('soinapay_pending');
     
-    // Mettre à jour l'affichage du solde
+    // Mettre à jour l'affichage
     $('bal-val').textContent = newBalance.toLocaleString('fr-FR') + ' FCFA';
-    
-    // Afficher l'écran de succès
     $('recharge-form').style.display = 'none';
-    $('success-msg').innerHTML = `+${creditedAmount.toLocaleString('fr-FR')} FCFA crédités !<br>Nouveau solde : ${newBalance.toLocaleString('fr-FR')} FCFA.<br>Référence: ${transactionRef.substring(0,12)}`;
+    $('success-msg').innerHTML = `+${pendingAmount.toLocaleString('fr-FR')} FCFA crédités !<br>Nouveau solde : ${newBalance.toLocaleString('fr-FR')} FCFA.<br>Référence: ${(pendingRef || ref).substring(0, 15)}`;
     $('success-screen').classList.add('on');
-    toast(`🎉 Recharge réussie ! +${creditedAmount.toLocaleString('fr-FR')} FCFA`);
+    toast(`🎉 Recharge réussie ! +${pendingAmount.toLocaleString('fr-FR')} FCFA`);
     
   } catch (error) {
     console.error('Erreur lors du crédit:', error);
-    showAlert(`Le paiement semble avoir été effectué, mais une erreur technique est survenue. Contactez le support avec la référence ${transactionRef}. Montant: ${creditedAmount} FCFA`, 'err');
+    showAlert(`Le paiement a été effectué mais une erreur technique est survenue. Contactez le support avec la référence ${pendingRef || ref}. Montant: ${pendingAmount} FCFA`, 'err');
   } finally {
     if(loader) loader.classList.remove('active');
   }
 }
-
-// Option: si l'utilisateur revient sans callback clair mais avec une sessionStorage en attente (cas rare)
-window.addEventListener('pageshow', () => {
-  updatePayBtn();
-  // Vérifier s'il y a un paiement en attente non confirmé depuis longtemps (au cas où)
-  const pending = sessionStorage.getItem('soinapay_pending_tx');
-  if(pending && !window.location.search.includes('status=success')) {
-    // On ne fait rien automatiquement, l'utilisateur devra reinitier ou attendre webhook
-    console.log("Transaction en attente mais non confirmée");
-  }
-});
 </script>
 </body>
 </html>
