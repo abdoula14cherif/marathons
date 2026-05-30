@@ -2,282 +2,746 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Marathon — Admin</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Marathon Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
---red:#C41C1C;
---rd:#9E1616;
---cr:#F7F2EC;
---mu:#8A7070;
---bo:rgba(196,28,28,.12);
---t1:#1A1212;
+  --bg:#0B1526;--card:#131E30;--card2:#1A2840;--border:#1E3050;
+  --red:#C41C1C;--green:#22C55E;--orange:#F97316;--blue:#3B82F6;--purple:#8B5CF6;
+  --text:#E2E8F0;--muted:#64748B;--white:#fff;
+  --gold:#F59E0B;
 }
+html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text)}
+#app{height:100%;display:flex;flex-direction:column}
 
-body{
-font-family:"DM Sans",sans-serif;
-background:var(--cr);
-color:var(--t1);
-padding-bottom:80px;
-}
+/* TOPBAR */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.logo{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:700;color:var(--white)}
+.logo span{color:var(--red)}
+.admin-badge{background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.08em}
+.quit-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:8px 14px;font-family:"DM Sans",sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.quit-btn:hover{color:var(--red)}
 
-.topbar{
-background:linear-gradient(135deg,var(--rd),var(--red));
-padding:40px 16px 20px;
-color:#fff;
-}
+/* TAB NAV */
+.tab-nav{display:flex;gap:0;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 16px;border:none;background:transparent;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:11px;font-weight:500;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.tab-btn .ti{font-size:20px}
+.tab-btn.on{color:var(--white);border-bottom-color:var(--blue)}
 
-.topbar h1{
-font-family:"Cormorant Garamond",serif;
-font-size:32px;
-}
+/* SECTIONS */
+.section{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px}
+.section.on{display:block}
 
-.content{padding:16px}
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:14px;padding:16px 14px;border:1px solid var(--border);position:relative;overflow:hidden}
+.stat-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.c1::before{background:var(--blue)}
+.stat-card.c2::before{background:var(--gold)}
+.stat-card.c3::before{background:var(--orange)}
+.stat-card.c4::before{background:var(--green)}
+.stat-card.c5::before{background:var(--red)}
+.stat-card.c6::before{background:var(--purple)}
+.stat-ico{font-size:28px;margin-bottom:8px}
+.stat-val{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:700;color:var(--white);min-height:32px}
+.stat-lbl{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
 
-.stats{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:12px;
-margin-bottom:16px;
-}
+/* ACTIONS RAPIDES */
+.actions-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.act-btn{padding:14px;border-radius:13px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .18s}
+.act-btn:active{transform:scale(.96)}
+.ab-blue{background:#1D4ED8;color:#fff}
+.ab-orange{background:#EA580C;color:#fff}
+.ab-green{background:#16A34A;color:#fff}
+.ab-purple{background:#7C3AED;color:#fff}
+.ab-red{background:#DC2626;color:#fff}
 
-.stat{
-background:#fff;
-border-radius:16px;
-padding:16px;
-border:1px solid var(--bo);
-}
+/* SEARCH */
+.search-row{display:flex;gap:8px;margin-bottom:12px}
+.search-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--text);outline:none}
+.search-input:focus{border-color:var(--blue)}
+.search-input::placeholder{color:var(--muted)}
+.filter-select{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:"DM Sans",sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer}
 
-.stat .v{font-size:24px;font-weight:700;color:var(--red)}
+/* USER LIST */
+.user-item{background:var(--card);border-radius:13px;padding:13px 14px;border:1px solid var(--border);margin-bottom:9px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .18s}
+.user-item:hover{background:var(--card2)}
+.user-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#C41C1C,#9E1616);display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:14px;font-weight:600;color:var(--white)}
+.user-info{font-size:11.5px;color:var(--muted);margin-top:2px}
+.user-bal{font-family:"Cormorant Garamond",serif;font-size:16px;font-weight:700;color:var(--gold);text-align:right}
+.user-level{font-size:10px;color:var(--muted);text-align:right;margin-top:2px}
 
-.card{
-background:#fff;
-border-radius:18px;
-padding:18px;
-border:1px solid var(--bo);
-margin-bottom:16px;
-}
+/* TRANSACTION ITEM */
+.tx-item{background:var(--card);border-radius:12px;padding:12px 13px;border:1px solid var(--border);margin-bottom:8px;display:flex;align-items:center;gap:11px}
+.tx-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.tx-desc{font-size:13px;font-weight:500;color:var(--white);flex:1}
+.tx-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.tx-amt{font-size:14px;font-weight:700;text-align:right;flex-shrink:0}
+.tx-status{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;margin-top:3px;display:inline-block;float:right}
+.s-pending{background:rgba(249,115,22,.15);color:#F97316}
+.s-success{background:rgba(34,197,94,.15);color:#22C55E}
+.s-failed{background:rgba(239,68,68,.15);color:#EF4444}
 
-table{width:100%;border-collapse:collapse;min-width:700px}
+/* INVEST ITEM */
+.inv-item{background:var(--card);border-radius:12px;padding:13px;border:1px solid var(--border);margin-bottom:9px}
+.inv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.inv-plan{font-size:14px;font-weight:600;color:var(--white)}
+.inv-user{font-size:11px;color:var(--muted);margin-top:1px}
+.inv-progress{background:rgba(255,255,255,.08);border-radius:4px;height:5px;overflow:hidden;margin-top:8px}
+.inv-bar{height:100%;border-radius:4px;background:var(--green);transition:width .5s}
 
-th,td{
-padding:10px;
-font-size:13px;
-border-bottom:1px solid #eee;
-}
+/* RETRAIT ITEM */
+.ret-item{background:var(--card);border-radius:13px;padding:14px;border:1px solid var(--border);margin-bottom:9px}
+.ret-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.ret-user{font-size:14px;font-weight:600;color:var(--white)}
+.ret-detail{font-size:11.5px;color:var(--muted);margin-top:2px}
+.ret-amt{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:700;color:var(--orange)}
+.ret-btns{display:flex;gap:8px}
+.rbtn{flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:600}
+.rbtn-ok{background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3)}
+.rbtn-no{background:rgba(239,68,68,.1);color:#EF4444;border:1px solid rgba(239,68,68,.2)}
 
-th{background:#faf7f5;color:var(--mu);text-transform:uppercase;font-size:11px}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.on{display:flex}
+.modal{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:slideUp .28s cubic-bezier(.34,1.2,.64,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhandle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto}
+.mhdr{padding:12px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mtitle{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:var(--white)}
+.mclose{background:var(--card2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.mbody{padding:16px 18px}
+.mfield{margin-bottom:14px}
+.mfield label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.mfield input,.mfield select{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--white);outline:none}
+.mfield input:focus,.mfield select:focus{border-color:var(--blue)}
+.mfield select option{background:var(--card)}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.msave-btn{width:100%;padding:13px;border-radius:11px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:linear-gradient(135deg,#1D4ED8,#1e40af);color:#fff;margin-bottom:8px}
+.mdel-btn{width:100%;padding:11px;border-radius:11px;border:1px solid rgba(239,68,68,.3);cursor:pointer;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:600;background:rgba(239,68,68,.08);color:#EF4444}
+.minfo-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.minfo-row:last-child{border-bottom:none}
+.minfo-row span{color:var(--muted)}
+.minfo-row b{color:var(--white)}
+.bal-controls{display:flex;gap:8px;margin-top:8px}
+.bal-input{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--white);outline:none}
+.bal-btn-add{padding:10px 16px;background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:"DM Sans",sans-serif}
+.bal-btn-set{padding:10px 16px;background:rgba(59,130,246,.15);color:#3B82F6;border:1px solid rgba(59,130,246,.3);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:"DM Sans",sans-serif}
+.bal-btn-sub{padding:10px 16px;background:rgba(239,68,68,.1);color:#EF4444;border:1px solid rgba(239,68,68,.2);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:"DM Sans",sans-serif}
 
-.btn{
-padding:6px 10px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-size:12px;
-margin:2px;
-}
+/* MSG */
+.msg-form{background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--border)}
+.msg-form h3{font-family:"Cormorant Garamond",serif;font-size:18px;font-weight:600;color:var(--white);margin-bottom:14px}
+.msg-ta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--white);outline:none;resize:none;min-height:80px}
+.msg-ta::placeholder{color:var(--muted)}
 
-.btn-ok{background:#DCFCE7}
-.btn-remove{background:#111;color:#fff}
+/* LOADER */
+.loader{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
+.lds{width:28px;height:28px;border:2.5px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .6s linear infinite;display:block;margin:0 auto 10px}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-select,input{
-padding:6px;
-border-radius:8px;
-border:1px solid #ddd;
-}
+/* BADGE */
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px}
+.badge-active{background:rgba(34,197,94,.15);color:#22C55E}
+.badge-completed{background:rgba(59,130,246,.12);color:#3B82F6}
+.badge-lv0{background:rgba(100,116,139,.15);color:#94A3B8}
+.badge-lv1{background:rgba(34,197,94,.15);color:#22C55E}
+.badge-lv2{background:rgba(245,158,11,.15);color:#F59E0B}
+.badge-lv3{background:rgba(139,92,246,.15);color:#8B5CF6}
+
+/* EMPTY */
+.empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px;line-height:1.7}
+
+/* TOAST */
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--white);color:var(--bg);padding:10px 18px;border-radius:30px;font-size:13px;font-weight:600;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
-
 <body>
+<div id="toast"></div>
+<div id="app">
 
 <div class="topbar">
-<h1>Dashboard Admin</h1>
-<p>Gestion complète système</p>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo">MARA<span>THON</span></div>
+    <span class="admin-badge">ADMIN</span>
+  </div>
+  <button class="quit-btn" onclick="doQuit()">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Quitter
+  </button>
 </div>
 
-<div class="content">
+<nav class="tab-nav" id="tab-nav">
+  <button class="tab-btn on" onclick="showTab('dashboard',this)"><span class="ti">📊</span>Dashboard</button>
+  <button class="tab-btn" onclick="showTab('users',this)"><span class="ti">👥</span>Utilisateurs</button>
+  <button class="tab-btn" onclick="showTab('investments',this)"><span class="ti">📈</span>Invest.</button>
+  <button class="tab-btn" onclick="showTab('deposits',this)"><span class="ti">💳</span>Recharges</button>
+  <button class="tab-btn" onclick="showTab('withdrawals',this)"><span class="ti">💸</span>Retraits</button>
+  <button class="tab-btn" onclick="showTab('referrals',this)"><span class="ti">👑</span>Parrainage</button>
+  <button class="tab-btn" onclick="showTab('messages',this)"><span class="ti">📢</span>Messages</button>
+</nav>
 
-<div class="stats">
-<div class="stat"><div class="v" id="total-users">0</div><div>Utilisateurs</div></div>
-<div class="stat"><div class="v" id="pending-deposits">0</div><div>Recharges</div></div>
-<div class="stat"><div class="v" id="vip-users">0</div><div>VIP</div></div>
-<div class="stat"><div class="v" id="total-refs">0</div><div>Parrainages</div></div>
+<div id="sec-dashboard" class="section on">
+  <div class="stats-grid">
+    <div class="stat-card c1"><div class="stat-ico">👥</div><div class="stat-val" id="st-users"><div class="lds"></div></div><div class="stat-lbl">Utilisateurs</div></div>
+    <div class="stat-card c2"><div class="stat-ico">💰</div><div class="stat-val" id="st-balance"><div class="lds"></div></div><div class="stat-lbl">Soldes total (F)</div></div>
+    <div class="stat-card c3"><div class="stat-ico">📈</div><div class="stat-val" id="st-invest"><div class="lds"></div></div><div class="stat-lbl">Investissements</div></div>
+    <div class="stat-card c4"><div class="stat-ico">💳</div><div class="stat-val" id="st-deposits"><div class="lds"></div></div><div class="stat-lbl">Recharges</div></div>
+    <div class="stat-card c5"><div class="stat-ico">⏳</div><div class="stat-val" id="st-pending"><div class="lds"></div></div><div class="stat-lbl">En attente</div></div>
+    <div class="stat-card c6"><div class="stat-ico">👑</div><div class="stat-val" id="st-commissions"><div class="lds"></div></div><div class="stat-lbl">Gains parrain (F)</div></div>
+  </div>
+  <div class="actions-title">⚡ Actions rapides</div>
+  <div class="actions-grid">
+    <button class="act-btn ab-blue" onclick="showTab('deposits',document.querySelectorAll('.tab-btn')[3])">✅ Valider recharges</button>
+    <button class="act-btn ab-orange" onclick="showTab('withdrawals',document.querySelectorAll('.tab-btn')[4])">💸 Traiter retraits</button>
+    <button class="act-btn ab-green" onclick="showTab('messages',document.querySelectorAll('.tab-btn')[6])">📢 Envoyer notif</button>
+    <button class="act-btn ab-purple" onclick="showTab('users',document.querySelectorAll('.tab-btn')[1])">👥 Voir users</button>
+  </div>
+  <div class="actions-title" style="margin-top:4px">📅 Transactions récentes</div>
+  <div id="dash-recent">
+    <div class="loader"><div class="lds"></div>Chargement...</div>
+  </div>
 </div>
 
-<input id="search" placeholder="Rechercher..." oninput="filterUsers()" style="width:100%;padding:10px;margin-bottom:10px"/>
-
-<div class="card">
-<h3>Utilisateurs</h3>
-<table>
-<thead>
-<tr>
-<th>Nom</th>
-<th>Téléphone</th>
-<th>Niveau</th>
-<th>Solde</th>
-<th>Parrain</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="users-body"></tbody>
-</table>
+<div id="sec-users" class="section">
+  <div class="search-row">
+    <input class="search-input" id="user-search" placeholder="🔍 Rechercher nom, email, téléphone..." oninput="filterUsers()"/>
+    <select class="filter-select" id="user-filter" onchange="filterUsers()">
+      <option value="all">Tous</option>
+      <option value="active">Avec solde</option>
+      <option value="investing">Investisseurs</option>
+    </select>
+  </div>
+  <div id="users-count" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+  <div id="users-list">
+    <div class="loader"><div class="lds"></div>Chargement...</div>
+  </div>
 </div>
 
-<div class="card">
-<h3>Recharges</h3>
-<table>
-<thead>
-<tr>
-<th>Utilisateur</th>
-<th>Montant</th>
-<th>Statut</th>
-</tr>
-</thead>
-<tbody id="deposit-body"></tbody>
-</table>
+<div id="sec-investments" class="section">
+  <div class="search-row">
+    <input class="search-input" id="inv-search" placeholder="🔍 Rechercher..." oninput="filterInvest()"/>
+    <select class="filter-select" id="inv-filter" onchange="filterInvest()">
+      <option value="all">Tous</option>
+      <option value="active">Actifs</option>
+      <option value="completed">Terminés</option>
+    </select>
+  </div>
+  <div id="invest-list">
+    <div class="loader"><div class="lds"></div>Chargement...</div>
+  </div>
 </div>
 
+<div id="sec-deposits" class="section">
+  <div class="search-row">
+    <input class="search-input" id="dep-search" placeholder="🔍 Rechercher..." oninput="filterDeposits()"/>
+    <select class="filter-select" id="dep-filter" onchange="filterDeposits()">
+      <option value="all">Toutes</option>
+      <option value="pending">En attente</option>
+      <option value="success">Validées</option>
+    </select>
+  </div>
+  <div id="deposits-list">
+    <div class="loader"><div class="lds"></div>Chargement...</div>
+  </div>
+</div>
+
+<div id="sec-withdrawals" class="section">
+  <div id="withdrawals-list">
+    <div class="loader"><div class="lds"></div>Chargement...</div>
+  </div>
+</div>
+
+<div id="sec-referrals" class="section">
+  <div id="referrals-list">
+    <div class="loader"><div class="lds"></div>Chargement...</div>
+  </div>
+</div>
+
+<div id="sec-messages" class="section">
+  <div class="msg-form" style="margin-bottom:14px">
+    <h3>💰 Ajouter un bonus</h3>
+    <div class="mfield"><label>Email ou ID utilisateur</label><input type="text" id="msg-user" placeholder="Email ou laisser vide pour tous"/></div>
+    <div class="mfield"><label>Montant bonus (FCFA)</label><input type="number" id="msg-bonus" placeholder="Ex: 500" min="1"/></div>
+    <button class="act-btn ab-green" style="width:100%;padding:13px;border-radius:11px" onclick="sendBonus()">💰 Créditer le bonus</button>
+  </div>
+  <div class="msg-form">
+    <h3>📢 Notification manuelle</h3>
+    <div class="mfield"><label>Message</label><textarea class="msg-ta" id="msg-text" placeholder="Entrez votre message..."></textarea></div>
+    <button class="act-btn ab-blue" style="width:100%;padding:13px;border-radius:11px" onclick="sendNotif()">📢 Envoyer à tous</button>
+  </div>
+</div>
+</div><!-- /app -->
+<div class="modal-bg" id="user-modal" onclick="if(event.target===this)closeUserModal()">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mhdr">
+      <div class="mtitle" id="modal-title">Modifier l'utilisateur</div>
+      <button class="mclose" onclick="closeUserModal()">✕</button>
+    </div>
+    <div class="mbody">
+      <input type="hidden" id="modal-uid"/>
+      <!-- Infos actuelles -->
+      <div style="background:var(--card2);border-radius:11px;padding:13px;margin-bottom:16px">
+        <div class="minfo-row"><span>Email</span><b id="m-email">—</b></div>
+        <div class="minfo-row"><span>Inscrit le</span><b id="m-date">—</b></div>
+        <div class="minfo-row"><span>Investissements</span><b id="m-invcount">—</b></div>
+        <div class="minfo-row"><span>Code parrain</span><b id="m-refcode">—</b></div>
+      </div>
+      <!-- Champs éditables -->
+      <div class="mrow">
+        <div class="mfield"><label>Nom complet</label><input type="text" id="m-name" placeholder="Nom"/></div>
+        <div class="mfield"><label>Téléphone</label><input type="text" id="m-phone" placeholder="Téléphone"/></div>
+      </div>
+      <div class="mfield">
+        <label>Niveau</label>
+        <select id="m-level">
+          <option value="0">LV0 — Débutant</option>
+          <option value="1">LV1 — Bronze</option>
+          <option value="2">LV2 — Silver</option>
+          <option value="3">LV3 — Gold</option>
+          <option value="4">LV4 — VIP</option>
+        </select>
+      </div>
+      <!-- Gestion solde -->
+      <div class="mfield">
+        <label>Solde actuel : <b id="m-curbal" style="color:var(--gold)">—</b> FCFA</label>
+        <div class="bal-controls">
+          <input class="bal-input" type="number" id="m-bal-input" placeholder="Montant"/>
+          <button class="bal-btn-add" onclick="modifyBal('add')" title="Ajouter">+ Ajouter</button>
+          <button class="bal-btn-sub" onclick="modifyBal('sub')" title="Soustraire">- Déduire</button>
+        </div>
+        <div style="margin-top:7px">
+          <button class="bal-btn-set" style="width:100%;padding:9px" onclick="modifyBal('set')">✎ Définir solde exact</button>
+        </div>
+      </div>
+      <button class="msave-btn" onclick="saveUser()">💾 Enregistrer les modifications</button>
+      <button class="mdel-btn" onclick="deleteUser()">🗑 Supprimer cet utilisateur</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const sb = supabase.createClient(
-'https://mzxxfxkryhxnycewyryv.supabase.co',
-'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
-);
+const sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');
+const ADMINS = ['abdoula13cherif@gmail.com', 'marieedoh@gmail.com'];
+const $ = id => document.getElementById(id);
 
-let allUsers = [];
+let allUsers=[], allInvest=[], allDeposits=[], allWithdrawals=[], allRefs=[];
+let loadedTabs = new Set();
 
-window.onload = async () => {
-await checkAdmin();
-await loadAll();
-};
-
-async function checkAdmin() {
-const { data } = await sb.auth.getSession();
-const session = data?.session;
-
-if(!session){
-location.href="index.html";
-return;
+function toast(msg) {
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
 }
 
-const email = session.user.email.toLowerCase();
-
-const admins = [
-"abdoula13cherif@gmail.com",
-"marieedoh@gmail.com"
-];
-
-if(!admins.includes(email)){
-alert("Accès refusé");
-location.href="dashboard.html";
-}
-}
-
-async function loadAll(){
-await loadUsers();
-await loadDeposits();
-await loadStats();
-}
-
-async function loadStats(){
-const { data: users=[] } = await sb.from('profiles').select('*');
-const { data: deposits=[] } = await sb.from('transactions').select('*').eq('type','depot');
-
-document.getElementById('total-users').textContent = users.length;
-document.getElementById('pending-deposits').textContent = deposits.filter(d=>d.status==='pending').length;
-document.getElementById('vip-users').textContent = users.filter(u=>u.level!=='Starter').length;
-document.getElementById('total-refs').textContent = users.filter(u=>u.referred_by).length;
-}
-
-async function loadUsers(){
-const { data=[] } = await sb.from('profiles').select('*');
-
-allUsers = data;
-
-renderUsers(data);
-}
-
-function renderUsers(users){
-const body = document.getElementById('users-body');
-body.innerHTML='';
-
-users.forEach(u=>{
-body.innerHTML += `
-<tr>
-<td>${u.full_name||'-'}</td>
-<td>${u.phone||'-'}</td>
-
-<td>
-<select onchange="changeVip('${u.id}',this.value)">
-<option ${u.level==='Starter'?'selected':''}>Starter</option>
-<option ${u.level==='VIP1'?'selected':''}>VIP1</option>
-<option ${u.level==='VIP2'?'selected':''}>VIP2</option>
-<option ${u.level==='VIP3'?'selected':''}>VIP3</option>
-</select>
-</td>
-
-<td>
-<input type="number" id="bal-${u.id}" value="${u.balance||0}" style="width:80px"/>
-<button class="btn btn-ok" onclick="updateBalance('${u.id}')">OK</button>
-</td>
-
-<td>${u.referred_by||'-'}</td>
-
-<td>
-<button class="btn btn-remove" onclick="deleteUser('${u.id}')">Supprimer</button>
-</td>
-</tr>
-`;
+// ── AUTH ──────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const {data:{session}} = await sb.auth.getSession();
+  if (!session) { location.href='index.html'; return; }
+  const email = session.user.email?.toLowerCase();
+  if (!ADMINS.includes(email)) { alert('Accès refusé'); location.href='dashboard.html'; return; }
+  loadStats();
+  loadDashRecent();
 });
+
+function doQuit() {
+  if(confirm('Se déconnecter ?')) { sb.auth.signOut(); location.href='index.html'; }
 }
 
-async function changeVip(id,level){
-await sb.from('profiles').update({level}).eq('id',id);
-loadAll();
+// ── TABS ──────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  $('sec-'+name).classList.add('on');
+  if(btn) btn.classList.add('on');
+  if(!loadedTabs.has(name)) {
+    loadedTabs.add(name);
+    if(name==='users') loadUsers();
+    if(name==='investments') loadInvestments();
+    if(name==='deposits') loadDeposits();
+    if(name==='withdrawals') loadWithdrawals();
+    if(name==='referrals') loadReferrals();
+  }
 }
 
-async function updateBalance(id){
-const val=document.getElementById(`bal-${id}`).value;
-await sb.from('profiles').update({balance:Number(val)}).eq('id',id);
-loadAll();
+// ── STATS (chargement rapide) ────────────────────────
+async function loadStats() {
+  try {
+    const [rU, rI, rD, rRef] = await Promise.all([
+      sb.from('profiles').select('id, balance, total_earnings'),
+      sb.from('investments').select('id, status'),
+      sb.from('transactions').select('id, type, status, amount'),
+      sb.from('referrals').select('id, commission')
+    ]);
+    const users = rU.data||[];
+    const invest = rI.data||[];
+    const tx = rD.data||[];
+    const refs = rRef.data||[];
+    const totalBal = users.reduce((s,u)=>s+(u.balance||0),0);
+    const deposits = tx.filter(t=>t.type==='depot'&&t.status==='success');
+    const pending = tx.filter(t=>t.status==='pending');
+    const totalCom = refs.reduce((s,r)=>s+(r.commission||0),0);
+    $('st-users').textContent = users.length;
+    $('st-balance').textContent = totalBal.toLocaleString('fr-FR');
+    $('st-invest').textContent = invest.filter(i=>i.status==='active').length;
+    $('st-deposits').textContent = deposits.length;
+    $('st-pending').textContent = pending.length;
+    $('st-commissions').textContent = totalCom.toLocaleString('fr-FR');
+  } catch(e) { console.error(e); }
 }
 
-async function deleteUser(id){
-if(!confirm("Supprimer ?"))return;
-await sb.from('profiles').delete().eq('id',id);
-loadAll();
+async function loadDashRecent() {
+  try {
+    const {data:tx} = await sb.from('transactions').select('*').order('created_at',{ascending:false}).limit(8);
+    const div = $('dash-recent');
+    if(!tx||!tx.length){div.innerHTML='<div class="empty">Aucune transaction</div>';return;}
+    const ICONS={depot:'💰',retrait:'📤',revenu:'📈',commission:'🤝',bonus:'🎁',tache:'⛽'};
+    const COLORS={depot:'rgba(34,197,94,.12)',retrait:'rgba(239,68,68,.1)',revenu:'rgba(59,130,246,.12)',commission:'rgba(139,92,246,.1)',bonus:'rgba(245,158,11,.1)',tache:'rgba(34,197,94,.1)'};
+    const AMT={depot:'#22C55E',retrait:'#EF4444',revenu:'#3B82F6',commission:'#8B5CF6',bonus:'#F59E0B',tache:'#22C55E'};
+    div.innerHTML = tx.map(t=>{
+      const sign=['depot','revenu','commission','bonus','tache'].includes(t.type)?'+':'-';
+      const amt=t.type==='retrait'?(t.net_amount||t.amount):t.amount;
+      return `<div class="tx-item">
+        <div class="tx-ico" style="background:${COLORS[t.type]||'rgba(255,255,255,.05)'}">${ICONS[t.type]||'💳'}</div>
+        <div style="flex:1">
+          <div class="tx-desc">${t.description||t.type}</div>
+          <div class="tx-sub">${new Date(t.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div>
+          <div class="tx-amt" style="color:${AMT[t.type]||'#fff'}">${sign}${(amt||0).toLocaleString('fr-FR')} F</div>
+          <span class="tx-status ${t.status==='success'?'s-success':t.status==='pending'?'s-pending':'s-failed'}">${t.status==='success'?'✓':t.status==='pending'?'⏳':'✗'}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
 }
 
-function filterUsers(){
-const q=document.getElementById('search').value.toLowerCase();
-renderUsers(allUsers.filter(u=>
-(u.full_name||'').toLowerCase().includes(q) ||
-(u.phone||'').toLowerCase().includes(q)
-));
+// ── USERS ────────────────────────────────────────────
+async function loadUsers() {
+  try {
+    const {data:users,error} = await sb.from('profiles').select('id, full_name, phone, level, balance, total_earnings, referral_code, referred_by, created_at, bonus_received');
+    if(error) throw error;
+    allUsers = users||[];
+    renderUsers(allUsers);
+  } catch(e) { $('users-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`; }
+}
+function filterUsers() {
+  const q=$('user-search').value.toLowerCase();
+  const f=$('user-filter').value;
+  let list=allUsers.filter(u=>{
+    const match=!q||(u.full_name||'').toLowerCase().includes(q)||(u.phone||'').includes(q)||(u.referral_code||'').toLowerCase().includes(q);
+    const fMatch=f==='all'||(f==='active'&&(u.balance||0)>0)||(f==='investing'&&(u.active_investments||0)>0);
+    return match&&fMatch;
+  });
+  renderUsers(list);
+}
+function renderUsers(users) {
+  const div=$('users-list');
+  $('users-count').textContent=users.length+' utilisateur(s)';
+  if(!users.length){div.innerHTML='<div class="empty">Aucun résultat</div>';return;}
+  const LV=['badge-lv0','badge-lv1','badge-lv2','badge-lv3'];
+  div.innerHTML=users.map(u=>{
+    const name=u.full_name||'Sans nom';
+    const letter=name.charAt(0).toUpperCase();
+    const lv=parseInt(u.level)||0;
+    return `<div class="user-item" onclick="openUserModal('${u.id}')">
+      <div class="user-av">${letter}</div>
+      <div style="flex:1">
+        <div class="user-name">${name}</div>
+        <div class="user-info">${u.phone||'—'} · Code: ${u.referral_code||'—'}</div>
+        <div class="user-info" style="margin-top:2px">${new Date(u.created_at).toLocaleDateString('fr-FR')}</div>
+      </div>
+      <div>
+        <div class="user-bal">${(u.balance||0).toLocaleString('fr-FR')} F</div>
+        <div class="user-level"><span class="badge ${LV[lv]||'badge-lv0'}">LV${lv}</span></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-async function loadDeposits(){
-const { data=[] } = await sb.from('transactions').select('*').eq('type','depot');
+// ── USER MODAL ────────────────────────────────────────
+let modalUser=null;
+async function openUserModal(uid) {
+  const u=allUsers.find(x=>x.id===uid);
+  if(!u) return;
+  modalUser=u;
+  $('modal-uid').value=uid;
+  $('modal-title').textContent=(u.full_name||'Utilisateur');
+  $('m-name').value=u.full_name||'';
+  $('m-phone').value=u.phone||'';
+  $('m-level').value=String(parseInt(u.level)||0);
+  $('m-curbal').textContent=(u.balance||0).toLocaleString('fr-FR');
+  $('m-email').textContent='—';
+  $('m-date').textContent=new Date(u.created_at).toLocaleDateString('fr-FR');
+  $('m-invcount').textContent='—';
+  $('m-refcode').textContent=u.referral_code||'—';
+  $('m-bal-input').value='';
+  // Load extra info
+  try {
+    const [{data:inv},{data:authRaw}]=await Promise.all([
+      sb.from('investments').select('id,status').eq('user_id',uid),
+      sb.from('profiles').select('id').eq('id',uid)
+    ]);
+    $('m-invcount').textContent=(inv||[]).filter(i=>i.status==='active').length+' actif(s)';
+  } catch(e) {}
+  $('user-modal').classList.add('on');
+}
+function closeUserModal() { $('user-modal').classList.remove('on'); modalUser=null; }
 
-const body=document.getElementById('deposit-body');
-body.innerHTML='';
+async function modifyBal(action) {
+  const uid=$('modal-uid').value;
+  const val=parseFloat($('m-bal-input').value)||0;
+  if(!uid) return;
+  if(action!=='set'&&val<=0){toast('Entrez un montant valide');return;}
+  try {
+    const {data:p}=await sb.from('profiles').select('balance').eq('id',uid).single();
+    const cur=p?.balance||0;
+    let newBal=action==='add'?cur+val:action==='sub'?Math.max(0,cur-val):val;
+    await sb.from('profiles').update({balance:newBal}).eq('id',uid);
+    if(action==='add'){
+      await sb.from('transactions').insert({user_id:uid,type:'bonus',amount:val,fee:0,net_amount:val,status:'success',description:'Crédit admin'});
+    }
+    $('m-curbal').textContent=newBal.toLocaleString('fr-FR');
+    const u=allUsers.find(x=>x.id===uid);
+    if(u) u.balance=newBal;
+    toast('Solde mis à jour: '+newBal.toLocaleString('fr-FR')+' FCFA');
+    loadStats();
+  } catch(e){toast('Erreur: '+e.message);}
+}
 
-data.forEach(t=>{
-body.innerHTML+=`
-<tr>
-<td>${t.user_name||'User'}</td>
-<td>${t.amount}</td>
-<td>${t.status}</td>
-</tr>`;
-});
+async function saveUser() {
+  const uid=$('modal-uid').value;
+  const name=$('m-name').value.trim();
+  const phone=$('m-phone').value.trim();
+  const level=parseInt($('m-level').value)||0;
+  if(!name){toast('Le nom est requis');return;}
+  try {
+    await sb.from('profiles').update({full_name:name,phone:phone,level:level}).eq('id',uid);
+    const u=allUsers.find(x=>x.id===uid);
+    if(u){u.full_name=name;u.phone=phone;u.level=level;}
+    renderUsers(allUsers);
+    closeUserModal();
+    toast('Utilisateur mis à jour ✓');
+  } catch(e){toast('Erreur: '+e.message);}
+}
+
+async function deleteUser() {
+  const uid=$('modal-uid').value;
+  if(!uid||!confirm('Supprimer définitivement cet utilisateur ?')) return;
+  try {
+    await sb.from('profiles').delete().eq('id',uid);
+    allUsers=allUsers.filter(u=>u.id!==uid);
+    renderUsers(allUsers);
+    closeUserModal();
+    loadStats();
+    toast('Utilisateur supprimé');
+  } catch(e){toast('Erreur: '+e.message);}
+}
+
+// ── INVESTMENTS ───────────────────────────────────────
+async function loadInvestments() {
+  try {
+    const {data,error}=await sb.from('investments').select('*, profiles(full_name, phone)').order('created_at',{ascending:false});
+    if(error) throw error;
+    allInvest=data||[];
+    renderInvest(allInvest);
+  } catch(e){$('invest-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
+}
+function filterInvest() {
+  const q=$('inv-search').value.toLowerCase();
+  const f=$('inv-filter').value;
+  renderInvest(allInvest.filter(i=>{
+    const name=(i.profiles?.full_name||'').toLowerCase();
+    return (!q||name.includes(q)||i.plan_name.toLowerCase().includes(q))&&(f==='all'||i.status===f);
+  }));
+}
+function renderInvest(list) {
+  const div=$('invest-list');
+  if(!list.length){div.innerHTML='<div class="empty">Aucun investissement</div>';return;}
+  const COLS={starter:'#22C55E',bronze:'#3B82F6',silver:'#F97316',gold:'#F59E0B',premium:'#EF4444',vip:'#8B5CF6',cold:'#0EA5E9'};
+  div.innerHTML=list.map(i=>{
+    const pct=Math.round(((i.days_total-i.days_remaining)/i.days_total)*100);
+    const col=COLS[i.plan_id]||'#94A3B8';
+    return `<div class="inv-item">
+      <div class="inv-header">
+        <div><div class="inv-plan">Plan ${i.plan_name}</div><div class="inv-user">${i.profiles?.full_name||'—'} · ${i.profiles?.phone||'—'}</div></div>
+        <div style="text-align:right">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:${col}">${(i.amount||0).toLocaleString('fr-FR')} F</div>
+          <div style="font-size:10.5px;color:var(--muted)">${(i.daily_revenue||0).toLocaleString('fr-FR')} F/j</div>
+          <span class="badge ${i.status==='active'?'badge-active':'badge-completed'}">${i.status==='active'?'Actif':'Terminé'}</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+        <span>${i.days_remaining||0} j restants</span><span>${pct}%</span>
+      </div>
+      <div class="inv-progress"><div class="inv-bar" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ── DEPOSITS ──────────────────────────────────────────
+async function loadDeposits() {
+  try {
+    const {data,error}=await sb.from('transactions').select('*, profiles(full_name, phone)').in('type',['depot','bonus']).order('created_at',{ascending:false}).limit(50);
+    if(error) throw error;
+    allDeposits=data||[];
+    renderDeposits(allDeposits);
+  } catch(e){$('deposits-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
+}
+function filterDeposits() {
+  const q=$('dep-search').value.toLowerCase();
+  const f=$('dep-filter').value;
+  renderDeposits(allDeposits.filter(d=>{
+    const name=(d.profiles?.full_name||'').toLowerCase();
+    return (!q||name.includes(d)||d.description.toLowerCase().includes(q))&&(f==='all'||d.status===f);
+  }));
+}
+function renderDeposits(list) {
+  const div=$('deposits-list');
+  if(!list.length){div.innerHTML='<div class="empty">Aucune recharge</div>';return;}
+  div.innerHTML=list.map(d=>`
+    <div class="tx-item">
+      <div class="tx-ico" style="background:rgba(34,197,94,.1)">💰</div>
+      <div style="flex:1">
+        <div class="tx-desc">${d.profiles?.full_name||'—'}</div>
+        <div class="tx-sub">${d.description||d.type} · ${d.profiles?.phone||'—'}</div>
+        <div class="tx-sub">${new Date(d.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div>
+        <div class="tx-amt" style="color:#22C55E">+${(d.amount||0).toLocaleString('fr-FR')} F</div>
+        <span class="tx-status ${d.status==='success'?'s-success':d.status==='pending'?'s-pending':'s-failed'}">${d.status==='success'?'Validé':d.status==='pending'?'En attente':'Échoué'}</span>
+        ${d.status==='pending'?`<div style="margin-top:5px"><button onclick="validateDeposit('${d.id}','${d.user_id}',${d.amount})" style="background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:12px;font-weight:600">✓ Valider</button></div>`:''}
+      </div>
+    </div>`).join('');
+}
+async function validateDeposit(txId, userId, amount) {
+  try {
+    await sb.from('transactions').update({status:'success'}).eq('id',txId);
+    const {data:p}=await sb.from('profiles').select('balance').eq('id',userId).single();
+    await sb.from('profiles').update({balance:(p?.balance||0)+amount}).eq('id',userId);
+    toast('Recharge validée: +'+amount.toLocaleString('fr-FR')+' FCFA');
+    allDeposits=allDeposits.map(d=>d.id===txId?{...d,status:'success'}:d);
+    renderDeposits(allDeposits);
+    loadStats();
+  } catch(e){toast('Erreur: '+e.message);}
+}
+
+// ── WITHDRAWALS ───────────────────────────────────────
+async function loadWithdrawals() {
+  try {
+    const {data,error}=await sb.from('transactions').select('*, profiles(full_name, phone)').eq('type','retrait').order('created_at',{ascending:false}).limit(50);
+    if(error) throw error;
+    allWithdrawals=data||[];
+    renderWithdrawals(allWithdrawals);
+  } catch(e){$('withdrawals-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
+}
+function renderWithdrawals(list) {
+  const div=$('withdrawals-list');
+  if(!list.length){div.innerHTML='<div class="empty">Aucun retrait</div>';return;}
+  div.innerHTML=list.map(r=>`
+    <div class="ret-item">
+      <div class="ret-header">
+        <div>
+          <div class="ret-user">${r.profiles?.full_name||'—'}</div>
+          <div class="ret-detail">${r.profiles?.phone||'—'}</div>
+          <div class="ret-detail">${r.description||'—'}</div>
+          <div class="ret-detail">${new Date(r.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div>
+          <div class="ret-amt">${(r.net_amount||r.amount||0).toLocaleString('fr-FR')} F</div>
+          <span class="tx-status ${r.status==='success'?'s-success':r.status==='pending'?'s-pending':'s-failed'}">${r.status==='success'?'Traité':r.status==='pending'?'En attente':'Refusé'}</span>
+        </div>
+      </div>
+      ${r.status==='pending'?`
+      <div class="ret-btns">
+        <button class="rbtn rbtn-ok" onclick="processWithdrawal('${r.id}','success')">✓ Confirmer envoi</button>
+        <button class="rbtn rbtn-no" onclick="processWithdrawal('${r.id}','failed')">✗ Rejeter</button>
+      </div>`:''}
+    </div>`).join('');
+}
+async function processWithdrawal(txId, status) {
+  const action=status==='success'?'Confirmer':'Rejeter';
+  if(!confirm(action+' ce retrait ?')) return;
+  try {
+    await sb.from('transactions').update({status}).eq('id',txId);
+    if(status==='failed') {
+      const tx=allWithdrawals.find(r=>r.id===txId);
+      if(tx) {
+        const {data:p}=await sb.from('profiles').select('balance').eq('id',tx.user_id).single();
+        await sb.from('profiles').update({balance:(p?.balance||0)+tx.amount}).eq('id',tx.user_id);
+      }
+    }
+    allWithdrawals=allWithdrawals.map(r=>r.id===txId?{...r,status}:r);
+    renderWithdrawals(allWithdrawals);
+    loadStats();
+    toast(status==='success'?'Retrait confirmé ✓':'Retrait rejeté — montant remboursé');
+  } catch(e){toast('Erreur: '+e.message);}
+}
+
+// ── REFERRALS ─────────────────────────────────────────
+async function loadReferrals() {
+  try {
+    const {data,error}=await sb.from('referrals').select('*, profiles!referrals_referrer_id_fkey(full_name, referral_code)').order('created_at',{ascending:false});
+    if(error) throw error;
+    allRefs=data||[];
+    renderReferrals(allRefs);
+  } catch(e){$('referrals-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
+}
+function renderReferrals(list) {
+  const div=$('referrals-list');
+  if(!list.length){div.innerHTML='<div class="empty">Aucun parrainage</div>';return;}
+  div.innerHTML=list.map(r=>`
+    <div class="tx-item">
+      <div class="tx-ico" style="background:rgba(139,92,246,.1)">👑</div>
+      <div style="flex:1">
+        <div class="tx-desc">${r.profiles?.full_name||'—'} → ${r.referred_name||'—'}</div>
+        <div class="tx-sub">Code: ${r.profiles?.referral_code||'—'} · Niveau ${r.level||1}</div>
+        <div class="tx-sub">${new Date(r.created_at).toLocaleDateString('fr-FR')}</div>
+      </div>
+      <div>
+        <div class="tx-amt" style="color:#8B5CF6">+${(r.commission||0).toLocaleString('fr-FR')} F</div>
+        <span class="tx-status ${r.invested_amount>0?'s-success':'s-pending'}">${r.invested_amount>0?'Investi':'En attente'}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── MESSAGES ─────────────────────────────────────────
+async function sendBonus() {
+  const userInput=$('msg-user').value.trim();
+  const amount=parseFloat($('msg-bonus').value)||0;
+  if(amount<=0){toast('Entrez un montant valide');return;}
+  try {
+    if(userInput) {
+      const {data:p}=await sb.from('profiles').select('id,balance').or('full_name.ilike.%'+userInput+'%').limit(1).single();
+      if(!p){toast('Utilisateur introuvable');return;}
+      await sb.from('profiles').update({balance:(p.balance||0)+amount}).eq('id',p.id);
+      await sb.from('transactions').insert({user_id:p.id,type:'bonus',amount,fee:0,net_amount:amount,status:'success',description:'Bonus admin'});
+      toast('Bonus de '+amount.toLocaleString('fr-FR')+' FCFA envoyé ✓');
+    } else {
+      const {data:all}=await sb.from('profiles').select('id, balance');
+      for(const p of all||[]) {
+        await sb.from('profiles').update({balance:(p.balance||0)+amount}).eq('id',p.id);
+      }
+      await sb.from('transactions').insert((all||[]).map(p=>({user_id:p.id,type:'bonus',amount,fee:0,net_amount:amount,status:'success',description:'Bonus global admin'})));
+      toast('Bonus envoyé à '+( all||[]).length+' utilisateurs ✓');
+    }
+    $('msg-bonus').value='';
+    loadStats();
+  } catch(e){toast('Erreur: '+e.message);}
+}
+function sendNotif() {
+  const msg=$('msg-text').value.trim();
+  if(!msg){toast('Entrez un message');return;}
+  toast('Notification enregistrée ✓ (implémentation webhook requise)');
+  $('msg-text').value='';
 }
 </script>
-
 </body>
 </html>
