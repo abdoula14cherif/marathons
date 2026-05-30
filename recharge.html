@@ -6,17 +6,19 @@
 <title>Marathon — Recharge</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- SDK LeekPay -->
-<script src="https://leekpay.fr/js/leekpay.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--red:#C41C1C;--rd:#9E1616;--cr:#F7F2EC;--mu:#8A7070;--bo:rgba(196,28,28,.12);--t1:#1A1212;--t2:#4A3A3A}
 body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-height:100vh;padding-bottom:40px}
+
+/* TOPBAR */
 .topbar{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;display:flex;align-items:center;gap:12px}
 .back{background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .back svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5}
 .topbar h1{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:#fff}
 .topbar p{color:rgba(255,255,255,.72);font-size:12px;margin-top:2px}
+
+/* CONTENT */
 .content{padding:16px}
 .bal-card{background:#fff;border-radius:14px;padding:16px 18px;border:1px solid var(--bo);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .bal-lbl{font-size:11px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
@@ -25,10 +27,23 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 .info-box{background:#fff;border-radius:12px;padding:12px;border:1px solid var(--bo);text-align:center}
 .info-box .v{font-size:15px;font-weight:700;color:var(--t1)}
 .info-box .k{font-size:10px;color:var(--mu);margin-top:3px}
+
+/* PAYMENT MODE TABS */
+.mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.mode-tab{padding:14px 10px;border-radius:13px;border:2px solid var(--bo);background:#fff;cursor:pointer;text-align:center;transition:all .2s;font-family:"DM Sans",sans-serif}
+.mode-tab.on{border-color:var(--red);background:#FFF0F0}
+.mode-tab .mt-ico{font-size:26px;margin-bottom:6px}
+.mode-tab .mt-title{font-size:13px;font-weight:700;color:var(--t1)}
+.mode-tab .mt-sub{font-size:10.5px;color:var(--mu);margin-top:2px}
+.mode-tab.on .mt-title{color:var(--red)}
+
+/* CARD */
 .card{background:#fff;border-radius:14px;padding:18px;border:1px solid var(--bo);margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .card h3{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:var(--t1);margin-bottom:16px}
-.amount-display{text-align:center;padding:20px;background:var(--cr);border-radius:12px;margin-bottom:14px}
-.amount-display .amt{font-family:"Cormorant Garamond",serif;font-size:42px;font-weight:700;color:var(--red);line-height:1}
+
+/* AMOUNT */
+.amount-display{text-align:center;padding:18px;background:var(--cr);border-radius:12px;margin-bottom:14px}
+.amount-display .amt{font-family:"Cormorant Garamond",serif;font-size:40px;font-weight:700;color:var(--red);line-height:1}
 .amount-display .cur{font-size:14px;color:var(--mu);margin-top:4px}
 .presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
 .preset{display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 6px;background:var(--cr);border-radius:11px;border:2px solid transparent;cursor:pointer;transition:all .2s}
@@ -36,41 +51,97 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 .preset:active{transform:scale(.94)}
 .preset .pa{font-size:14px;font-weight:700;color:var(--t1)}
 .preset .pp{font-size:10px;color:var(--mu)}
-.custom-wrap{display:flex;align-items:center;gap:8px;background:var(--cr);border:1.5px solid var(--bo);border-radius:11px;padding:10px 14px;margin-bottom:16px;transition:all .2s}
+.custom-wrap{display:flex;align-items:center;gap:8px;background:var(--cr);border:1.5px solid var(--bo);border-radius:11px;padding:10px 14px;margin-bottom:16px}
 .custom-wrap:focus-within{border-color:var(--red);background:#fff}
-.custom-wrap span{font-size:13.5px;font-weight:600;color:var(--mu);white-space:nowrap}
+.custom-wrap span{font-size:13px;font-weight:600;color:var(--mu);white-space:nowrap}
 .custom-wrap input{flex:1;border:none;background:transparent;font-family:"DM Sans",sans-serif;font-size:16px;font-weight:600;color:var(--t1);outline:none}
 .custom-wrap input::placeholder{color:#C4B0B0;font-weight:400}
+
+/* BUTTONS */
 .pay-btn{width:100%;padding:15px;border-radius:13px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
 .pay-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(196,28,28,.35)}
 .pay-btn:active{transform:scale(.98)}
 .pay-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
-.methods-info{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.mtag{background:var(--cr);border:1px solid var(--bo);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--t2);font-weight:500}
+.sec-btn{width:100%;padding:13px;border-radius:13px;border:1.5px solid rgba(196,28,28,.25);cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:#fff;color:var(--red);margin-top:10px}
+
+/* OPERATOR CARDS */
+.op-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.op-card{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border-radius:13px;border:2px solid var(--bo);cursor:pointer;transition:all .2s}
+.op-card.on{border-color:var(--red);background:#FFF8F8}
+.op-card:active{transform:scale(.97)}
+.op-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--bo);flex-shrink:0;position:relative;transition:all .2s}
+.op-card.on .op-radio{border-color:var(--red);background:var(--red)}
+.op-card.on .op-radio::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:7px;height:7px;background:#fff;border-radius:50%}
+.op-ico{font-size:28px;flex-shrink:0}
+.op-name{font-size:14px;font-weight:700;color:var(--t1)}
+.op-type{font-size:11.5px;color:var(--mu);margin-top:1px}
+
+/* PAYMENT DETAILS BOX */
+.pay-details{background:linear-gradient(135deg,#0B1526,#1A2840);border-radius:14px;padding:18px;margin-bottom:16px;color:#fff}
+.pay-details .pd-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.pay-details .pd-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.pay-details .pd-row:last-child{border-bottom:none}
+.pay-details .pd-label{font-size:12px;color:rgba(255,255,255,.55)}
+.pay-details .pd-val{font-size:14px;font-weight:700;color:#fff}
+.pay-details .pd-num{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:700;color:#FFD700;letter-spacing:.06em}
+.copy-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:5px 12px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.step{display:flex;align-items:flex-start;gap:12px;padding:11px 13px;background:var(--cr);border-radius:11px}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-txt{font-size:13px;color:var(--t2);line-height:1.55}
+.step-txt b{color:var(--t1)}
+
+/* FORM FIELDS */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
+.field input,.field select{width:100%;padding:12px 14px;border:1.5px solid var(--bo);border-radius:11px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--t1);background:var(--cr);outline:none;transition:all .2s}
+.field input:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px rgba(196,28,28,.1)}
+
+/* ALERT */
 .alert{padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
 .alert.err{display:block;background:#FFF0F0;color:var(--red);border:1px solid #FFCCCC}
 .alert.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #BBF7D0}
+.alert.info{display:block;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+
+/* SUCCESS */
 .success{display:none;text-align:center;padding:40px 20px}
 .success.on{display:block}
 .success .ico{font-size:64px;margin-bottom:16px}
 .success h3{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600;color:var(--t1);margin-bottom:10px}
-.success p{font-size:13.5px;color:var(--mu);line-height:1.65;max-width:300px;margin:0 auto 22px}
-.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle}
+.success p{font-size:13.5px;color:var(--mu);line-height:1.7;max-width:300px;margin:0 auto 22px}
+
+/* LOADER */
+.loader-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:10000;visibility:hidden;opacity:0;transition:all .2s}
+.loader-overlay.on{visibility:visible;opacity:1}
+.loader-card{background:#fff;padding:28px 32px;border-radius:24px;text-align:center;max-width:300px;width:90%}
+.loader-card .sp{width:44px;height:44px;border:4px solid #f1e6e6;border-top-color:var(--red);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 16px}
+.loader-card p{font-weight:600;color:var(--t1);font-size:15px;margin-bottom:6px}
+.loader-card small{color:var(--mu);font-size:12px}
+
+/* SPIN */
+.spin{width:17px;height:17px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* TOAST */
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
 #toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <div id="toast"></div>
+
 <div class="topbar">
   <button class="back" onclick="window.location.href='dashboard.html'">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé via LeekPay</p></div>
+  <div><h1>Recharger mon compte</h1><p>Choisissez votre méthode de paiement</p></div>
 </div>
 
 <div class="content">
+
+  <!-- SOLDE -->
   <div class="bal-card">
     <div>
       <div class="bal-lbl">Solde actuel</div>
@@ -81,76 +152,225 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 
   <div class="info-row">
     <div class="info-box"><div class="v">3 000 F</div><div class="k">Dépôt minimum</div></div>
-    <div class="info-box"><div class="v">Instantané</div><div class="k">Crédit</div></div>
+    <div class="info-box"><div class="v">Instantané</div><div class="k">Crédit auto</div></div>
   </div>
 
-  <div id="recharge-form">
+  <!-- MODE TABS -->
+  <div class="mode-tabs">
+    <div class="mode-tab on" id="tab-auto" onclick="setMode('auto')">
+      <div class="mt-ico">⚡</div>
+      <div class="mt-title">Automatique</div>
+      <div class="mt-sub">SoinaPay · Rapide</div>
+    </div>
+    <div class="mode-tab" id="tab-manual" onclick="setMode('manual')">
+      <div class="mt-ico">📲</div>
+      <div class="mt-title">Manuel</div>
+      <div class="mt-sub">Wave · Amana · Airtel</div>
+    </div>
+  </div>
+
+  <!-- ══════════ MODE AUTO (SoinaPay) ══════════ -->
+  <div id="mode-auto">
     <div class="card">
       <h3>Choisir le montant</h3>
-      <div class="alert" id="al"></div>
-
+      <div class="alert" id="al-auto"></div>
       <div class="amount-display">
-        <div class="amt" id="amt-display">0</div>
+        <div class="amt" id="amt-display-auto">0</div>
         <div class="cur">FCFA</div>
       </div>
-
       <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Plans disponibles</div>
-      <div class="presets">
-        <div class="preset" onclick="setAmt(3000,this)"><span class="pa">3 000 F</span><span class="pp">🟢 Starter</span></div>
-        <div class="preset" onclick="setAmt(6000,this)"><span class="pa">6 000 F</span><span class="pp">🔵 Bronze</span></div>
-        <div class="preset" onclick="setAmt(10000,this)"><span class="pa">10 000 F</span><span class="pp">🟠 Silver</span></div>
-        <div class="preset" onclick="setAmt(20000,this)"><span class="pa">20 000 F</span><span class="pp">🟣 Gold</span></div>
-        <div class="preset" onclick="setAmt(50000,this)"><span class="pa">50 000 F</span><span class="pp">🔴 Premium</span></div>
-        <div class="preset" onclick="setAmt(100000,this)"><span class="pa">100 000 F</span><span class="pp">👑 VIP</span></div>
-        <div class="preset" onclick="setAmt(300000,this)"><span class="pa">300 000 F</span><span class="pp">❄️ COLD</span></div>
+      <div class="presets" id="presets-auto">
+        <div class="preset" onclick="setAmt(3000,this,'auto')"><span class="pa">3 000 F</span><span class="pp">🟢 Starter</span></div>
+        <div class="preset" onclick="setAmt(6000,this,'auto')"><span class="pa">6 000 F</span><span class="pp">🔵 Bronze</span></div>
+        <div class="preset" onclick="setAmt(10000,this,'auto')"><span class="pa">10 000 F</span><span class="pp">🟠 Silver</span></div>
+        <div class="preset" onclick="setAmt(20000,this,'auto')"><span class="pa">20 000 F</span><span class="pp">🟣 Gold</span></div>
+        <div class="preset" onclick="setAmt(50000,this,'auto')"><span class="pa">50 000 F</span><span class="pp">🔴 Premium</span></div>
+        <div class="preset" onclick="setAmt(100000,this,'auto')"><span class="pa">100 000 F</span><span class="pp">👑 VIP</span></div>
+        <div class="preset" onclick="setAmt(300000,this,'auto')"><span class="pa">300 000 F</span><span class="pp">❄️ COLD</span></div>
       </div>
-
       <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Ou entrez un montant</div>
       <div class="custom-wrap">
         <span>FCFA</span>
-        <input type="number" id="custom-input" placeholder="Autre montant..." min="3000" oninput="onCustom()"/>
+        <input type="number" id="custom-auto" placeholder="Autre montant..." min="3000" oninput="onCustom('auto')"/>
       </div>
-
-      <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Méthodes acceptées</div>
-      <div class="methods-info">
-        <span class="mtag">📱 MTN Mobile Money</span>
-        <span class="mtag">🟠 Orange Money</span>
-        <span class="mtag">🌊 Wave</span>
-        <span class="mtag">💛 Moov Money</span>
-        <span class="mtag">💳 Carte bancaire</span>
-      </div>
-
-      <button class="pay-btn" id="pay-btn" onclick="startPayment()" disabled>
+      <button class="pay-btn" id="btn-auto" onclick="startSoinaPay()" disabled>
         <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Payer avec LeekPay
+        Payer avec SoinaPay
       </button>
-    </div>
-
-    <div style="background:#EFF6FF;border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:13px 14px;font-size:12.5px;color:#1D4ED8;line-height:1.65">
-      🔒 Paiement 100% sécurisé via <strong>LeekPay</strong>. Vos fonds sont crédités automatiquement après confirmation.
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--mu);background:#f9f6f2;padding:6px 12px;border-radius:30px">🔐 Paiement sécurisé • Mobile Money & Cartes</div>
     </div>
   </div>
 
+  <!-- ══════════ MODE MANUEL ══════════ -->
+  <div id="mode-manual" style="display:none">
+    <div class="card">
+      <h3>Paiement manuel</h3>
+      <div class="alert" id="al-manual"></div>
+
+      <!-- ÉTAPE 1 : Choisir opérateur -->
+      <div id="step-operator">
+        <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">1. Choisissez l'opérateur</div>
+        <div class="op-grid">
+          <div class="op-card" id="op-wave" onclick="selectOp('wave')">
+            <div class="op-radio"></div>
+            <div class="op-ico">🌊</div>
+            <div><div class="op-name">Wave</div><div class="op-type">Transfert d'argent Wave</div></div>
+          </div>
+          <div class="op-card" id="op-amana" onclick="selectOp('amana')">
+            <div class="op-radio"></div>
+            <div class="op-ico">🏦</div>
+            <div><div class="op-name">Amana</div><div class="op-type">Transfert d'argent Amana</div></div>
+          </div>
+          <div class="op-card" id="op-airtel" onclick="selectOp('airtel')">
+            <div class="op-radio"></div>
+            <div class="op-ico">📡</div>
+            <div><div class="op-name">Airtel Money</div><div class="op-type">Airtel Money</div></div>
+          </div>
+        </div>
+        <button class="pay-btn" id="btn-next-op" onclick="goToStep2()" disabled>Suivant →</button>
+      </div>
+
+      <!-- ÉTAPE 2 : Détails + Montant -->
+      <div id="step-details" style="display:none">
+        <button onclick="goBack()" style="background:none;border:none;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;gap:5px">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Retour
+        </button>
+
+        <!-- Infos de paiement -->
+        <div class="pay-details">
+          <div class="pd-title" id="pd-operator-name">
+            <span id="pd-ico">💳</span>
+            <span>Compte de dépôt</span>
+          </div>
+          <div class="pd-row">
+            <span class="pd-label">Numéro</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="pd-num" id="pd-number">99736405</span>
+              <button class="copy-btn" onclick="copyNumber()">📋 Copier</button>
+            </div>
+          </div>
+          <div class="pd-row">
+            <span class="pd-label">Nom du bénéficiaire</span>
+            <span class="pd-val">Abdoulkader Salifou</span>
+          </div>
+          <div class="pd-row">
+            <span class="pd-label">Opérateur</span>
+            <span class="pd-val" id="pd-op-label">—</span>
+          </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-txt">Ouvrez votre application <b id="inst-op">Wave</b> et envoyez le montant souhaité au numéro <b>99736405</b> (Abdoulkader Salifou)</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-txt">Notez votre <b>numéro de transaction</b> ou la référence du transfert</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-txt">Remplissez le formulaire ci-dessous et soumettez votre demande</div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-txt"><b>L'admin validera</b> votre recharge sous 24h maximum</div>
+          </div>
+        </div>
+
+        <!-- Montant -->
+        <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Montant envoyé</div>
+        <div class="presets" id="presets-manual">
+          <div class="preset" onclick="setAmt(3000,this,'manual')"><span class="pa">3 000 F</span><span class="pp">🟢 Starter</span></div>
+          <div class="preset" onclick="setAmt(6000,this,'manual')"><span class="pa">6 000 F</span><span class="pp">🔵 Bronze</span></div>
+          <div class="preset" onclick="setAmt(10000,this,'manual')"><span class="pa">10 000 F</span><span class="pp">🟠 Silver</span></div>
+          <div class="preset" onclick="setAmt(20000,this,'manual')"><span class="pa">20 000 F</span><span class="pp">🟣 Gold</span></div>
+          <div class="preset" onclick="setAmt(50000,this,'manual')"><span class="pa">50 000 F</span><span class="pp">🔴 Premium</span></div>
+          <div class="preset" onclick="setAmt(100000,this,'manual')"><span class="pa">100 000 F</span><span class="pp">👑 VIP</span></div>
+          <div class="preset" onclick="setAmt(300000,this,'manual')"><span class="pa">300 000 F</span><span class="pp">❄️ COLD</span></div>
+        </div>
+        <div class="custom-wrap" style="margin-bottom:14px">
+          <span>FCFA</span>
+          <input type="number" id="custom-manual" placeholder="Autre montant..." min="3000" oninput="onCustom('manual')"/>
+        </div>
+
+        <!-- Formulaire -->
+        <div class="field">
+          <label>Votre numéro de téléphone</label>
+          <input type="tel" id="sender-phone" placeholder="Ex: 99 73 64 05"/>
+        </div>
+        <div class="field">
+          <label>Référence / N° de transaction <span style="color:var(--mu);text-transform:none;font-size:10px">(optionnel mais recommandé)</span></label>
+          <input type="text" id="tx-ref" placeholder="Ex: TRF-XXXXXXXXXX"/>
+        </div>
+
+        <button class="pay-btn" id="btn-submit-manual" onclick="submitManual()" disabled>
+          <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Envoyer la demande
+        </button>
+
+        <div style="background:#FFF7ED;border:1px solid rgba(245,158,11,.2);border-radius:11px;padding:11px 13px;margin-top:12px;font-size:12px;color:#92400E;line-height:1.65">
+          ⏰ Votre recharge sera validée par un admin dans un délai de <b>30 minutes à 24h</b> après vérification du transfert.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
   <div class="success" id="success-screen">
-    <div class="ico">🎉</div>
-    <h3>Paiement réussi !</h3>
+    <div class="ico" id="success-ico">🎉</div>
+    <h3 id="success-title">Paiement réussi !</h3>
     <p id="success-msg">Votre compte a été rechargé avec succès.</p>
     <button class="pay-btn" onclick="window.location.href='dashboard.html'">Retour au dashboard</button>
-    <button class="pay-btn" style="background:var(--cr);color:var(--red);border:1.5px solid rgba(196,28,28,.22);margin-top:10px;box-shadow:none" onclick="window.location.href='historique.html'">Voir l'historique</button>
+    <button class="sec-btn" onclick="window.location.href='historique.html'">Voir l'historique</button>
+  </div>
+
+</div>
+
+<!-- LOADER OVERLAY -->
+<div id="loader" class="loader-overlay">
+  <div class="loader-card">
+    <div class="sp"></div>
+    <p>Redirection vers SoinaPay...</p>
+    <small>Veuillez patienter</small>
   </div>
 </div>
 
 <script>
-const LEEKPAY_KEY = 'pk_live_h0RQu365IhnhdXkW2YeWZiDmKQGo7Pn1';
+// ═══════════════════════════════════════════════════════════
+// ⚙️  CONFIG PAIEMENT — MODIFIER ICI FACILEMENT
+//
+// Pour changer le lien SoinaPay :
+//   → Remplacez la valeur de SOINAPAY_URL ci-dessous
+//
+// Pour ajouter d'autres liens (ex: un lien par pays) :
+//   → Ajoutez dans le tableau PAYMENT_LINKS
+//   → active: true = lien utilisé par défaut
+//
+// Pour modifier les comptes manuels :
+//   → Éditez le tableau MANUAL_ACCOUNTS
+// ═══════════════════════════════════════════════════════════
 
-let sb = null, currentUser = null, selectedAmount = 0;
+const SOINAPAY_URL = 'https://soinapay.com/pay/h3pz7oka';
+
+const MANUAL_ACCOUNTS = {
+  wave:  { name: 'Wave',        ico: '🌊', number: '99736405', label: 'Wave Transfert d\'argent',   holder: 'Abdoulkader Salifou' },
+  amana: { name: 'Amana',       ico: '🏦', number: '99736405', label: 'Amana Transfert d\'argent',  holder: 'Abdoulkader Salifou' },
+  airtel:{ name: 'Airtel Money',ico: '📡', number: '99736405', label: 'Airtel Money',                holder: 'Abdoulkader Salifou' }
+};
+
+// ═══════════════════════════════════════════════════════════
+//  FIN DE LA ZONE DE CONFIG
+// ═══════════════════════════════════════════════════════════
+
+let sb = null, currentUser = null;
+let amtAuto = 0, amtManual = 0, selectedOp = null;
 const $ = id => document.getElementById(id);
 
 try {
-  sb = supabase.createClient(
-    'https://mzxxfxkryhxnycewyryv.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc'
-  );
+  sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');
 } catch(e) { console.error(e); }
 
 function toast(msg) {
@@ -158,139 +378,221 @@ function toast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+function showAlert(id, msg, type) {
+  const el = $(id); el.className = 'alert ' + (type || 'err'); el.textContent = msg;
+}
+function hideAlert(id) { const el = $(id); if (el) el.style.display = 'none'; }
 
+// ── INIT ──────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   try {
     if (!sb) return;
     const { data: sd } = await sb.auth.getSession();
     if (!sd?.session) { window.location.href = 'index.html'; return; }
     currentUser = sd.session.user;
-
-    // Charger le solde
     const { data: p } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
     if (p) $('bal-val').textContent = (p.balance || 0).toLocaleString('fr-FR') + ' FCFA';
-
-  } catch(e) {
-    console.error('Init error:', e);
-  }
+    // Pre-fill phone if available
+    const phone = currentUser.user_metadata?.phone_number || '';
+    if (phone && $('sender-phone')) $('sender-phone').value = phone.replace(/^\+\d+\s?/, '');
+    // Check SoinaPay return
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payment_status');
+    const ref = params.get('transaction_id') || params.get('ref');
+    const amount = parseInt(params.get('amount') || '0');
+    if ((status === 'success' || status === 'completed') && amount > 0) {
+      window.history.replaceState({}, '', window.location.pathname);
+      await creditAccount(amount, ref || 'SP-' + Date.now(), 'SoinaPay');
+    }
+  } catch(e) { console.error(e); }
 });
 
-function showAlert(msg, type) {
-  const el = $('al');
-  el.className = 'alert ' + (type || 'err');
-  el.textContent = msg;
+// ── MODE TABS ─────────────────────────────────────────────
+function setMode(mode) {
+  $('tab-auto').classList.toggle('on', mode === 'auto');
+  $('tab-manual').classList.toggle('on', mode === 'manual');
+  $('mode-auto').style.display = mode === 'auto' ? 'block' : 'none';
+  $('mode-manual').style.display = mode === 'manual' ? 'block' : 'none';
 }
 
-function setAmt(amt, el) {
-  selectedAmount = amt;
-  $('amt-display').textContent = amt.toLocaleString('fr-FR');
-  $('custom-input').value = '';
-  document.querySelectorAll('.preset').forEach(p => p.classList.remove('on'));
-  el.classList.add('on');
-  updatePayBtn(amt);
-}
-
-function onCustom() {
-  const v = parseInt($('custom-input').value) || 0;
-  selectedAmount = v;
-  $('amt-display').textContent = v > 0 ? v.toLocaleString('fr-FR') : '0';
-  document.querySelectorAll('.preset').forEach(p => p.classList.remove('on'));
-  updatePayBtn(v);
-}
-
-function updatePayBtn(amt) {
-  const btn = $('pay-btn');
-  if (amt >= 3000) {
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ${amt.toLocaleString('fr-FR')} FCFA`;
+// ── AMOUNT ────────────────────────────────────────────────
+function setAmt(amt, el, mode) {
+  if (mode === 'auto') {
+    amtAuto = amt;
+    $('amt-display-auto').textContent = amt.toLocaleString('fr-FR');
+    $('custom-auto').value = '';
+    document.querySelectorAll('#presets-auto .preset').forEach(p => p.classList.remove('on'));
+    updateAutoBtn();
   } else {
-    btn.disabled = true;
-    btn.innerHTML = `<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec LeekPay`;
+    amtManual = amt;
+    $('custom-manual').value = '';
+    document.querySelectorAll('#presets-manual .preset').forEach(p => p.classList.remove('on'));
+    updateManualBtn();
+  }
+  el.classList.add('on');
+}
+function onCustom(mode) {
+  if (mode === 'auto') {
+    amtAuto = parseInt($('custom-auto').value) || 0;
+    $('amt-display-auto').textContent = amtAuto > 0 ? amtAuto.toLocaleString('fr-FR') : '0';
+    document.querySelectorAll('#presets-auto .preset').forEach(p => p.classList.remove('on'));
+    updateAutoBtn();
+  } else {
+    amtManual = parseInt($('custom-manual').value) || 0;
+    document.querySelectorAll('#presets-manual .preset').forEach(p => p.classList.remove('on'));
+    updateManualBtn();
+  }
+}
+function updateAutoBtn() {
+  const btn = $('btn-auto');
+  btn.disabled = amtAuto < 3000;
+  btn.innerHTML = amtAuto >= 3000
+    ? '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ' + amtAuto.toLocaleString('fr-FR') + ' FCFA'
+    : '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec SoinaPay';
+}
+function updateManualBtn() {
+  const btn = $('btn-submit-manual');
+  btn.disabled = amtManual < 3000;
+  if (amtManual >= 3000) {
+    btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer — ' + amtManual.toLocaleString('fr-FR') + ' FCFA';
+  } else {
+    btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer la demande';
   }
 }
 
-function startPayment() {
-  if (selectedAmount < 3000) return showAlert('Montant minimum : 3 000 FCFA');
-  if (!currentUser) return showAlert('Session expirée. Reconnectez-vous.');
-
-  // Désactiver le bouton pendant la transaction
-  const btn = $('pay-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Ouverture du paiement...';
-
-  const m = currentUser.user_metadata || {};
-
-  // Lancer le checkout LeekPay via le SDK JS
-  LeekPay.checkout({
-    amount: selectedAmount,
-    currency: 'XOF',
-    apiKey: LEEKPAY_KEY,
-    description: 'Recharge Marathon - ' + selectedAmount.toLocaleString('fr-FR') + ' FCFA',
-    customerEmail: m.email || currentUser.email || '',
-    customerName: m.full_name || '',
-    customerPhone: m.phone_number || '',
-
-    onSuccess: async function(data) {
-      // data contient : status, amount, currency, payment_id
-      const txId = data.payment_id || ('LP-' + Date.now());
-      await handlePaymentSuccess(data.amount || selectedAmount, txId);
-    },
-
-    onCancel: function() {
-      // L'utilisateur a fermé ou annulé
-      btn.disabled = false;
-      updatePayBtn(selectedAmount);
-      showAlert('Paiement annulé. Vous pouvez réessayer.', 'err');
-    }
-  });
+// ── OPERATOR SELECTION ────────────────────────────────────
+function selectOp(op) {
+  selectedOp = op;
+  document.querySelectorAll('.op-card').forEach(c => c.classList.remove('on'));
+  $('op-' + op).classList.add('on');
+  $('btn-next-op').disabled = false;
 }
 
-async function handlePaymentSuccess(amount, txId) {
+function goToStep2() {
+  if (!selectedOp) return;
+  const acc = MANUAL_ACCOUNTS[selectedOp];
+  $('pd-ico').textContent = acc.ico;
+  $('pd-number').textContent = acc.number;
+  $('pd-op-label').textContent = acc.label;
+  $('inst-op').textContent = acc.name;
+  $('step-operator').style.display = 'none';
+  $('step-details').style.display = 'block';
+}
+
+function goBack() {
+  $('step-details').style.display = 'none';
+  $('step-operator').style.display = 'block';
+}
+
+function copyNumber() {
+  const acc = MANUAL_ACCOUNTS[selectedOp];
+  if (!acc) return;
+  navigator.clipboard.writeText(acc.number).then(() => toast('Numéro copié : ' + acc.number));
+}
+
+// ── SOINA PAY ─────────────────────────────────────────────
+function startSoinaPay() {
+  if (amtAuto < 3000) { showAlert('al-auto', 'Montant minimum : 3 000 FCFA'); return; }
+  if (!currentUser) { showAlert('al-auto', 'Session expirée. Reconnectez-vous.'); return; }
+  const ref = 'MAR_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  sessionStorage.setItem('sp_pending', JSON.stringify({ amount: amtAuto, ref, ts: Date.now() }));
+  $('loader').classList.add('on');
+  const returnUrl = encodeURIComponent(window.location.origin + window.location.pathname + '?payment_status=success&amount=' + amtAuto + '&transaction_id=' + ref);
+  const url = SOINAPAY_URL + '?amount=' + amtAuto + '&reference=' + ref + '&redirect_url=' + returnUrl;
+  setTimeout(() => { window.location.href = url; }, 600);
+}
+
+// ── MANUAL SUBMIT ─────────────────────────────────────────
+async function submitManual() {
+  const phone = $('sender-phone').value.trim();
+  const txRef = $('tx-ref').value.trim();
+  const acc = MANUAL_ACCOUNTS[selectedOp];
+  if (amtManual < 3000) return;
+  if (!phone) { showAlert('al-manual', 'Entrez votre numéro de téléphone'); return; }
+  if (!currentUser) { showAlert('al-manual', 'Session expirée'); return; }
+  const btn = $('btn-submit-manual');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Envoi en cours...';
   try {
-    // Anti-doublon : vérifier si ce paiement a déjà été crédité
-    const txKey = 'lp_credited_' + txId;
-    if (localStorage.getItem(txKey)) {
-      showAlert('Ce paiement a déjà été crédité.', 'ok');
-      return;
-    }
+    const ref = 'MAN_' + Date.now();
+    await sb.from('transactions').insert({
+      user_id: currentUser.id,
+      type: 'depot',
+      amount: amtManual,
+      fee: 0,
+      net_amount: amtManual,
+      status: 'pending',
+      description: 'Recharge manuelle ' + acc.name + ' · ' + phone + (txRef ? ' · Ref: ' + txRef : '') + ' · Ref: ' + ref,
+      method: acc.name
+    });
+    // Show pending success
+    $('mode-manual').style.display = 'none';
+    $('bal-card').style.display = 'none';
+    $('info-row').style.display = 'none';
+    $('mode-tabs').style.display = 'none';
+    $('success-ico').textContent = '⏳';
+    $('success-title').textContent = 'Demande envoyée !';
+    $('success-msg').innerHTML = 'Votre demande de recharge de <b>' + amtManual.toLocaleString('fr-FR') + ' FCFA</b> via <b>' + acc.name + '</b> a été soumise.<br><br>Un admin validera votre paiement sous <b>30 min à 24h</b>.<br><br>Vous recevrez une notification dès validation.';
+    $('success-screen').classList.add('on');
+    toast('Demande envoyée ✓ En attente de validation');
+  } catch(e) {
+    showAlert('al-manual', 'Erreur : ' + (e.message || 'Réessayez'));
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer la demande';
+  }
+}
 
-    // Récupérer le solde actuel
-    const { data: p, error: pe } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
-    if (pe) throw pe;
-
-    const oldBal = p?.balance || 0;
-    const newBal = oldBal + amount;
-
-    // Mettre à jour le solde
-    const { error: ue } = await sb.from('profiles').update({ balance: newBal }).eq('id', currentUser.id);
-    if (ue) throw ue;
-
-    // Enregistrer la transaction
+// ── PAIEMENT EN ATTENTE (admin valide avant crédit) ──────
+async function creditAccount(amount, ref, method) {
+  const key = 'pending_submitted_' + ref;
+  if (localStorage.getItem(key)) {
+    // Déjà soumis, juste afficher l'écran d'attente
+    showPendingScreen(amount, method);
+    return;
+  }
+  try {
     await sb.from('transactions').insert({
       user_id: currentUser.id,
       type: 'depot',
       amount: amount,
       fee: 0,
       net_amount: amount,
-      status: 'success',
-      description: 'Recharge via LeekPay · ' + txId,
-      method: 'LeekPay'
+      status: 'pending',
+      description: 'Recharge ' + method + ' · Ref: ' + ref,
+      method: method
     });
-
-    // Marquer comme crédité (anti-doublon)
-    localStorage.setItem(txKey, '1');
-
-    // Afficher l'écran de succès
-    $('recharge-form').style.display = 'none';
-    $('success-msg').textContent = '+' + amount.toLocaleString('fr-FR') + ' FCFA crédités ! Nouveau solde : ' + newBal.toLocaleString('fr-FR') + ' FCFA.';
-    $('success-screen').classList.add('on');
-    toast('🎉 +' + amount.toLocaleString('fr-FR') + ' FCFA crédités !');
-
+    localStorage.setItem(key, '1');
+    sessionStorage.removeItem('sp_pending');
+    showPendingScreen(amount, method);
+    toast('Demande enregistrée ✓ En attente de validation');
   } catch(e) {
-    console.error('handlePaymentSuccess error:', e);
-    showAlert('Paiement reçu mais erreur de crédit. Contactez le support avec le code : ' + txId);
+    console.error(e);
+    toast('Erreur lors de l\'enregistrement. Contactez le support.');
   }
 }
+
+function showPendingScreen(amount, method) {
+  $('mode-auto').style.display = 'none';
+  $('mode-manual').style.display = 'none';
+  $('mode-tabs').style.display = 'none';
+  $('success-ico').textContent = '⏳';
+  $('success-title').textContent = 'Demande reçue !';
+  $('success-msg').innerHTML =
+    'Votre paiement de <b>' + amount.toLocaleString('fr-FR') + ' FCFA</b> via <b>' + method + '</b> a été enregistré.<br><br>' +
+    '⏰ Un admin va vérifier et <b>valider votre recharge</b> très prochainement.<br><br>' +
+    '✅ Votre solde sera mis à jour automatiquement après validation.';
+  $('success-screen').classList.add('on');
+}
+
+// Add missing balance-card and info-row display reference
+document.addEventListener('DOMContentLoaded', () => {
+  const br = document.querySelector('.bal-card');
+  if (br) br.id = 'bal-card';
+  const ir = document.querySelector('.info-row');
+  if (ir) ir.id = 'info-row';
+  const mt = document.querySelector('.mode-tabs');
+  if (mt) mt.id = 'mode-tabs';
+});
 </script>
 </body>
 </html>
