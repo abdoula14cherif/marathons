@@ -548,9 +548,16 @@ async function deleteUser() {
 // ── INVESTMENTS ───────────────────────────────────────
 async function loadInvestments() {
   try {
-    const {data,error}=await sb.from('investments').select('*, profiles(full_name, phone)').order('created_at',{ascending:false});
+    const {data,error}=await sb.from('investments').select('*').order('created_at',{ascending:false});
     if(error) throw error;
-    allInvest=data||[];
+    const rows=data||[];
+    const uids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
+    let profMap={};
+    if(uids.length){
+      const {data:profs}=await sb.from('profiles').select('id,full_name,phone').in('id',uids);
+      (profs||[]).forEach(p=>{ profMap[p.id]=p; });
+    }
+    allInvest=rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
     renderInvest(allInvest);
   } catch(e){$('invest-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
 }
@@ -589,9 +596,16 @@ function renderInvest(list) {
 // ── DEPOSITS ──────────────────────────────────────────
 async function loadDeposits() {
   try {
-    const {data,error}=await sb.from('transactions').select('*, profiles(full_name, phone)').in('type',['depot','bonus']).order('created_at',{ascending:false}).limit(50);
+    const {data,error}=await sb.from('transactions').select('*').in('type',['depot','bonus']).order('created_at',{ascending:false}).limit(50);
     if(error) throw error;
-    allDeposits=data||[];
+    const rows = data||[];
+    const uids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
+    let profMap={};
+    if(uids.length){
+      const {data:profs}=await sb.from('profiles').select('id,full_name,phone').in('id',uids);
+      (profs||[]).forEach(p=>{ profMap[p.id]=p; });
+    }
+    allDeposits=rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
     renderDeposits(allDeposits);
   } catch(e){$('deposits-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
 }
@@ -636,9 +650,16 @@ async function validateDeposit(txId, userId, amount) {
 // ── WITHDRAWALS ───────────────────────────────────────
 async function loadWithdrawals() {
   try {
-    const {data,error}=await sb.from('transactions').select('*, profiles(full_name, phone)').eq('type','retrait').order('created_at',{ascending:false}).limit(50);
+    const {data,error}=await sb.from('transactions').select('*').eq('type','retrait').order('created_at',{ascending:false}).limit(50);
     if(error) throw error;
-    allWithdrawals=data||[];
+    const rows=data||[];
+    const uids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
+    let profMap={};
+    if(uids.length){
+      const {data:profs}=await sb.from('profiles').select('id,full_name,phone').in('id',uids);
+      (profs||[]).forEach(p=>{ profMap[p.id]=p; });
+    }
+    allWithdrawals=rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
     renderWithdrawals(allWithdrawals);
   } catch(e){$('withdrawals-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
 }
@@ -688,9 +709,16 @@ async function processWithdrawal(txId, status) {
 // ── REFERRALS ─────────────────────────────────────────
 async function loadReferrals() {
   try {
-    const {data,error}=await sb.from('referrals').select('*, profiles!referrals_referrer_id_fkey(full_name, referral_code)').order('created_at',{ascending:false});
+    const {data,error}=await sb.from('referrals').select('*').order('created_at',{ascending:false});
     if(error) throw error;
-    allRefs=data||[];
+    const rows=data||[];
+    const uids=[...new Set(rows.map(r=>r.referrer_id).filter(Boolean))];
+    let profMap={};
+    if(uids.length){
+      const {data:profs}=await sb.from('profiles').select('id,full_name,referral_code').in('id',uids);
+      (profs||[]).forEach(p=>{ profMap[p.id]=p; });
+    }
+    allRefs=rows.map(r=>({...r, profiles: profMap[r.referrer_id]||null}));
     renderReferrals(allRefs);
   } catch(e){$('referrals-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
 }
