@@ -65,7 +65,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   </div>
 
   <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px">
-    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">1 000 F</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Minimum</div></div>
+    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">2 000 F</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Minimum</div></div>
     <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--red)">10%</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Frais</div></div>
     <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">09h — 17h</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Horaires</div></div>
     <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">2 / jour</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Maximum</div></div>
@@ -75,9 +75,9 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
     <div class="alert" id="al"></div>
     <div class="field">
       <label>Montant à retirer (FCFA)</label>
-      <input type="number" id="montant" placeholder="Montant minimum : 1 000 FCFA" min="1000" oninput="calcFee()"/>
+      <input type="number" id="montant" placeholder="Montant minimum : 2 000 FCFA" min="2000" oninput="calcFee()"/>
       <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-        <span onclick="setAmt(1000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">1 000</span>
+        <span onclick="setAmt(1000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">2 000</span>
         <span onclick="setAmt(2000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">2 000</span>
         <span onclick="setAmt(5000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">5 000</span>
         <span onclick="setAmt(10000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">10 000</span>
@@ -86,7 +86,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
     </div>
     <div id="fee-box" class="card" style="display:none;padding:12px">
       <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--bo)"><span style="color:var(--t2)">Montant demandé</span><strong id="famt"></strong></div>
-      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--bo)"><span style="color:var(--t2)">Frais (10%)</span><strong id="ffee" style="color:var(--red)"></strong></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--bo)"><span style="color:var(--t2)">Frais (20%)</span><strong id="ffee" style="color:var(--red)"></strong></div>
       <div style="display:flex;justify-content:space-between;padding:8px 0 3px;font-size:14px;font-weight:700"><span>Vous recevrez</span><span id="fnet" style="color:var(--red)"></span></div>
     </div>
     <button class="btn" id="submit-btn" onclick="doRetrait()">Confirmer le retrait</button>
@@ -173,7 +173,7 @@ function calcFee() {
   var v = parseFloat(document.getElementById('montant').value);
   var box = document.getElementById('fee-box');
   if (!v || v < 1) { box.style.display = 'none'; return; }
-  var fee = Math.round(v * 0.10);
+  var fee = Math.round(v * 0.20);
   var net = v - fee;
   document.getElementById('famt').textContent = v.toLocaleString('fr-FR') + ' FCFA';
   document.getElementById('ffee').textContent = '- ' + fee.toLocaleString('fr-FR') + ' FCFA';
@@ -183,14 +183,14 @@ function calcFee() {
 
 async function doRetrait() {
   var montant = parseFloat(document.getElementById('montant').value);
-  if (!montant || montant < 1000) return al('al', 'Montant minimum : 1 000 FCFA');
+  if (!montant || montant < 2000) return al('al', 'Montant minimum : 2 000 FCFA');
   if (montant > userBalance) return al('al', 'Solde insuffisant : ' + userBalance.toLocaleString('fr-FR') + ' FCFA disponible');
   if (!userCard) return al('al', 'Aucun compte Mobile Money enregistré');
   var h = new Date().getHours();
   if (h < 9 || h >= 17) return al('al', 'Retraits disponibles de 09h00 à 17h00 uniquement');
   var btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Traitement...';
-  var fee = Math.round(montant * 0.10);
+  var fee = Math.round(montant * 0.20);
   var net = montant - fee;
   try {
     // Insert transaction
