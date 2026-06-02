@@ -138,7 +138,7 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 /* MSG */
 .msg-form{background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--border)}
 .msg-form h3{font-family:"Cormorant Garamond",serif;font-size:18px;font-weight:600;color:var(--white);margin-bottom:14px}
-.msg-ta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--white);outline:none;resize:none;min-height:80px}
+.msg-ta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--text);outline:none;resize:none;min-height:80px}
 .msg-ta::placeholder{color:var(--muted)}
 
 /* LOADER */
@@ -288,14 +288,12 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
     </div>
     <div class="mbody">
       <input type="hidden" id="modal-uid"/>
-      <!-- Infos actuelles -->
       <div style="background:var(--card2);border-radius:11px;padding:13px;margin-bottom:16px">
         <div class="minfo-row"><span>Email</span><b id="m-email">—</b></div>
         <div class="minfo-row"><span>Inscrit le</span><b id="m-date">—</b></div>
         <div class="minfo-row"><span>Investissements</span><b id="m-invcount">—</b></div>
         <div class="minfo-row"><span>Code parrain</span><b id="m-refcode">—</b></div>
       </div>
-      <!-- Champs éditables -->
       <div class="mrow">
         <div class="mfield"><label>Nom complet</label><input type="text" id="m-name" placeholder="Nom"/></div>
         <div class="mfield"><label>Téléphone</label><input type="text" id="m-phone" placeholder="Téléphone"/></div>
@@ -310,7 +308,6 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
           <option value="4">LV4 — VIP</option>
         </select>
       </div>
-      <!-- Gestion solde -->
       <div class="mfield">
         <label>Solde actuel : <b id="m-curbal" style="color:var(--gold)">—</b> FCFA</label>
         <div class="bal-controls">
@@ -363,11 +360,11 @@ function showTab(name, btn) {
   if(btn) btn.classList.add('on');
   if(!loadedTabs.has(name)) {
     loadedTabs.add(name);
-    if(name==='users') loadUsers();
-    if(name==='investments') loadInvestments();
-    if(name==='deposits') loadDeposits();
-    if(name==='withdrawals') loadWithdrawals();
-    if(name==='referrals') loadReferrals();
+    if(name==='users') loadAllUsers();
+    if(name==='investments') loadAllInvestments();
+    if(name==='deposits') loadAllDeposits();
+    if(name==='withdrawals') loadAllWithdrawals();
+    if(name==='referrals') loadAllReferrals();
   }
 }
 
@@ -423,64 +420,68 @@ async function loadDashRecent() {
   } catch(e) { console.error(e); }
 }
 
-// ── USERS ────────────────────────────────────────────
-let usersPage = 0;
-const PAGE_SIZE = 50;
-
-async function loadUsers(append=false) {
-  if(!append){ usersPage=0; allUsers=[]; }
-  try {
-    const from = usersPage * PAGE_SIZE;
-    const to   = from + PAGE_SIZE - 1;
-    const {data:users, error, count} = await sb.from('profiles')
-      .select('id, full_name, phone, level, balance, total_earnings, referral_code, referred_by, created_at, bonus_received', {count:'exact'})
-      .order('created_at',{ascending:false})
-      .range(from, to);
+// ── PAGINATION HELPERS ────────────────────────────────
+async function fetchAllRows(table, select='*', filter=null, orderBy='created_at', ascending=false, batchSize=1000) {
+  let allRows = [];
+  let start = 0;
+  let hasMore = true;
+  
+  while(hasMore) {
+    let query = sb.from(table).select(select, {count: 'exact'}).order(orderBy, {ascending}).range(start, start + batchSize - 1);
+    if(filter) query = filter(query);
+    const {data, error} = await query;
     if(error) throw error;
-    allUsers = append ? allUsers.concat(users||[]) : (users||[]);
-    renderUsers(allUsers, count);
-    usersPage++;
-  } catch(e) { $('users-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`; }
+    if(data && data.length > 0) {
+      allRows = allRows.concat(data);
+      start += batchSize;
+    }
+    if(!data || data.length < batchSize) hasMore = false;
+  }
+  return allRows;
 }
-let searchTimeout = null;
+
+// ── USERS (paginé complet) ───────────────────────────
+async function loadAllUsers() {
+  try {
+    const allUsersData = await fetchAllRows('profiles', 'id, full_name, phone, level, balance, total_earnings, referral_code, referred_by, created_at, bonus_received');
+    allUsers = allUsersData;
+    renderUsers(allUsers);
+  } catch(e) { 
+    console.error(e);
+    $('users-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;
+  }
+}
+
+let currentUserFilter = '';
+let currentUserSearch = '';
+
 function filterUsers() {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(async () => {
-    const q = $('user-search').value.trim().toLowerCase();
-    const f = $('user-filter').value;
-    if (!q && f === 'all') {
-      // Reset to paginated view
-      loadUsers(false);
-      return;
-    }
-    // Search ALL users in DB
-    try {
-      let query = sb.from('profiles')
-        .select('id, full_name, phone, level, balance, total_earnings, referral_code, referred_by, created_at', {count:'exact'})
-        .order('created_at', {ascending:false})
-        .limit(200);
-      if (q) {
-        query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%,referral_code.ilike.%${q}%`);
-      }
-      if (f === 'active') query = query.gt('balance', 0);
-      const {data, count} = await query;
-      renderUsers(data||[], count||0);
-    } catch(e) {
-      // Fallback to client-side filter
-      let list = allUsers.filter(u => {
-        const match = !q || (u.full_name||'').toLowerCase().includes(q) || (u.phone||'').includes(q) || (u.referral_code||'').toLowerCase().includes(q);
-        const fMatch = f==='all' || (f==='active' && (u.balance||0)>0);
-        return match && fMatch;
-      });
-      renderUsers(list, list.length);
-    }
-  }, 300);
+  currentUserSearch = $('user-search').value.trim().toLowerCase();
+  currentUserFilter = $('user-filter').value;
+  let filtered = [...allUsers];
+  
+  if(currentUserSearch) {
+    filtered = filtered.filter(u => 
+      (u.full_name||'').toLowerCase().includes(currentUserSearch) || 
+      (u.phone||'').includes(currentUserSearch) || 
+      (u.referral_code||'').toLowerCase().includes(currentUserSearch)
+    );
+  }
+  
+  if(currentUserFilter === 'active') {
+    filtered = filtered.filter(u => (u.balance||0) > 0);
+  } else if(currentUserFilter === 'investing') {
+    // We'll need to check investments separately - for now show all
+    // This can be enhanced later
+  }
+  
+  renderUsers(filtered);
 }
-function renderUsers(users, total) {
+
+function renderUsers(users) {
   const div=$('users-list');
-  const shown = users.length;
-  const totalCount = total || shown;
-  $('users-count').textContent = shown + ' / ' + totalCount + ' utilisateur(s) affiché(s)';
+  const total = users.length;
+  $('users-count').textContent = `${total} utilisateur(s)`;
   if(!users.length){div.innerHTML='<div class="empty">Aucun résultat</div>';return;}
   const LV=['badge-lv0','badge-lv1','badge-lv2','badge-lv3'];
   const cards = users.map(u=>{
@@ -490,7 +491,7 @@ function renderUsers(users, total) {
     return `<div class="user-item" onclick="openUserModal('${u.id}')">
       <div class="user-av">${letter}</div>
       <div style="flex:1">
-        <div class="user-name">${name}</div>
+        <div class="user-name">${escapeHtml(name)}</div>
         <div class="user-info">${u.phone||'—'} · Code: ${u.referral_code||'—'}</div>
         <div class="user-info" style="margin-top:2px">${new Date(u.created_at).toLocaleDateString('fr-FR')}</div>
       </div>
@@ -500,129 +501,46 @@ function renderUsers(users, total) {
       </div>
     </div>`;
   }).join('');
-
-  const hasMore = shown < totalCount;
-  const loadMoreBtn = hasMore
-    ? `<button onclick="loadUsers(true)" style="width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px">
-        ⬇ Charger plus (${totalCount - shown} restants)
-      </button>`
-    : '';
-  div.innerHTML = cards + loadMoreBtn;
+  div.innerHTML = cards;
 }
 
-// ── USER MODAL ────────────────────────────────────────
-let modalUser=null;
-async function openUserModal(uid) {
-  const u=allUsers.find(x=>x.id===uid);
-  if(!u) return;
-  modalUser=u;
-  $('modal-uid').value=uid;
-  $('modal-title').textContent=(u.full_name||'Utilisateur');
-  $('m-name').value=u.full_name||'';
-  $('m-phone').value=u.phone||'';
-  $('m-level').value=String(parseInt(u.level)||0);
-  $('m-curbal').textContent=(u.balance||0).toLocaleString('fr-FR');
-  $('m-email').textContent='—';
-  $('m-date').textContent=new Date(u.created_at).toLocaleDateString('fr-FR');
-  $('m-invcount').textContent='—';
-  $('m-refcode').textContent=u.referral_code||'—';
-  $('m-bal-input').value='';
-  // Load extra info
+// ── INVESTMENTS (paginé complet) ─────────────────────
+async function loadAllInvestments() {
   try {
-    const [{data:inv},{data:authRaw}]=await Promise.all([
-      sb.from('investments').select('id,status').eq('user_id',uid),
-      sb.from('profiles').select('id').eq('id',uid)
-    ]);
-    $('m-invcount').textContent=(inv||[]).filter(i=>i.status==='active').length+' actif(s)';
-  } catch(e) {}
-  $('user-modal').classList.add('on');
-}
-function closeUserModal() { $('user-modal').classList.remove('on'); modalUser=null; }
-
-async function modifyBal(action) {
-  const uid=$('modal-uid').value;
-  const val=parseFloat($('m-bal-input').value)||0;
-  if(!uid) return;
-  if(action!=='set'&&val<=0){toast('Entrez un montant valide');return;}
-  try {
-    const {data:p}=await sb.from('profiles').select('balance').eq('id',uid).single();
-    const cur=p?.balance||0;
-    let newBal=action==='add'?cur+val:action==='sub'?Math.max(0,cur-val):val;
-    await sb.from('profiles').update({balance:newBal}).eq('id',uid);
-    if(action==='add'){
-      await sb.from('transactions').insert({user_id:uid,type:'bonus',amount:val,fee:0,net_amount:val,status:'success',description:'Crédit admin'});
-    }
-    $('m-curbal').textContent=newBal.toLocaleString('fr-FR');
-    const u=allUsers.find(x=>x.id===uid);
-    if(u) u.balance=newBal;
-    toast('Solde mis à jour: '+newBal.toLocaleString('fr-FR')+' FCFA');
-    loadStats();
-  } catch(e){toast('Erreur: '+e.message);}
-}
-
-async function saveUser() {
-  const uid=$('modal-uid').value;
-  const name=$('m-name').value.trim();
-  const phone=$('m-phone').value.trim();
-  const level=parseInt($('m-level').value)||0;
-  if(!name){toast('Le nom est requis');return;}
-  try {
-    await sb.from('profiles').update({full_name:name,phone:phone,level:level}).eq('id',uid);
-    const u=allUsers.find(x=>x.id===uid);
-    if(u){u.full_name=name;u.phone=phone;u.level=level;}
-    renderUsers(allUsers);
-    closeUserModal();
-    toast('Utilisateur mis à jour ✓');
-  } catch(e){toast('Erreur: '+e.message);}
-}
-
-async function deleteUser() {
-  const uid=$('modal-uid').value;
-  if(!uid||!confirm('Supprimer définitivement cet utilisateur ?')) return;
-  try {
-    await sb.from('profiles').delete().eq('id',uid);
-    allUsers=allUsers.filter(u=>u.id!==uid);
-    renderUsers(allUsers);
-    closeUserModal();
-    loadStats();
-    toast('Utilisateur supprimé');
-  } catch(e){toast('Erreur: '+e.message);}
-}
-
-// ── INVESTMENTS ───────────────────────────────────────
-async function loadInvestments() {
-  try {
-    const {data,error}=await sb.from('investments').select('*').order('created_at',{ascending:false});
-    if(error) throw error;
-    const rows=data||[];
-    const uids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
-    let profMap={};
+    const allInvestData = await fetchAllRows('investments', '*');
+    const uids = [...new Set(allInvestData.map(r => r.user_id).filter(Boolean))];
+    let profMap = {};
     if(uids.length){
-      const {data:profs}=await sb.from('profiles').select('id,full_name,phone').in('id',uids);
-      (profs||[]).forEach(p=>{ profMap[p.id]=p; });
+      const {data:profs} = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
+      (profs||[]).forEach(p => { profMap[p.id] = p; });
     }
-    allInvest=rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
+    allInvest = allInvestData.map(r => ({...r, profiles: profMap[r.user_id] || null}));
     renderInvest(allInvest);
-  } catch(e){$('invest-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
+  } catch(e) {
+    console.error(e);
+    $('invest-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
+  }
 }
+
 function filterInvest() {
-  const q=$('inv-search').value.toLowerCase();
-  const f=$('inv-filter').value;
-  renderInvest(allInvest.filter(i=>{
-    const name=(i.profiles?.full_name||'').toLowerCase();
-    return (!q||name.includes(q)||i.plan_name.toLowerCase().includes(q))&&(f==='all'||i.status===f);
+  const q = $('inv-search').value.toLowerCase();
+  const f = $('inv-filter').value;
+  renderInvest(allInvest.filter(i => {
+    const name = (i.profiles?.full_name || '').toLowerCase();
+    return (!q || name.includes(q) || i.plan_name.toLowerCase().includes(q)) && (f === 'all' || i.status === f);
   }));
 }
+
 function renderInvest(list) {
-  const div=$('invest-list');
+  const div = $('invest-list');
   if(!list.length){div.innerHTML='<div class="empty">Aucun investissement</div>';return;}
   const COLS={starter:'#22C55E',bronze:'#3B82F6',silver:'#F97316',gold:'#F59E0B',premium:'#EF4444',vip:'#8B5CF6',cold:'#0EA5E9'};
-  div.innerHTML=list.map(i=>{
-    const pct=Math.round(((i.days_total-i.days_remaining)/i.days_total)*100);
-    const col=COLS[i.plan_id]||'#94A3B8';
+  div.innerHTML = list.map(i => {
+    const pct = Math.round(((i.days_total - i.days_remaining) / i.days_total) * 100);
+    const col = COLS[i.plan_id] || '#94A3B8';
     return `<div class="inv-item">
       <div class="inv-header">
-        <div><div class="inv-plan">Plan ${i.plan_name}</div><div class="inv-user">${i.profiles?.full_name||'—'} · ${i.profiles?.phone||'—'}</div></div>
+        <div><div class="inv-plan">Plan ${i.plan_name}</div><div class="inv-user">${escapeHtml(i.profiles?.full_name || '—')} · ${i.profiles?.phone || '—'}</div></div>
         <div style="text-align:right">
           <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:${col}">${(i.amount||0).toLocaleString('fr-FR')} F</div>
           <div style="font-size:10.5px;color:var(--muted)">${(i.daily_revenue||0).toLocaleString('fr-FR')} F/j</div>
@@ -637,48 +555,37 @@ function renderInvest(list) {
   }).join('');
 }
 
-// ── DEPOSITS ──────────────────────────────────────────
-let depositsPage=0;
-
-async function loadDeposits(append=false) {
-  if(!append){ depositsPage=0; allDeposits=[]; }
+// ── DEPOSITS (paginé complet) ────────────────────────
+async function loadAllDeposits() {
   try {
-    const from = depositsPage * 50;
-    const {data,error,count}=await sb.from('transactions')
-      .select('*',{count:'exact'})
-      .in('type',['depot','bonus'])
-      .order('created_at',{ascending:false})
-      .range(from, from+49);
-    if(error) throw error;
-    const rows=data||[];
-    const uids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
-    let profMap={};
+    const allDepositsData = await fetchAllRows('transactions', '*', (q) => q.in('type', ['depot', 'bonus']));
+    const uids = [...new Set(allDepositsData.map(r => r.user_id).filter(Boolean))];
+    let profMap = {};
     if(uids.length){
-      const {data:profs}=await sb.from('profiles').select('id,full_name,phone').in('id',uids);
-      (profs||[]).forEach(p=>{ profMap[p.id]=p; });
+      const {data:profs} = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
+      (profs||[]).forEach(p => { profMap[p.id] = p; });
     }
-    const enriched = rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
-    allDeposits = append ? allDeposits.concat(enriched) : enriched;
-    renderDeposits(allDeposits, count);
-    depositsPage++;
-  } catch(e){$('deposits-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
+    allDeposits = allDepositsData.map(r => ({...r, profiles: profMap[r.user_id] || null}));
+    renderDeposits(allDeposits);
+  } catch(e) {
+    console.error(e);
+    $('deposits-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
+  }
 }
+
 function filterDeposits() {
-  const q=$('dep-search').value.toLowerCase();
-  const f=$('dep-filter').value;
-  renderDeposits(allDeposits.filter(d=>{
-    const name=(d.profiles?.full_name||'').toLowerCase();
-    return (!q||name.includes(d)||d.description.toLowerCase().includes(q))&&(f==='all'||d.status===f);
+  const q = $('dep-search').value.toLowerCase();
+  const f = $('dep-filter').value;
+  renderDeposits(allDeposits.filter(d => {
+    const name = (d.profiles?.full_name || '').toLowerCase();
+    return (!q || name.includes(q) || d.description.toLowerCase().includes(q)) && (f === 'all' || d.status === f);
   }));
 }
-function renderDeposits(list, total) {
-  const div=$('deposits-list');
-  if(!list.length){div.innerHTML='<div class="empty">Aucune recharge</div>';return;}
-  const shown = list.length;
-  const totalCount = total || shown;
 
-  const cards = list.map(d=>{
-    // Extract proof URL from description
+function renderDeposits(list) {
+  const div = $('deposits-list');
+  if(!list.length){div.innerHTML='<div class="empty">Aucune recharge</div>';return;}
+  const cards = list.map(d => {
     let proofUrl = '';
     if(d.description && d.description.includes('PROOF:')) {
       proofUrl = d.description.split('PROOF:')[1]?.split(' ')[0] || '';
@@ -690,8 +597,8 @@ function renderDeposits(list, total) {
       <div style="display:flex;align-items:center;gap:11px">
         <div class="tx-ico" style="background:rgba(34,197,94,.1)">💰</div>
         <div style="flex:1">
-          <div class="tx-desc">${d.profiles?.full_name||'Utilisateur'}</div>
-          <div class="tx-sub">${d.method||d.type} · ${d.profiles?.phone||d.phone||'—'}</div>
+          <div class="tx-desc">${escapeHtml(d.profiles?.full_name || 'Utilisateur')}</div>
+          <div class="tx-sub">${d.method || d.type} · ${d.profiles?.phone || d.phone || '—'}</div>
           <div class="tx-sub">${new Date(d.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
@@ -700,68 +607,52 @@ function renderDeposits(list, total) {
         </div>
       </div>
       ${proofHtml}
-      ${d.status==='pending'?`<button onclick="validateDeposit('${d.id}','${d.user_id}',${d.amount})" style="width:100%;padding:9px;background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">✅ Valider la recharge</button>`:''}
+      ${d.status==='pending' ? `<button onclick="validateDeposit('${d.id}','${d.user_id}',${d.amount})" style="width:100%;padding:9px;background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">✅ Valider la recharge</button>` : ''}
     </div>`;
   }).join('');
-
-  const hasMore = shown < totalCount;
-  const loadMoreBtn = hasMore
-    ? `<button onclick="loadDeposits(true)" style="width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px">
-        ⬇ Charger plus (${totalCount-shown} restants)
-      </button>`
-    : '';
-
-  div.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">${shown} / ${totalCount} recharge(s)</div>` + cards + loadMoreBtn;
+  div.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">${list.length} recharge(s)</div>` + cards;
 }
+
 async function validateDeposit(txId, userId, amount) {
   try {
     await sb.from('transactions').update({status:'success'}).eq('id',txId);
     const {data:p}=await sb.from('profiles').select('balance').eq('id',userId).single();
     await sb.from('profiles').update({balance:(p?.balance||0)+amount}).eq('id',userId);
     toast('Recharge validée: +'+amount.toLocaleString('fr-FR')+' FCFA');
-    allDeposits=allDeposits.map(d=>d.id===txId?{...d,status:'success'}:d);
-    renderDeposits(allDeposits);
+    // Reload deposits to reflect changes
+    await loadAllDeposits();
     loadStats();
   } catch(e){toast('Erreur: '+e.message);}
 }
 
-// ── WITHDRAWALS ───────────────────────────────────────
-let withdrawalsPage=0;
-
-async function loadWithdrawals(append=false) {
-  if(!append){ withdrawalsPage=0; allWithdrawals=[]; }
+// ── WITHDRAWALS (paginé complet) ─────────────────────
+async function loadAllWithdrawals() {
   try {
-    const from = withdrawalsPage * 50;
-    const {data,error,count}=await sb.from('transactions')
-      .select('*',{count:'exact'})
-      .eq('type','retrait')
-      .order('created_at',{ascending:false})
-      .range(from, from+49);
-    if(error) throw error;
-    const rows=data||[];
-    const uids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
-    let profMap={};
+    const allWithdrawalsData = await fetchAllRows('transactions', '*', (q) => q.eq('type', 'retrait'));
+    const uids = [...new Set(allWithdrawalsData.map(r => r.user_id).filter(Boolean))];
+    let profMap = {};
     if(uids.length){
-      const {data:profs}=await sb.from('profiles').select('id,full_name,phone').in('id',uids);
-      (profs||[]).forEach(p=>{ profMap[p.id]=p; });
+      const {data:profs} = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
+      (profs||[]).forEach(p => { profMap[p.id] = p; });
     }
-    const enriched=rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
-    allWithdrawals=append?allWithdrawals.concat(enriched):enriched;
-    renderWithdrawals(allWithdrawals, count);
-    withdrawalsPage++;
-  } catch(e){$('withdrawals-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
+    allWithdrawals = allWithdrawalsData.map(r => ({...r, profiles: profMap[r.user_id] || null}));
+    renderWithdrawals(allWithdrawals);
+  } catch(e) {
+    console.error(e);
+    $('withdrawals-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
+  }
 }
-function renderWithdrawals(list, total) {
-  const div=$('withdrawals-list');
+
+function renderWithdrawals(list) {
+  const div = $('withdrawals-list');
   if(!list.length){div.innerHTML='<div class="empty">Aucun retrait</div>';return;}
-  const shown=list.length, totalCount=total||shown;
-  const cards=list.map(r=>`
+  div.innerHTML = list.map(r => `
     <div class="ret-item">
       <div class="ret-header">
         <div>
-          <div class="ret-user">${r.profiles?.full_name||'—'}</div>
-          <div class="ret-detail">${r.profiles?.phone||'—'}</div>
-          <div class="ret-detail">${r.description||'—'}</div>
+          <div class="ret-user">${escapeHtml(r.profiles?.full_name || '—')}</div>
+          <div class="ret-detail">${r.profiles?.phone || '—'}</div>
+          <div class="ret-detail">${r.description || '—'}</div>
           <div class="ret-detail">${new Date(r.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
         </div>
         <div>
@@ -769,13 +660,14 @@ function renderWithdrawals(list, total) {
           <span class="tx-status ${r.status==='success'?'s-success':r.status==='pending'?'s-pending':'s-failed'}">${r.status==='success'?'Traité':r.status==='pending'?'En attente':'Refusé'}</span>
         </div>
       </div>
-      ${r.status==='pending'?`
+      ${r.status==='pending' ? `
       <div class="ret-btns">
         <button class="rbtn rbtn-ok" onclick="processWithdrawal('${r.id}','success')">✓ Confirmer envoi</button>
         <button class="rbtn rbtn-no" onclick="processWithdrawal('${r.id}','failed')">✗ Rejeter</button>
-      </div>`:''}
+      </div>` : ''}
     </div>`).join('');
 }
+
 async function processWithdrawal(txId, status) {
   const action=status==='success'?'Confirmer':'Rejeter';
   if(!confirm(action+' ce retrait ?')) return;
@@ -788,38 +680,39 @@ async function processWithdrawal(txId, status) {
         await sb.from('profiles').update({balance:(p?.balance||0)+tx.amount}).eq('id',tx.user_id);
       }
     }
-    allWithdrawals=allWithdrawals.map(r=>r.id===txId?{...r,status}:r);
-    renderWithdrawals(allWithdrawals);
+    await loadAllWithdrawals();
     loadStats();
     toast(status==='success'?'Retrait confirmé ✓':'Retrait rejeté — montant remboursé');
   } catch(e){toast('Erreur: '+e.message);}
 }
 
-// ── REFERRALS ─────────────────────────────────────────
-async function loadReferrals() {
+// ── REFERRALS (paginé complet) ───────────────────────
+async function loadAllReferrals() {
   try {
-    const {data,error}=await sb.from('referrals').select('*').order('created_at',{ascending:false});
-    if(error) throw error;
-    const rows=data||[];
-    const uids=[...new Set(rows.map(r=>r.referrer_id).filter(Boolean))];
-    let profMap={};
+    const allRefsData = await fetchAllRows('referrals', '*');
+    const uids = [...new Set(allRefsData.map(r => r.referrer_id).filter(Boolean))];
+    let profMap = {};
     if(uids.length){
-      const {data:profs}=await sb.from('profiles').select('id,full_name,referral_code').in('id',uids);
-      (profs||[]).forEach(p=>{ profMap[p.id]=p; });
+      const {data:profs} = await sb.from('profiles').select('id,full_name,referral_code').in('id', uids);
+      (profs||[]).forEach(p => { profMap[p.id] = p; });
     }
-    allRefs=rows.map(r=>({...r, profiles: profMap[r.referrer_id]||null}));
+    allRefs = allRefsData.map(r => ({...r, profiles: profMap[r.referrer_id] || null}));
     renderReferrals(allRefs);
-  } catch(e){$('referrals-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
+  } catch(e) {
+    console.error(e);
+    $('referrals-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
+  }
 }
+
 function renderReferrals(list) {
   const div=$('referrals-list');
   if(!list.length){div.innerHTML='<div class="empty">Aucun parrainage</div>';return;}
-  div.innerHTML=list.map(r=>`
+  div.innerHTML=list.map(r => `
     <div class="tx-item">
       <div class="tx-ico" style="background:rgba(139,92,246,.1)">👑</div>
       <div style="flex:1">
-        <div class="tx-desc">${r.profiles?.full_name||'—'} → ${r.referred_name||'—'}</div>
-        <div class="tx-sub">Code: ${r.profiles?.referral_code||'—'} · Niveau ${r.level||1}</div>
+        <div class="tx-desc">${escapeHtml(r.profiles?.full_name || '—')} → ${r.referred_name || '—'}</div>
+        <div class="tx-sub">Code: ${r.profiles?.referral_code || '—'} · Niveau ${r.level || 1}</div>
         <div class="tx-sub">${new Date(r.created_at).toLocaleDateString('fr-FR')}</div>
       </div>
       <div>
@@ -841,23 +734,118 @@ async function sendBonus() {
       await sb.from('profiles').update({balance:(p.balance||0)+amount}).eq('id',p.id);
       await sb.from('transactions').insert({user_id:p.id,type:'bonus',amount,fee:0,net_amount:amount,status:'success',description:'Bonus admin'});
       toast('Bonus de '+amount.toLocaleString('fr-FR')+' FCFA envoyé ✓');
+      await loadAllUsers();
     } else {
       const {data:all}=await sb.from('profiles').select('id, balance');
       for(const p of all||[]) {
         await sb.from('profiles').update({balance:(p.balance||0)+amount}).eq('id',p.id);
       }
       await sb.from('transactions').insert((all||[]).map(p=>({user_id:p.id,type:'bonus',amount,fee:0,net_amount:amount,status:'success',description:'Bonus global admin'})));
-      toast('Bonus envoyé à '+( all||[]).length+' utilisateurs ✓');
+      toast('Bonus envoyé à '+(all||[]).length+' utilisateurs ✓');
+      await loadAllUsers();
     }
     $('msg-bonus').value='';
     loadStats();
   } catch(e){toast('Erreur: '+e.message);}
 }
+
 function sendNotif() {
   const msg=$('msg-text').value.trim();
   if(!msg){toast('Entrez un message');return;}
   toast('Notification enregistrée ✓ (implémentation webhook requise)');
   $('msg-text').value='';
+}
+
+// ── USER MODAL ────────────────────────────────────────
+let modalUser=null;
+
+async function openUserModal(uid) {
+  const u=allUsers.find(x=>x.id===uid);
+  if(!u) return;
+  modalUser=u;
+  $('modal-uid').value=uid;
+  $('modal-title').textContent=(u.full_name||'Utilisateur');
+  $('m-name').value=u.full_name||'';
+  $('m-phone').value=u.phone||'';
+  $('m-level').value=String(parseInt(u.level)||0);
+  $('m-curbal').textContent=(u.balance||0).toLocaleString('fr-FR');
+  $('m-email').textContent='—';
+  $('m-date').textContent=new Date(u.created_at).toLocaleDateString('fr-FR');
+  $('m-invcount').textContent='—';
+  $('m-refcode').textContent=u.referral_code||'—';
+  $('m-bal-input').value='';
+  
+  try {
+    const {data:inv}=await sb.from('investments').select('id,status').eq('user_id',uid);
+    $('m-invcount').textContent=(inv||[]).filter(i=>i.status==='active').length+' actif(s)';
+  } catch(e) {}
+  
+  $('user-modal').classList.add('on');
+}
+
+function closeUserModal() { $('user-modal').classList.remove('on'); modalUser=null; }
+
+async function modifyBal(action) {
+  const uid=$('modal-uid').value;
+  const val=parseFloat($('m-bal-input').value)||0;
+  if(!uid) return;
+  if(action!=='set'&&val<=0){toast('Entrez un montant valide');return;}
+  try {
+    const {data:p}=await sb.from('profiles').select('balance').eq('id',uid).single();
+    const cur=p?.balance||0;
+    let newBal=action==='add'?cur+val:action==='sub'?Math.max(0,cur-val):val;
+    await sb.from('profiles').update({balance:newBal}).eq('id',uid);
+    if(action==='add'){
+      await sb.from('transactions').insert({user_id:uid,type:'bonus',amount:val,fee:0,net_amount:val,status:'success',description:'Crédit admin'});
+    }
+    $('m-curbal').textContent=newBal.toLocaleString('fr-FR');
+    const u=allUsers.find(x=>x.id===uid);
+    if(u) u.balance=newBal;
+    toast('Solde mis à jour: '+newBal.toLocaleString('fr-FR')+' FCFA');
+    loadStats();
+    await loadAllUsers();
+    if($('sec-users').classList.contains('on')) renderUsers(allUsers);
+  } catch(e){toast('Erreur: '+e.message);}
+}
+
+async function saveUser() {
+  const uid=$('modal-uid').value;
+  const name=$('m-name').value.trim();
+  const phone=$('m-phone').value.trim();
+  const level=parseInt($('m-level').value)||0;
+  if(!name){toast('Le nom est requis');return;}
+  try {
+    await sb.from('profiles').update({full_name:name,phone:phone,level:level}).eq('id',uid);
+    const u=allUsers.find(x=>x.id===uid);
+    if(u){u.full_name=name;u.phone=phone;u.level=level;}
+    if($('sec-users').classList.contains('on')) renderUsers(allUsers);
+    closeUserModal();
+    toast('Utilisateur mis à jour ✓');
+  } catch(e){toast('Erreur: '+e.message);}
+}
+
+async function deleteUser() {
+  const uid=$('modal-uid').value;
+  if(!uid||!confirm('Supprimer définitivement cet utilisateur ?')) return;
+  try {
+    await sb.from('profiles').delete().eq('id',uid);
+    allUsers=allUsers.filter(u=>u.id!==uid);
+    if($('sec-users').classList.contains('on')) renderUsers(allUsers);
+    closeUserModal();
+    loadStats();
+    toast('Utilisateur supprimé');
+  } catch(e){toast('Erreur: '+e.message);}
+}
+
+// Helper function to escape HTML
+function escapeHtml(str) {
+  if(!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if(m === '&') return '&amp;';
+    if(m === '<') return '&lt;';
+    if(m === '>') return '&gt;';
+    return m;
+  });
 }
 </script>
 </body>
