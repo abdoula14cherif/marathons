@@ -278,7 +278,8 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
     <button class="act-btn ab-blue" style="width:100%;padding:13px;border-radius:11px" onclick="sendNotif()">📢 Envoyer à tous</button>
   </div>
 </div>
-</div><!-- /app -->
+</div>
+
 <div class="modal-bg" id="user-modal" onclick="if(event.target===this)closeUserModal()">
   <div class="modal">
     <div class="mhandle"></div>
@@ -330,193 +331,218 @@ const sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'ey
 const ADMINS = ['abdoula13cherif@gmail.com', 'marieedoh@gmail.com'];
 const $ = id => document.getElementById(id);
 
-let allUsers=[], allInvest=[], allDeposits=[], allWithdrawals=[], allRefs=[];
+let allUsers = [];
+let allInvest = [];
+let allDeposits = [];
+let allWithdrawals = [];
+let allRefs = [];
 let loadedTabs = new Set();
 
 function toast(msg) {
-  const t=$('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2800);
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
 }
 
 // ── AUTH ──────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
-  const {data:{session}} = await sb.auth.getSession();
-  if (!session) { location.href='index.html'; return; }
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    location.href = 'index.html';
+    return;
+  }
   const email = session.user.email?.toLowerCase();
-  if (!ADMINS.includes(email)) { alert('Accès refusé'); location.href='dashboard.html'; return; }
-  loadStats();
+  if (!ADMINS.includes(email)) {
+    alert('Accès refusé');
+    location.href = 'dashboard.html';
+    return;
+  }
+  await loadAllStats();
   loadDashRecent();
 });
 
 function doQuit() {
-  if(confirm('Se déconnecter ?')) { sb.auth.signOut(); location.href='index.html'; }
+  if (confirm('Se déconnecter ?')) {
+    sb.auth.signOut();
+    location.href = 'index.html';
+  }
 }
 
 // ── TABS ──────────────────────────────────────────────
 function showTab(name, btn) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
-  $('sec-'+name).classList.add('on');
-  if(btn) btn.classList.add('on');
-  if(!loadedTabs.has(name)) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+  $('sec-' + name).classList.add('on');
+  if (btn) btn.classList.add('on');
+  if (!loadedTabs.has(name)) {
     loadedTabs.add(name);
-    if(name==='users') loadAllUsers();
-    if(name==='investments') loadAllInvestments();
-    if(name==='deposits') loadAllDeposits();
-    if(name==='withdrawals') loadAllWithdrawals();
-    if(name==='referrals') loadAllReferrals();
+    if (name === 'users') loadAllUsers();
+    if (name === 'investments') loadAllInvestments();
+    if (name === 'deposits') loadAllDeposits();
+    if (name === 'withdrawals') loadAllWithdrawals();
+    if (name === 'referrals') loadAllReferrals();
   }
 }
 
-// ── STATS (chargement rapide) ────────────────────────
-async function loadStats() {
-  try {
-    const [rU, rI, rD, rRef] = await Promise.all([
-      sb.from('profiles').select('id, balance, total_earnings'),
-      sb.from('investments').select('id, status'),
-      sb.from('transactions').select('id, type, status, amount'),
-      sb.from('referrals').select('id, commission')
-    ]);
-    const users = rU.data||[];
-    const invest = rI.data||[];
-    const tx = rD.data||[];
-    const refs = rRef.data||[];
-    const totalBal = users.reduce((s,u)=>s+(u.balance||0),0);
-    const deposits = tx.filter(t=>t.type==='depot'&&t.status==='success');
-    const pending = tx.filter(t=>t.status==='pending');
-    const totalCom = refs.reduce((s,r)=>s+(r.commission||0),0);
-    $('st-users').textContent = users.length;
-    $('st-balance').textContent = totalBal.toLocaleString('fr-FR');
-    $('st-invest').textContent = invest.filter(i=>i.status==='active').length;
-    $('st-deposits').textContent = deposits.length;
-    $('st-pending').textContent = pending.length;
-    $('st-commissions').textContent = totalCom.toLocaleString('fr-FR');
-  } catch(e) { console.error(e); }
-}
-
-async function loadDashRecent() {
-  try {
-    const {data:tx} = await sb.from('transactions').select('*').order('created_at',{ascending:false}).limit(8);
-    const div = $('dash-recent');
-    if(!tx||!tx.length){div.innerHTML='<div class="empty">Aucune transaction</div>';return;}
-    const ICONS={depot:'💰',retrait:'📤',revenu:'📈',commission:'🤝',bonus:'🎁',tache:'⛽'};
-    const COLORS={depot:'rgba(34,197,94,.12)',retrait:'rgba(239,68,68,.1)',revenu:'rgba(59,130,246,.12)',commission:'rgba(139,92,246,.1)',bonus:'rgba(245,158,11,.1)',tache:'rgba(34,197,94,.1)'};
-    const AMT={depot:'#22C55E',retrait:'#EF4444',revenu:'#3B82F6',commission:'#8B5CF6',bonus:'#F59E0B',tache:'#22C55E'};
-    div.innerHTML = tx.map(t=>{
-      const sign=['depot','revenu','commission','bonus','tache'].includes(t.type)?'+':'-';
-      const amt=t.type==='retrait'?(t.net_amount||t.amount):t.amount;
-      return `<div class="tx-item">
-        <div class="tx-ico" style="background:${COLORS[t.type]||'rgba(255,255,255,.05)'}">${ICONS[t.type]||'💳'}</div>
-        <div style="flex:1">
-          <div class="tx-desc">${t.description||t.type}</div>
-          <div class="tx-sub">${new Date(t.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
-        </div>
-        <div>
-          <div class="tx-amt" style="color:${AMT[t.type]||'#fff'}">${sign}${(amt||0).toLocaleString('fr-FR')} F</div>
-          <span class="tx-status ${t.status==='success'?'s-success':t.status==='pending'?'s-pending':'s-failed'}">${t.status==='success'?'✓':t.status==='pending'?'⏳':'✗'}</span>
-        </div>
-      </div>`;
-    }).join('');
-  } catch(e) { console.error(e); }
-}
-
-// ── PAGINATION HELPERS ────────────────────────────────
-async function fetchAllRows(table, select='*', filter=null, orderBy='created_at', ascending=false, batchSize=1000) {
+// ── FONCTION POUR CHARGER TOUTES LES LIGNES (PAGINATION AUTO) ──
+async function fetchAllRows(table, select = '*', filterFn = null, orderBy = 'created_at', ascending = false, batchSize = 1000) {
   let allRows = [];
   let start = 0;
   let hasMore = true;
   
-  while(hasMore) {
-    let query = sb.from(table).select(select, {count: 'exact'}).order(orderBy, {ascending}).range(start, start + batchSize - 1);
-    if(filter) query = filter(query);
-    const {data, error} = await query;
-    if(error) throw error;
-    if(data && data.length > 0) {
+  while (hasMore) {
+    let query = sb.from(table).select(select, { count: 'exact' }).order(orderBy, { ascending }).range(start, start + batchSize - 1);
+    if (filterFn) query = filterFn(query);
+    const { data, error } = await query;
+    if (error) throw error;
+    if (data && data.length > 0) {
       allRows = allRows.concat(data);
       start += batchSize;
     }
-    if(!data || data.length < batchSize) hasMore = false;
+    if (!data || data.length < batchSize) hasMore = false;
   }
   return allRows;
 }
 
-// ── USERS (paginé complet) ───────────────────────────
+// ── STATS AVEC CHARGEMENT COMPLET ─────────────────────
+async function loadAllStats() {
+  try {
+    // Charger TOUS les utilisateurs
+    const allUsersData = await fetchAllRows('profiles', 'id, balance, total_earnings');
+    const totalUsers = allUsersData.length;
+    const totalBalance = allUsersData.reduce((s, u) => s + (u.balance || 0), 0);
+    
+    // Charger TOUS les investissements
+    const allInvestData = await fetchAllRows('investments', 'id, status');
+    const activeInvest = allInvestData.filter(i => i.status === 'active').length;
+    
+    // Charger TOUTES les transactions
+    const allTransactions = await fetchAllRows('transactions', 'id, type, status, amount');
+    const successDeposits = allTransactions.filter(t => t.type === 'depot' && t.status === 'success').length;
+    const pendingTransactions = allTransactions.filter(t => t.status === 'pending').length;
+    
+    // Charger TOUS les parrainages
+    const allReferrals = await fetchAllRows('referrals', 'id, commission');
+    const totalCommissions = allReferrals.reduce((s, r) => s + (r.commission || 0), 0);
+    
+    // Mettre à jour l'affichage
+    $('st-users').textContent = totalUsers;
+    $('st-balance').textContent = totalBalance.toLocaleString('fr-FR');
+    $('st-invest').textContent = activeInvest;
+    $('st-deposits').textContent = successDeposits;
+    $('st-pending').textContent = pendingTransactions;
+    $('st-commissions').textContent = totalCommissions.toLocaleString('fr-FR');
+  } catch (e) {
+    console.error('Erreur stats:', e);
+  }
+}
+
+async function loadDashRecent() {
+  try {
+    const { data: tx } = await sb.from('transactions').select('*').order('created_at', { ascending: false }).limit(8);
+    const div = $('dash-recent');
+    if (!tx || !tx.length) {
+      div.innerHTML = '<div class="empty">Aucune transaction</div>';
+      return;
+    }
+    const ICONS = { depot: '💰', retrait: '📤', revenu: '📈', commission: '🤝', bonus: '🎁', tache: '⛽' };
+    const COLORS = { depot: 'rgba(34,197,94,.12)', retrait: 'rgba(239,68,68,.1)', revenu: 'rgba(59,130,246,.12)', commission: 'rgba(139,92,246,.1)', bonus: 'rgba(245,158,11,.1)', tache: 'rgba(34,197,94,.1)' };
+    const AMT = { depot: '#22C55E', retrait: '#EF4444', revenu: '#3B82F6', commission: '#8B5CF6', bonus: '#F59E0B', tache: '#22C55E' };
+    div.innerHTML = tx.map(t => {
+      const sign = ['depot', 'revenu', 'commission', 'bonus', 'tache'].includes(t.type) ? '+' : '-';
+      const amt = t.type === 'retrait' ? (t.net_amount || t.amount) : t.amount;
+      return `<div class="tx-item">
+        <div class="tx-ico" style="background:${COLORS[t.type] || 'rgba(255,255,255,.05)'}">${ICONS[t.type] || '💳'}</div>
+        <div style="flex:1">
+          <div class="tx-desc">${t.description || t.type}</div>
+          <div class="tx-sub">${new Date(t.created_at).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+        </div>
+        <div>
+          <div class="tx-amt" style="color:${AMT[t.type] || '#fff'}">${sign}${(amt || 0).toLocaleString('fr-FR')} F</div>
+          <span class="tx-status ${t.status === 'success' ? 's-success' : t.status === 'pending' ? 's-pending' : 's-failed'}">${t.status === 'success' ? '✓' : t.status === 'pending' ? '⏳' : '✗'}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// ── USERS (chargement complet) ─────────────────────────
 async function loadAllUsers() {
   try {
     const allUsersData = await fetchAllRows('profiles', 'id, full_name, phone, level, balance, total_earnings, referral_code, referred_by, created_at, bonus_received');
     allUsers = allUsersData;
     renderUsers(allUsers);
-  } catch(e) { 
+  } catch (e) {
     console.error(e);
-    $('users-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;
+    $('users-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
   }
 }
 
-let currentUserFilter = '';
-let currentUserSearch = '';
-
 function filterUsers() {
-  currentUserSearch = $('user-search').value.trim().toLowerCase();
-  currentUserFilter = $('user-filter').value;
+  const search = $('user-search').value.trim().toLowerCase();
+  const filter = $('user-filter').value;
   let filtered = [...allUsers];
   
-  if(currentUserSearch) {
-    filtered = filtered.filter(u => 
-      (u.full_name||'').toLowerCase().includes(currentUserSearch) || 
-      (u.phone||'').includes(currentUserSearch) || 
-      (u.referral_code||'').toLowerCase().includes(currentUserSearch)
+  if (search) {
+    filtered = filtered.filter(u =>
+      (u.full_name || '').toLowerCase().includes(search) ||
+      (u.phone || '').includes(search) ||
+      (u.referral_code || '').toLowerCase().includes(search)
     );
   }
   
-  if(currentUserFilter === 'active') {
-    filtered = filtered.filter(u => (u.balance||0) > 0);
-  } else if(currentUserFilter === 'investing') {
-    // We'll need to check investments separately - for now show all
-    // This can be enhanced later
+  if (filter === 'active') {
+    filtered = filtered.filter(u => (u.balance || 0) > 0);
   }
   
   renderUsers(filtered);
 }
 
 function renderUsers(users) {
-  const div=$('users-list');
+  const div = $('users-list');
   const total = users.length;
   $('users-count').textContent = `${total} utilisateur(s)`;
-  if(!users.length){div.innerHTML='<div class="empty">Aucun résultat</div>';return;}
-  const LV=['badge-lv0','badge-lv1','badge-lv2','badge-lv3'];
-  const cards = users.map(u=>{
-    const name=u.full_name||'Sans nom';
-    const letter=name.charAt(0).toUpperCase();
-    const lv=parseInt(u.level)||0;
+  if (!users.length) {
+    div.innerHTML = '<div class="empty">Aucun résultat</div>';
+    return;
+  }
+  const LV = ['badge-lv0', 'badge-lv1', 'badge-lv2', 'badge-lv3'];
+  const cards = users.map(u => {
+    const name = u.full_name || 'Sans nom';
+    const letter = name.charAt(0).toUpperCase();
+    const lv = parseInt(u.level) || 0;
     return `<div class="user-item" onclick="openUserModal('${u.id}')">
-      <div class="user-av">${letter}</div>
+      <div class="user-av">${escapeHtml(letter)}</div>
       <div style="flex:1">
         <div class="user-name">${escapeHtml(name)}</div>
-        <div class="user-info">${u.phone||'—'} · Code: ${u.referral_code||'—'}</div>
+        <div class="user-info">${u.phone || '—'} · Code: ${u.referral_code || '—'}</div>
         <div class="user-info" style="margin-top:2px">${new Date(u.created_at).toLocaleDateString('fr-FR')}</div>
       </div>
       <div>
-        <div class="user-bal">${(u.balance||0).toLocaleString('fr-FR')} F</div>
-        <div class="user-level"><span class="badge ${LV[lv]||'badge-lv0'}">LV${lv}</span></div>
+        <div class="user-bal">${(u.balance || 0).toLocaleString('fr-FR')} F</div>
+        <div class="user-level"><span class="badge ${LV[lv] || 'badge-lv0'}">LV${lv}</span></div>
       </div>
     </div>`;
   }).join('');
   div.innerHTML = cards;
 }
 
-// ── INVESTMENTS (paginé complet) ─────────────────────
+// ── INVESTMENTS (chargement complet) ────────────────────
 async function loadAllInvestments() {
   try {
     const allInvestData = await fetchAllRows('investments', '*');
     const uids = [...new Set(allInvestData.map(r => r.user_id).filter(Boolean))];
     let profMap = {};
-    if(uids.length){
-      const {data:profs} = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
-      (profs||[]).forEach(p => { profMap[p.id] = p; });
+    if (uids.length) {
+      const { data: profs } = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
+      (profs || []).forEach(p => { profMap[p.id] = p; });
     }
-    allInvest = allInvestData.map(r => ({...r, profiles: profMap[r.user_id] || null}));
+    allInvest = allInvestData.map(r => ({ ...r, profiles: profMap[r.user_id] || null }));
     renderInvest(allInvest);
-  } catch(e) {
+  } catch (e) {
     console.error(e);
     $('invest-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
   }
@@ -533,8 +559,11 @@ function filterInvest() {
 
 function renderInvest(list) {
   const div = $('invest-list');
-  if(!list.length){div.innerHTML='<div class="empty">Aucun investissement</div>';return;}
-  const COLS={starter:'#22C55E',bronze:'#3B82F6',silver:'#F97316',gold:'#F59E0B',premium:'#EF4444',vip:'#8B5CF6',cold:'#0EA5E9'};
+  if (!list.length) {
+    div.innerHTML = '<div class="empty">Aucun investissement</div>';
+    return;
+  }
+  const COLS = { starter: '#22C55E', bronze: '#3B82F6', silver: '#F97316', gold: '#F59E0B', premium: '#EF4444', vip: '#8B5CF6', cold: '#0EA5E9' };
   div.innerHTML = list.map(i => {
     const pct = Math.round(((i.days_total - i.days_remaining) / i.days_total) * 100);
     const col = COLS[i.plan_id] || '#94A3B8';
@@ -542,32 +571,32 @@ function renderInvest(list) {
       <div class="inv-header">
         <div><div class="inv-plan">Plan ${i.plan_name}</div><div class="inv-user">${escapeHtml(i.profiles?.full_name || '—')} · ${i.profiles?.phone || '—'}</div></div>
         <div style="text-align:right">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:${col}">${(i.amount||0).toLocaleString('fr-FR')} F</div>
-          <div style="font-size:10.5px;color:var(--muted)">${(i.daily_revenue||0).toLocaleString('fr-FR')} F/j</div>
-          <span class="badge ${i.status==='active'?'badge-active':'badge-completed'}">${i.status==='active'?'Actif':'Terminé'}</span>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:${col}">${(i.amount || 0).toLocaleString('fr-FR')} F</div>
+          <div style="font-size:10.5px;color:var(--muted)">${(i.daily_revenue || 0).toLocaleString('fr-FR')} F/j</div>
+          <span class="badge ${i.status === 'active' ? 'badge-active' : 'badge-completed'}">${i.status === 'active' ? 'Actif' : 'Terminé'}</span>
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
-        <span>${i.days_remaining||0} j restants</span><span>${pct}%</span>
+        <span>${i.days_remaining || 0} j restants</span><span>${pct}%</span>
       </div>
       <div class="inv-progress"><div class="inv-bar" style="width:${pct}%;background:${col}"></div></div>
     </div>`;
   }).join('');
 }
 
-// ── DEPOSITS (paginé complet) ────────────────────────
+// ── DEPOSITS (chargement complet) ──────────────────────
 async function loadAllDeposits() {
   try {
     const allDepositsData = await fetchAllRows('transactions', '*', (q) => q.in('type', ['depot', 'bonus']));
     const uids = [...new Set(allDepositsData.map(r => r.user_id).filter(Boolean))];
     let profMap = {};
-    if(uids.length){
-      const {data:profs} = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
-      (profs||[]).forEach(p => { profMap[p.id] = p; });
+    if (uids.length) {
+      const { data: profs } = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
+      (profs || []).forEach(p => { profMap[p.id] = p; });
     }
-    allDeposits = allDepositsData.map(r => ({...r, profiles: profMap[r.user_id] || null}));
+    allDeposits = allDepositsData.map(r => ({ ...r, profiles: profMap[r.user_id] || null }));
     renderDeposits(allDeposits);
-  } catch(e) {
+  } catch (e) {
     console.error(e);
     $('deposits-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
   }
@@ -578,16 +607,25 @@ function filterDeposits() {
   const f = $('dep-filter').value;
   renderDeposits(allDeposits.filter(d => {
     const name = (d.profiles?.full_name || '').toLowerCase();
-    return (!q || name.includes(q) || d.description.toLowerCase().includes(q)) && (f === 'all' || d.status === f);
+    return (!q || name.includes(q) || (d.description || '').toLowerCase().includes(q)) && (f === 'all' || d.status === f);
   }));
 }
 
 function renderDeposits(list) {
   const div = $('deposits-list');
-  if(!list.length){div.innerHTML='<div class="empty">Aucune recharge</div>';return;}
-  const cards = list.map(d => {
+  if (!list.length) {
+    div.innerHTML = '<div class="empty">Aucune recharge</div>';
+    return;
+  }
+  
+  // Séparer les recharges en attente et les autres
+  const pending = list.filter(d => d.status === 'pending');
+  const others = list.filter(d => d.status !== 'pending');
+  const sortedList = [...pending, ...others];
+  
+  const cards = sortedList.map(d => {
     let proofUrl = '';
-    if(d.description && d.description.includes('PROOF:')) {
+    if (d.description && d.description.includes('PROOF:')) {
       proofUrl = d.description.split('PROOF:')[1]?.split(' ')[0] || '';
     }
     const proofHtml = proofUrl
@@ -599,45 +637,47 @@ function renderDeposits(list) {
         <div style="flex:1">
           <div class="tx-desc">${escapeHtml(d.profiles?.full_name || 'Utilisateur')}</div>
           <div class="tx-sub">${d.method || d.type} · ${d.profiles?.phone || d.phone || '—'}</div>
-          <div class="tx-sub">${new Date(d.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+          <div class="tx-sub">${new Date(d.created_at).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
-          <div class="tx-amt" style="color:#22C55E">+${(d.amount||0).toLocaleString('fr-FR')} F</div>
-          <span class="tx-status ${d.status==='success'?'s-success':d.status==='pending'?'s-pending':'s-failed'}">${d.status==='success'?'✓ Validé':d.status==='pending'?'⏳ Attente':'✗ Échoué'}</span>
+          <div class="tx-amt" style="color:#22C55E">+${(d.amount || 0).toLocaleString('fr-FR')} F</div>
+          <span class="tx-status ${d.status === 'success' ? 's-success' : d.status === 'pending' ? 's-pending' : 's-failed'}">${d.status === 'success' ? '✓ Validé' : d.status === 'pending' ? '⏳ En attente' : '✗ Échoué'}</span>
         </div>
       </div>
       ${proofHtml}
-      ${d.status==='pending' ? `<button onclick="validateDeposit('${d.id}','${d.user_id}',${d.amount})" style="width:100%;padding:9px;background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">✅ Valider la recharge</button>` : ''}
+      ${d.status === 'pending' ? `<button onclick="validateDeposit('${d.id}','${d.user_id}',${d.amount})" style="width:100%;padding:9px;background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">✅ Valider la recharge</button>` : ''}
     </div>`;
   }).join('');
-  div.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">${list.length} recharge(s)</div>` + cards;
+  
+  div.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">${list.length} recharge(s) - ${pending.length} en attente</div>` + cards;
 }
 
 async function validateDeposit(txId, userId, amount) {
   try {
-    await sb.from('transactions').update({status:'success'}).eq('id',txId);
-    const {data:p}=await sb.from('profiles').select('balance').eq('id',userId).single();
-    await sb.from('profiles').update({balance:(p?.balance||0)+amount}).eq('id',userId);
-    toast('Recharge validée: +'+amount.toLocaleString('fr-FR')+' FCFA');
-    // Reload deposits to reflect changes
+    await sb.from('transactions').update({ status: 'success' }).eq('id', txId);
+    const { data: p } = await sb.from('profiles').select('balance').eq('id', userId).single();
+    await sb.from('profiles').update({ balance: (p?.balance || 0) + amount }).eq('id', userId);
+    toast('Recharge validée: +' + amount.toLocaleString('fr-FR') + ' FCFA');
     await loadAllDeposits();
-    loadStats();
-  } catch(e){toast('Erreur: '+e.message);}
+    await loadAllStats();
+  } catch (e) {
+    toast('Erreur: ' + e.message);
+  }
 }
 
-// ── WITHDRAWALS (paginé complet) ─────────────────────
+// ── WITHDRAWALS (chargement complet) ────────────────────
 async function loadAllWithdrawals() {
   try {
     const allWithdrawalsData = await fetchAllRows('transactions', '*', (q) => q.eq('type', 'retrait'));
     const uids = [...new Set(allWithdrawalsData.map(r => r.user_id).filter(Boolean))];
     let profMap = {};
-    if(uids.length){
-      const {data:profs} = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
-      (profs||[]).forEach(p => { profMap[p.id] = p; });
+    if (uids.length) {
+      const { data: profs } = await sb.from('profiles').select('id,full_name,phone').in('id', uids);
+      (profs || []).forEach(p => { profMap[p.id] = p; });
     }
-    allWithdrawals = allWithdrawalsData.map(r => ({...r, profiles: profMap[r.user_id] || null}));
+    allWithdrawals = allWithdrawalsData.map(r => ({ ...r, profiles: profMap[r.user_id] || null }));
     renderWithdrawals(allWithdrawals);
-  } catch(e) {
+  } catch (e) {
     console.error(e);
     $('withdrawals-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
   }
@@ -645,22 +685,27 @@ async function loadAllWithdrawals() {
 
 function renderWithdrawals(list) {
   const div = $('withdrawals-list');
-  if(!list.length){div.innerHTML='<div class="empty">Aucun retrait</div>';return;}
-  div.innerHTML = list.map(r => `
+  if (!list.length) {
+    div.innerHTML = '<div class="empty">Aucun retrait</div>';
+    return;
+  }
+  const pending = list.filter(r => r.status === 'pending');
+  const sorted = [...pending, ...list.filter(r => r.status !== 'pending')];
+  div.innerHTML = sorted.map(r => `
     <div class="ret-item">
       <div class="ret-header">
         <div>
           <div class="ret-user">${escapeHtml(r.profiles?.full_name || '—')}</div>
           <div class="ret-detail">${r.profiles?.phone || '—'}</div>
           <div class="ret-detail">${r.description || '—'}</div>
-          <div class="ret-detail">${new Date(r.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+          <div class="ret-detail">${new Date(r.created_at).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
         </div>
         <div>
-          <div class="ret-amt">${(r.net_amount||r.amount||0).toLocaleString('fr-FR')} F</div>
-          <span class="tx-status ${r.status==='success'?'s-success':r.status==='pending'?'s-pending':'s-failed'}">${r.status==='success'?'Traité':r.status==='pending'?'En attente':'Refusé'}</span>
+          <div class="ret-amt">${(r.net_amount || r.amount || 0).toLocaleString('fr-FR')} F</div>
+          <span class="tx-status ${r.status === 'success' ? 's-success' : r.status === 'pending' ? 's-pending' : 's-failed'}">${r.status === 'success' ? 'Traité' : r.status === 'pending' ? '⏳ En attente' : 'Refusé'}</span>
         </div>
       </div>
-      ${r.status==='pending' ? `
+      ${r.status === 'pending' ? `
       <div class="ret-btns">
         <button class="rbtn rbtn-ok" onclick="processWithdrawal('${r.id}','success')">✓ Confirmer envoi</button>
         <button class="rbtn rbtn-no" onclick="processWithdrawal('${r.id}','failed')">✗ Rejeter</button>
@@ -669,45 +714,50 @@ function renderWithdrawals(list) {
 }
 
 async function processWithdrawal(txId, status) {
-  const action=status==='success'?'Confirmer':'Rejeter';
-  if(!confirm(action+' ce retrait ?')) return;
+  const action = status === 'success' ? 'Confirmer' : 'Rejeter';
+  if (!confirm(action + ' ce retrait ?')) return;
   try {
-    await sb.from('transactions').update({status}).eq('id',txId);
-    if(status==='failed') {
-      const tx=allWithdrawals.find(r=>r.id===txId);
-      if(tx) {
-        const {data:p}=await sb.from('profiles').select('balance').eq('id',tx.user_id).single();
-        await sb.from('profiles').update({balance:(p?.balance||0)+tx.amount}).eq('id',tx.user_id);
+    await sb.from('transactions').update({ status }).eq('id', txId);
+    if (status === 'failed') {
+      const tx = allWithdrawals.find(r => r.id === txId);
+      if (tx) {
+        const { data: p } = await sb.from('profiles').select('balance').eq('id', tx.user_id).single();
+        await sb.from('profiles').update({ balance: (p?.balance || 0) + tx.amount }).eq('id', tx.user_id);
       }
     }
     await loadAllWithdrawals();
-    loadStats();
-    toast(status==='success'?'Retrait confirmé ✓':'Retrait rejeté — montant remboursé');
-  } catch(e){toast('Erreur: '+e.message);}
+    await loadAllStats();
+    toast(status === 'success' ? 'Retrait confirmé ✓' : 'Retrait rejeté — montant remboursé');
+  } catch (e) {
+    toast('Erreur: ' + e.message);
+  }
 }
 
-// ── REFERRALS (paginé complet) ───────────────────────
+// ── REFERRALS (chargement complet) ──────────────────────
 async function loadAllReferrals() {
   try {
     const allRefsData = await fetchAllRows('referrals', '*');
     const uids = [...new Set(allRefsData.map(r => r.referrer_id).filter(Boolean))];
     let profMap = {};
-    if(uids.length){
-      const {data:profs} = await sb.from('profiles').select('id,full_name,referral_code').in('id', uids);
-      (profs||[]).forEach(p => { profMap[p.id] = p; });
+    if (uids.length) {
+      const { data: profs } = await sb.from('profiles').select('id,full_name,referral_code').in('id', uids);
+      (profs || []).forEach(p => { profMap[p.id] = p; });
     }
-    allRefs = allRefsData.map(r => ({...r, profiles: profMap[r.referrer_id] || null}));
+    allRefs = allRefsData.map(r => ({ ...r, profiles: profMap[r.referrer_id] || null }));
     renderReferrals(allRefs);
-  } catch(e) {
+  } catch (e) {
     console.error(e);
     $('referrals-list').innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
   }
 }
 
 function renderReferrals(list) {
-  const div=$('referrals-list');
-  if(!list.length){div.innerHTML='<div class="empty">Aucun parrainage</div>';return;}
-  div.innerHTML=list.map(r => `
+  const div = $('referrals-list');
+  if (!list.length) {
+    div.innerHTML = '<div class="empty">Aucun parrainage</div>';
+    return;
+  }
+  div.innerHTML = list.map(r => `
     <div class="tx-item">
       <div class="tx-ico" style="background:rgba(139,92,246,.1)">👑</div>
       <div style="flex:1">
@@ -716,134 +766,162 @@ function renderReferrals(list) {
         <div class="tx-sub">${new Date(r.created_at).toLocaleDateString('fr-FR')}</div>
       </div>
       <div>
-        <div class="tx-amt" style="color:#8B5CF6">+${(r.commission||0).toLocaleString('fr-FR')} F</div>
-        <span class="tx-status ${r.invested_amount>0?'s-success':'s-pending'}">${r.invested_amount>0?'Investi':'En attente'}</span>
+        <div class="tx-amt" style="color:#8B5CF6">+${(r.commission || 0).toLocaleString('fr-FR')} F</div>
+        <span class="tx-status ${r.invested_amount > 0 ? 's-success' : 's-pending'}">${r.invested_amount > 0 ? 'Investi' : 'En attente'}</span>
       </div>
     </div>`).join('');
 }
 
-// ── MESSAGES ─────────────────────────────────────────
+// ── MESSAGES ────────────────────────────────────────────
 async function sendBonus() {
-  const userInput=$('msg-user').value.trim();
-  const amount=parseFloat($('msg-bonus').value)||0;
-  if(amount<=0){toast('Entrez un montant valide');return;}
+  const userInput = $('msg-user').value.trim();
+  const amount = parseFloat($('msg-bonus').value) || 0;
+  if (amount <= 0) {
+    toast('Entrez un montant valide');
+    return;
+  }
   try {
-    if(userInput) {
-      const {data:p}=await sb.from('profiles').select('id,balance').or('full_name.ilike.%'+userInput+'%').limit(1).single();
-      if(!p){toast('Utilisateur introuvable');return;}
-      await sb.from('profiles').update({balance:(p.balance||0)+amount}).eq('id',p.id);
-      await sb.from('transactions').insert({user_id:p.id,type:'bonus',amount,fee:0,net_amount:amount,status:'success',description:'Bonus admin'});
-      toast('Bonus de '+amount.toLocaleString('fr-FR')+' FCFA envoyé ✓');
+    if (userInput) {
+      const { data: p } = await sb.from('profiles').select('id,balance').or('full_name.ilike.%' + userInput + '%').limit(1).single();
+      if (!p) {
+        toast('Utilisateur introuvable');
+        return;
+      }
+      await sb.from('profiles').update({ balance: (p.balance || 0) + amount }).eq('id', p.id);
+      await sb.from('transactions').insert({ user_id: p.id, type: 'bonus', amount, fee: 0, net_amount: amount, status: 'success', description: 'Bonus admin' });
+      toast('Bonus de ' + amount.toLocaleString('fr-FR') + ' FCFA envoyé ✓');
       await loadAllUsers();
     } else {
-      const {data:all}=await sb.from('profiles').select('id, balance');
-      for(const p of all||[]) {
-        await sb.from('profiles').update({balance:(p.balance||0)+amount}).eq('id',p.id);
+      const { data: all } = await sb.from('profiles').select('id, balance');
+      for (const p of all || []) {
+        await sb.from('profiles').update({ balance: (p.balance || 0) + amount }).eq('id', p.id);
       }
-      await sb.from('transactions').insert((all||[]).map(p=>({user_id:p.id,type:'bonus',amount,fee:0,net_amount:amount,status:'success',description:'Bonus global admin'})));
-      toast('Bonus envoyé à '+(all||[]).length+' utilisateurs ✓');
+      await sb.from('transactions').insert((all || []).map(p => ({ user_id: p.id, type: 'bonus', amount, fee: 0, net_amount: amount, status: 'success', description: 'Bonus global admin' })));
+      toast('Bonus envoyé à ' + (all || []).length + ' utilisateurs ✓');
       await loadAllUsers();
     }
-    $('msg-bonus').value='';
-    loadStats();
-  } catch(e){toast('Erreur: '+e.message);}
+    $('msg-bonus').value = '';
+    await loadAllStats();
+  } catch (e) {
+    toast('Erreur: ' + e.message);
+  }
 }
 
 function sendNotif() {
-  const msg=$('msg-text').value.trim();
-  if(!msg){toast('Entrez un message');return;}
+  const msg = $('msg-text').value.trim();
+  if (!msg) {
+    toast('Entrez un message');
+    return;
+  }
   toast('Notification enregistrée ✓ (implémentation webhook requise)');
-  $('msg-text').value='';
+  $('msg-text').value = '';
 }
 
-// ── USER MODAL ────────────────────────────────────────
-let modalUser=null;
+// ── USER MODAL ──────────────────────────────────────────
+let modalUser = null;
 
 async function openUserModal(uid) {
-  const u=allUsers.find(x=>x.id===uid);
-  if(!u) return;
-  modalUser=u;
-  $('modal-uid').value=uid;
-  $('modal-title').textContent=(u.full_name||'Utilisateur');
-  $('m-name').value=u.full_name||'';
-  $('m-phone').value=u.phone||'';
-  $('m-level').value=String(parseInt(u.level)||0);
-  $('m-curbal').textContent=(u.balance||0).toLocaleString('fr-FR');
-  $('m-email').textContent='—';
-  $('m-date').textContent=new Date(u.created_at).toLocaleDateString('fr-FR');
-  $('m-invcount').textContent='—';
-  $('m-refcode').textContent=u.referral_code||'—';
-  $('m-bal-input').value='';
+  const u = allUsers.find(x => x.id === uid);
+  if (!u) return;
+  modalUser = u;
+  $('modal-uid').value = uid;
+  $('modal-title').textContent = (u.full_name || 'Utilisateur');
+  $('m-name').value = u.full_name || '';
+  $('m-phone').value = u.phone || '';
+  $('m-level').value = String(parseInt(u.level) || 0);
+  $('m-curbal').textContent = (u.balance || 0).toLocaleString('fr-FR');
+  $('m-email').textContent = '—';
+  $('m-date').textContent = new Date(u.created_at).toLocaleDateString('fr-FR');
+  $('m-invcount').textContent = '—';
+  $('m-refcode').textContent = u.referral_code || '—';
+  $('m-bal-input').value = '';
   
   try {
-    const {data:inv}=await sb.from('investments').select('id,status').eq('user_id',uid);
-    $('m-invcount').textContent=(inv||[]).filter(i=>i.status==='active').length+' actif(s)';
-  } catch(e) {}
+    const { data: inv } = await sb.from('investments').select('id,status').eq('user_id', uid);
+    $('m-invcount').textContent = (inv || []).filter(i => i.status === 'active').length + ' actif(s)';
+  } catch (e) { }
   
   $('user-modal').classList.add('on');
 }
 
-function closeUserModal() { $('user-modal').classList.remove('on'); modalUser=null; }
+function closeUserModal() {
+  $('user-modal').classList.remove('on');
+  modalUser = null;
+}
 
 async function modifyBal(action) {
-  const uid=$('modal-uid').value;
-  const val=parseFloat($('m-bal-input').value)||0;
-  if(!uid) return;
-  if(action!=='set'&&val<=0){toast('Entrez un montant valide');return;}
+  const uid = $('modal-uid').value;
+  const val = parseFloat($('m-bal-input').value) || 0;
+  if (!uid) return;
+  if (action !== 'set' && val <= 0) {
+    toast('Entrez un montant valide');
+    return;
+  }
   try {
-    const {data:p}=await sb.from('profiles').select('balance').eq('id',uid).single();
-    const cur=p?.balance||0;
-    let newBal=action==='add'?cur+val:action==='sub'?Math.max(0,cur-val):val;
-    await sb.from('profiles').update({balance:newBal}).eq('id',uid);
-    if(action==='add'){
-      await sb.from('transactions').insert({user_id:uid,type:'bonus',amount:val,fee:0,net_amount:val,status:'success',description:'Crédit admin'});
+    const { data: p } = await sb.from('profiles').select('balance').eq('id', uid).single();
+    const cur = p?.balance || 0;
+    let newBal = action === 'add' ? cur + val : action === 'sub' ? Math.max(0, cur - val) : val;
+    await sb.from('profiles').update({ balance: newBal }).eq('id', uid);
+    if (action === 'add') {
+      await sb.from('transactions').insert({ user_id: uid, type: 'bonus', amount: val, fee: 0, net_amount: val, status: 'success', description: 'Crédit admin' });
     }
-    $('m-curbal').textContent=newBal.toLocaleString('fr-FR');
-    const u=allUsers.find(x=>x.id===uid);
-    if(u) u.balance=newBal;
-    toast('Solde mis à jour: '+newBal.toLocaleString('fr-FR')+' FCFA');
-    loadStats();
-    await loadAllUsers();
-    if($('sec-users').classList.contains('on')) renderUsers(allUsers);
-  } catch(e){toast('Erreur: '+e.message);}
+    $('m-curbal').textContent = newBal.toLocaleString('fr-FR');
+    const u = allUsers.find(x => x.id === uid);
+    if (u) u.balance = newBal;
+    toast('Solde mis à jour: ' + newBal.toLocaleString('fr-FR') + ' FCFA');
+    await loadAllStats();
+    if ($('sec-users').classList.contains('on')) renderUsers(allUsers);
+  } catch (e) {
+    toast('Erreur: ' + e.message);
+  }
 }
 
 async function saveUser() {
-  const uid=$('modal-uid').value;
-  const name=$('m-name').value.trim();
-  const phone=$('m-phone').value.trim();
-  const level=parseInt($('m-level').value)||0;
-  if(!name){toast('Le nom est requis');return;}
+  const uid = $('modal-uid').value;
+  const name = $('m-name').value.trim();
+  const phone = $('m-phone').value.trim();
+  const level = parseInt($('m-level').value) || 0;
+  if (!name) {
+    toast('Le nom est requis');
+    return;
+  }
   try {
-    await sb.from('profiles').update({full_name:name,phone:phone,level:level}).eq('id',uid);
-    const u=allUsers.find(x=>x.id===uid);
-    if(u){u.full_name=name;u.phone=phone;u.level=level;}
-    if($('sec-users').classList.contains('on')) renderUsers(allUsers);
+    await sb.from('profiles').update({ full_name: name, phone: phone, level: level }).eq('id', uid);
+    const u = allUsers.find(x => x.id === uid);
+    if (u) {
+      u.full_name = name;
+      u.phone = phone;
+      u.level = level;
+    }
+    if ($('sec-users').classList.contains('on')) renderUsers(allUsers);
     closeUserModal();
     toast('Utilisateur mis à jour ✓');
-  } catch(e){toast('Erreur: '+e.message);}
+  } catch (e) {
+    toast('Erreur: ' + e.message);
+  }
 }
 
 async function deleteUser() {
-  const uid=$('modal-uid').value;
-  if(!uid||!confirm('Supprimer définitivement cet utilisateur ?')) return;
+  const uid = $('modal-uid').value;
+  if (!uid || !confirm('Supprimer définitivement cet utilisateur ?')) return;
   try {
-    await sb.from('profiles').delete().eq('id',uid);
-    allUsers=allUsers.filter(u=>u.id!==uid);
-    if($('sec-users').classList.contains('on')) renderUsers(allUsers);
+    await sb.from('profiles').delete().eq('id', uid);
+    allUsers = allUsers.filter(u => u.id !== uid);
+    if ($('sec-users').classList.contains('on')) renderUsers(allUsers);
     closeUserModal();
-    loadStats();
+    await loadAllStats();
     toast('Utilisateur supprimé');
-  } catch(e){toast('Erreur: '+e.message);}
+  } catch (e) {
+    toast('Erreur: ' + e.message);
+  }
 }
 
-// Helper function to escape HTML
 function escapeHtml(str) {
-  if(!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if(m === '&') return '&amp;';
-    if(m === '<') return '&lt;';
-    if(m === '>') return '&gt;';
+  if (!str) return '';
+  return String(str).replace(/[&<>]/g, function (m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
     return m;
   });
 }
