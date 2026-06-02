@@ -17,6 +17,7 @@
 html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text)}
 #app{height:100%;display:flex;flex-direction:column}
 
+/* TOPBAR */
 .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .logo{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:700;color:var(--white)}
 .logo span{color:var(--red)}
@@ -24,13 +25,16 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .quit-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px}
 .quit-btn:hover{color:var(--red)}
 
+/* TAB NAV */
 .tab-nav{display:flex;gap:0;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0}
 .tab-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 16px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap}
 .tab-btn.on{color:var(--white);border-bottom-color:var(--blue)}
 
+/* SECTIONS */
 .section{display:none;flex:1;overflow-y:auto;padding:14px}
 .section.on{display:block}
 
+/* STATS GRID */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .stat-card{background:var(--card);border-radius:14px;padding:16px 14px;border:1px solid var(--border);position:relative}
 .stat-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
@@ -56,6 +60,7 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .search-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);outline:none}
 .filter-select{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);cursor:pointer}
 
+/* USER LIST */
 .user-item{background:var(--card);border-radius:13px;padding:13px 14px;border:1px solid var(--border);margin-bottom:9px;display:flex;align-items:center;gap:12px;cursor:pointer}
 .user-item:hover{background:var(--card2)}
 .user-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#C41C1C,#9E1616);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
@@ -63,6 +68,7 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .user-info{font-size:11.5px;color:var(--muted)}
 .user-bal{font-family:"Cormorant Garamond",serif;font-size:16px;font-weight:700;color:var(--gold);text-align:right}
 
+/* TRANSACTION ITEM */
 .tx-item{background:var(--card);border-radius:12px;padding:12px 13px;border:1px solid var(--border);margin-bottom:8px;display:flex;align-items:center;gap:11px;cursor:pointer}
 .tx-item:hover{background:var(--card2)}
 .tx-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
@@ -74,6 +80,7 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .s-success{background:rgba(34,197,94,.15);color:#22C55E}
 .s-failed{background:rgba(239,68,68,.15);color:#EF4444}
 
+/* INVEST ITEM */
 .inv-item{background:var(--card);border-radius:12px;padding:13px;border:1px solid var(--border);margin-bottom:9px}
 .inv-header{display:flex;justify-content:space-between;margin-bottom:8px}
 .inv-plan{font-size:14px;font-weight:600;color:var(--white)}
@@ -81,6 +88,7 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .inv-progress{background:rgba(255,255,255,.08);border-radius:4px;height:5px;margin-top:8px}
 .inv-bar{height:100%;border-radius:4px;background:var(--green)}
 
+/* RETRAIT ITEM */
 .ret-item{background:var(--card);border-radius:13px;padding:14px;border:1px solid var(--border);margin-bottom:9px}
 .ret-header{display:flex;justify-content:space-between;margin-bottom:10px}
 .ret-user{font-size:14px;font-weight:600;color:var(--white)}
@@ -91,9 +99,10 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .rbtn-ok{background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3)}
 .rbtn-no{background:rgba(239,68,68,.1);color:#EF4444;border:1px solid rgba(239,68,68,.2)}
 
+/* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:center;justify-content:center}
 .modal-bg.on{display:flex}
-.modal{background:var(--card);border-radius:22px;width:90%;max-width:500px;max-height:85vh;overflow-y:auto}
+.modal{background:var(--card);border-radius:22px;width:90%;max-width:550px;max-height:85vh;overflow-y:auto}
 .mhdr{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 .mtitle{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:var(--white)}
 .mclose{background:var(--card2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;color:var(--muted);font-size:18px}
@@ -111,6 +120,14 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .msave-btn{width:100%;padding:13px;border-radius:11px;border:none;cursor:pointer;font-weight:600;background:linear-gradient(135deg,#1D4ED8,#1e40af);color:#fff;margin-bottom:8px}
 .mdel-btn{width:100%;padding:11px;border-radius:11px;border:1px solid rgba(239,68,68,.3);cursor:pointer;background:rgba(239,68,68,.08);color:#EF4444}
 
+/* PROOF SECTION */
+.proof-container{background:var(--card2);border-radius:11px;padding:13px;margin-bottom:16px}
+.proof-image{width:100%;border-radius:10px;margin-top:10px;cursor:pointer;max-height:300px;object-fit:contain}
+.modal-buttons{display:flex;gap:10px;margin-top:16px}
+.modal-buttons button{flex:1;padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+.btn-validate{background:#22C55E;color:#fff}
+.btn-reject{background:#EF4444;color:#fff}
+
 .msg-form{background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--border);margin-bottom:14px}
 .msg-ta{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);resize:none;min-height:80px}
 .loader{text-align:center;padding:40px;color:var(--muted)}
@@ -119,22 +136,14 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .empty{text-align:center;padding:36px;color:var(--muted)}
 .badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px}
 .badge-active{background:rgba(34,197,94,.15);color:#22C55E}
-.badge-lv0{background:rgba(100,116,139,.15);color:#94A3B8}
-.badge-lv1{background:rgba(34,197,94,.15);color:#22C55E}
-.badge-lv2{background:rgba(245,158,11,.15);color:#F59E0B}
-.badge-lv3{background:rgba(139,92,246,.15);color:#8B5CF6}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;z-index:9999;transition:transform .3s}
 #toast.show{transform:translateX(-50%) translateY(0)}
-.modal-buttons{display:flex;gap:10px;margin-top:16px}
-.modal-buttons button{flex:1;padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
-.btn-validate{background:#22C55E;color:#fff}
-.btn-reject{background:#EF4444;color:#fff}
-.proof-image{width:100%;border-radius:10px;margin-top:10px;cursor:pointer}
 </style>
 </head>
 <body>
 <div id="toast"></div>
 <div id="app">
+
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:10px">
     <div class="logo">MARA<span>THON</span></div>
@@ -250,7 +259,7 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
   </div>
 </div>
 
-<!-- MODALE RECHARGE -->
+<!-- MODALE RECHARGE AVEC PREUVE -->
 <div class="modal-bg" id="deposit-modal" onclick="if(event.target===this)closeDepositModal()">
   <div class="modal">
     <div class="mhdr"><div class="mtitle">📸 Vérification recharge</div><button class="mclose" onclick="closeDepositModal()">✕</button></div>
@@ -267,17 +276,12 @@ let allUsers = [], allDeposits = [], allWithdrawals = [], allInvest = [], allRef
 let loadedTabs = new Set();
 let currentDeposit = null;
 
-function toast(msg) { const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2500); }
-
-window.addEventListener('DOMContentLoaded', async () => {
-  const {data:{session}} = await sb.auth.getSession();
-  if (!session) { location.href='index.html'; return; }
-  if (!ADMINS.includes(session.user.email?.toLowerCase())) { alert('Accès refusé'); location.href='dashboard.html'; return; }
-  await loadAllStats();
-  loadDashRecent();
-});
-
-function doQuit() { if(confirm('Déconnexion ?')) { sb.auth.signOut(); location.href='index.html'; } }
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
 
 async function fetchAllRows(table, select='*', filterFn=null, batchSize=1000) {
   let allRows = [], start = 0;
@@ -300,7 +304,6 @@ async function loadAllStats() {
     const invests = await fetchAllRows('investments', 'id, status');
     const transactions = await fetchAllRows('transactions', 'id, type, status');
     const refs = await fetchAllRows('referrals', 'id, commission');
-    
     $('st-users').textContent = users.length;
     $('st-balance').textContent = users.reduce((s,u)=>s+(u.balance||0),0).toLocaleString('fr-FR');
     $('st-invest').textContent = invests.filter(i=>i.status==='active').length;
@@ -309,6 +312,16 @@ async function loadAllStats() {
     $('st-commissions').textContent = refs.reduce((s,r)=>s+(r.commission||0),0).toLocaleString('fr-FR');
   } catch(e) { console.error(e); }
 }
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const {data:{session}} = await sb.auth.getSession();
+  if (!session) { location.href='index.html'; return; }
+  if (!ADMINS.includes(session.user.email?.toLowerCase())) { alert('Accès refusé'); location.href='dashboard.html'; return; }
+  await loadAllStats();
+  loadDashRecent();
+});
+
+function doQuit() { if(confirm('Déconnexion ?')) { sb.auth.signOut(); location.href='index.html'; } }
 
 async function loadDashRecent() {
   try {
@@ -369,7 +382,7 @@ function renderInvest(list) {
   $('invest-list').innerHTML = list.map(i=>`<div class="inv-item"><div class="inv-header"><div><div class="inv-plan">${i.plan_name}</div><div class="inv-user">${i.user?.full_name||'—'}</div></div><div><div class="tx-amt" style="color:#F59E0B">${(i.amount||0).toLocaleString()} F</div><span class="badge ${i.status==='active'?'badge-active':''}">${i.status}</span></div></div><div class="inv-progress"><div class="inv-bar" style="width:${Math.round(((i.days_total-i.days_remaining)/i.days_total)*100)}%"></div></div><div class="inv-user" style="margin-top:8px">${i.days_remaining} jours restants</div></div>`).join('');
 }
 
-// RECHARGES - avec modale de vérification
+// RECHARGES AVEC PREUVE
 async function loadAllDeposits() {
   try {
     const data = await fetchAllRows('transactions', '*', q=>q.in('type',['depot','bonus']));
@@ -399,15 +412,23 @@ function openDepositModal(depositId) {
   if(!deposit) return;
   currentDeposit = deposit;
   
-  // Extraire l'URL de la preuve
+  // Extraire l'URL de la preuve depuis la description
   let proofUrl = '';
+  let proofImage = '';
   if(deposit.description && deposit.description.includes('PROOF:')) {
-    proofUrl = deposit.description.split('PROOF:')[1]?.split(' ')[0] || '';
+    let proofPart = deposit.description.split('PROOF:')[1];
+    if(proofPart) {
+      proofUrl = proofPart.split(' ')[0];
+    }
+  }
+  // Vérifier aussi le champ proof_image s'il existe
+  if(deposit.proof_image) {
+    proofImage = deposit.proof_image;
   }
   
   const user = deposit.user;
   const content = `
-    <div style="margin-bottom:16px">
+    <div class="proof-container">
       <div class="minfo-row"><span>👤 Nom</span><b>${user?.full_name || '—'}</b></div>
       <div class="minfo-row"><span>📧 Email</span><b>${user?.email || '—'}</b></div>
       <div class="minfo-row"><span>📱 Téléphone</span><b>${user?.phone || '—'}</b></div>
@@ -418,7 +439,14 @@ function openDepositModal(depositId) {
       <div class="minfo-row"><span>🏦 Méthode</span><b>${deposit.method || 'Wave/OM'}</b></div>
       <div class="minfo-row"><span>📝 Référence</span><b>${deposit.reference || '—'}</b></div>
     </div>
-    ${proofUrl ? `<div style="margin:12px 0"><label style="font-size:11px;color:var(--muted)">📸 PREUVE DE PAIEMENT</label><img src="${proofUrl}" class="proof-image" onclick="window.open('${proofUrl}','_blank')"/></div>` : '<div style="background:rgba(239,68,68,.1);padding:12px;border-radius:10px;text-align:center;color:#EF4444;margin:12px 0">⚠️ Aucune preuve fournie</div>'}
+    ${(proofUrl || proofImage) ? `
+      <div class="proof-container">
+        <div class="minfo-row"><span style="color:var(--gold)">📸 PREUVE DE PAIEMENT</span><span></span></div>
+        <img src="${proofImage || proofUrl}" class="proof-image" onclick="window.open('${proofImage || proofUrl}','_blank')" 
+             onerror="this.src='https://placehold.co/400x300/1E3050/8A7070?text=Image+non+chargeable'"/>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">Cliquez sur l'image pour agrandir</div>
+      </div>
+    ` : '<div class="proof-container" style="background:rgba(239,68,68,.1);color:#EF4444;text-align:center;padding:15px">⚠️ Aucune preuve fournie pour cette recharge</div>'}
     <div class="modal-buttons">
       <button class="btn-validate" onclick="validateDeposit('${deposit.id}', '${deposit.user_id}', ${deposit.amount})">✅ Valider la recharge</button>
       <button class="btn-reject" onclick="rejectDeposit('${deposit.id}', '${deposit.user_id}', ${deposit.amount})">❌ Refuser</button>
@@ -434,7 +462,7 @@ function closeDepositModal() {
 }
 
 async function validateDeposit(txId, userId, amount) {
-  if(!confirm(`Valider la recharge de ${amount.toLocaleString()} FCFA pour cet utilisateur ?`)) return;
+  if(!confirm(`✅ Valider la recharge de ${amount.toLocaleString()} FCFA pour cet utilisateur ?\n\nLe solde sera automatiquement crédité.`)) return;
   try {
     await sb.from('transactions').update({status:'success'}).eq('id',txId);
     const {data:p}=await sb.from('profiles').select('balance').eq('id',userId).single();
@@ -448,7 +476,7 @@ async function validateDeposit(txId, userId, amount) {
 }
 
 async function rejectDeposit(txId, userId, amount) {
-  if(!confirm(`Refuser cette recharge de ${amount.toLocaleString()} FCFA ?`)) return;
+  if(!confirm(`❌ Refuser cette recharge de ${amount.toLocaleString()} FCFA ?\n\nAucun montant ne sera crédité.`)) return;
   try {
     await sb.from('transactions').update({status:'failed'}).eq('id',txId);
     toast(`❌ Recharge refusée`);
