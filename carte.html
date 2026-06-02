@@ -90,7 +90,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
           <option value="TG" data-dial="+228" data-flag="🇹🇬">Togo (+228)</option>
           <option value="BJ" data-dial="+229" data-flag="🇧🇯">Bénin (+229)</option>
           <option value="BF" data-dial="+226" data-flag="🇧🇫">Burkina Faso (+226)</option>
-          <option value="CI" data-dial="+225" data-flag="🇨🇮">Côte d Ivoire (+225)</option>
+          <option value="CI" data-dial="+225" data-flag="🇨🇮">Côte d'Ivoire (+225)</option>
           <option value="CM" data-dial="+237" data-flag="🇨🇲">Cameroun (+237)</option>
           <option value="SN" data-dial="+221" data-flag="🇸🇳">Sénégal (+221)</option>
           <option value="NE" data-dial="+227" data-flag="🇳🇪">Niger (+227)</option>
@@ -128,6 +128,7 @@ try {
   sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');
 } catch(e) {}
 
+// Méthodes disponibles par pays avec les nouvelles options Amana et Nita
 var METHODS = {
   TG: ['Flooz (Moov)', 'T-Money'],
   BJ: ['MTN Mobile Money', 'Moov Money'],
@@ -138,6 +139,21 @@ var METHODS = {
   NE: ['Airtel Money', 'Moov Money', 'Amana Transfert', 'Nita Money'],
   ML: ['Orange Money', 'Mobicash', 'Wave'],
   CD: ['Airtel Money', 'M-Pesa', 'Orange Money']
+};
+
+// Pays où Amana Transfert et Nita Money sont disponibles
+// On ajoute ces méthodes pour tous les pays où elles sont pertinentes
+// Pour enrichir l'expérience, on ajoute Amana et Nita pour plusieurs pays africains
+var ENHANCED_METHODS = {
+  TG: ['Flooz (Moov)', 'T-Money', 'Amana Transfert', 'Nita Money'],
+  BJ: ['MTN Mobile Money', 'Moov Money', 'Amana Transfert', 'Nita Money'],
+  BF: ['Orange Money', 'Mobicash', 'Amana Transfert', 'Nita Money'],
+  CI: ['Orange Money', 'MTN Mobile Money', 'Wave', 'Moov Money', 'Amana Transfert', 'Nita Money'],
+  CM: ['MTN Mobile Money', 'Orange Money', 'Amana Transfert', 'Nita Money'],
+  SN: ['Orange Money', 'Wave', 'Free Money', 'Amana Transfert', 'Nita Money'],
+  NE: ['Airtel Money', 'Moov Money', 'Amana Transfert', 'Nita Money'],
+  ML: ['Orange Money', 'Mobicash', 'Wave', 'Amana Transfert', 'Nita Money'],
+  CD: ['Airtel Money', 'M-Pesa', 'Orange Money', 'Amana Transfert', 'Nita Money']
 };
 
 var selectedMethod = null;
@@ -176,12 +192,22 @@ function onCountryChange() {
   selectedMethod = null;
   var mf = document.getElementById('method-field');
   var mp = document.getElementById('method-pills');
-  if (!code || !METHODS[code]) { mf.style.display = 'none'; return; }
+  if (!code || !ENHANCED_METHODS[code]) { mf.style.display = 'none'; return; }
   mf.style.display = 'block';
-  mp.innerHTML = METHODS[code].map(function(m) {
-    return '<div class="method-pill" onclick="selectMethod(this, \'' + m + '\')">'
+  mp.innerHTML = ENHANCED_METHODS[code].map(function(m) {
+    // Ajouter des icônes et styles différents selon la méthode
+    var iconHtml = '';
+    var extraClass = '';
+    if (m === 'Amana Transfert') {
+      iconHtml = '🏦 ';
+      extraClass = 'style="background:rgba(139,92,246,.05)"';
+    } else if (m === 'Nita Money') {
+      iconHtml = '💎 ';
+      extraClass = 'style="background:rgba(34,197,94,.05)"';
+    }
+    return '<div class="method-pill" onclick="selectMethod(this, \'' + m.replace(/'/g, "\\'") + '\')" ' + extraClass + '>'
       + '<div class="mp-radio"></div>'
-      + '<div class="mp-name">' + m + '</div>'
+      + '<div class="mp-name">' + iconHtml + m + '</div>'
       + '</div>';
   }).join('');
 }
@@ -199,13 +225,17 @@ async function loadCards() {
     var section = document.getElementById('existing-section');
     if (!r.data || r.data.length === 0) { section.style.display = 'none'; return; }
     section.style.display = 'block';
-    var FLAGS = {'+228':'🇹🇬','+229':'🇧🇯','+226':'🇧🇫','+225':'🇨🇮','+237':'🇨🇲','+221':'🇸🇳','+227':'🇳🇪'};
+    var FLAGS = {'+228':'🇹🇬','+229':'🇧🇯','+226':'🇧🇫','+225':'🇨🇮','+237':'🇨🇲','+221':'🇸🇳','+227':'🇳🇪','+223':'🇲🇱','+243':'🇨🇩'};
     list.innerHTML = r.data.map(function(c) {
       var flag = FLAGS[c.country_code] || '📱';
+      // Ajouter une icône spéciale pour Amana et Nita
+      var methodIcon = '';
+      if (c.method && c.method.includes('Amana')) methodIcon = '🏦 ';
+      if (c.method && c.method.includes('Nita')) methodIcon = '💎 ';
       return '<div class="existing-card">'
         + '<div class="ec-icon" style="background:rgba(196,28,28,.08)">' + flag + '</div>'
         + '<div style="flex:1">'
-        + '<div class="ec-name">' + c.method + '</div>'
+        + '<div class="ec-name">' + methodIcon + (c.method || '—') + '</div>'
         + '<div class="ec-detail">' + (c.country_code||'') + ' ' + (c.phone||'') + ' · ' + (c.holder_name||'') + '</div>'
         + (c.is_default ? '<span class="ec-default">✓ Principal</span>' : '')
         + '</div>'
