@@ -424,30 +424,66 @@ async function loadDashRecent() {
 }
 
 // ── USERS ────────────────────────────────────────────
-async function loadUsers() {
+let usersPage = 0;
+const PAGE_SIZE = 50;
+
+async function loadUsers(append=false) {
+  if(!append){ usersPage=0; allUsers=[]; }
   try {
-    const {data:users,error} = await sb.from('profiles').select('id, full_name, phone, level, balance, total_earnings, referral_code, referred_by, created_at, bonus_received');
+    const from = usersPage * PAGE_SIZE;
+    const to   = from + PAGE_SIZE - 1;
+    const {data:users, error, count} = await sb.from('profiles')
+      .select('id, full_name, phone, level, balance, total_earnings, referral_code, referred_by, created_at, bonus_received', {count:'exact'})
+      .order('created_at',{ascending:false})
+      .range(from, to);
     if(error) throw error;
-    allUsers = users||[];
-    renderUsers(allUsers);
+    allUsers = append ? allUsers.concat(users||[]) : (users||[]);
+    renderUsers(allUsers, count);
+    usersPage++;
   } catch(e) { $('users-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`; }
 }
+let searchTimeout = null;
 function filterUsers() {
-  const q=$('user-search').value.toLowerCase();
-  const f=$('user-filter').value;
-  let list=allUsers.filter(u=>{
-    const match=!q||(u.full_name||'').toLowerCase().includes(q)||(u.phone||'').includes(q)||(u.referral_code||'').toLowerCase().includes(q);
-    const fMatch=f==='all'||(f==='active'&&(u.balance||0)>0)||(f==='investing'&&(u.active_investments||0)>0);
-    return match&&fMatch;
-  });
-  renderUsers(list);
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(async () => {
+    const q = $('user-search').value.trim().toLowerCase();
+    const f = $('user-filter').value;
+    if (!q && f === 'all') {
+      // Reset to paginated view
+      loadUsers(false);
+      return;
+    }
+    // Search ALL users in DB
+    try {
+      let query = sb.from('profiles')
+        .select('id, full_name, phone, level, balance, total_earnings, referral_code, referred_by, created_at', {count:'exact'})
+        .order('created_at', {ascending:false})
+        .limit(200);
+      if (q) {
+        query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%,referral_code.ilike.%${q}%`);
+      }
+      if (f === 'active') query = query.gt('balance', 0);
+      const {data, count} = await query;
+      renderUsers(data||[], count||0);
+    } catch(e) {
+      // Fallback to client-side filter
+      let list = allUsers.filter(u => {
+        const match = !q || (u.full_name||'').toLowerCase().includes(q) || (u.phone||'').includes(q) || (u.referral_code||'').toLowerCase().includes(q);
+        const fMatch = f==='all' || (f==='active' && (u.balance||0)>0);
+        return match && fMatch;
+      });
+      renderUsers(list, list.length);
+    }
+  }, 300);
 }
-function renderUsers(users) {
+function renderUsers(users, total) {
   const div=$('users-list');
-  $('users-count').textContent=users.length+' utilisateur(s)';
+  const shown = users.length;
+  const totalCount = total || shown;
+  $('users-count').textContent = shown + ' / ' + totalCount + ' utilisateur(s) affiché(s)';
   if(!users.length){div.innerHTML='<div class="empty">Aucun résultat</div>';return;}
   const LV=['badge-lv0','badge-lv1','badge-lv2','badge-lv3'];
-  div.innerHTML=users.map(u=>{
+  const cards = users.map(u=>{
     const name=u.full_name||'Sans nom';
     const letter=name.charAt(0).toUpperCase();
     const lv=parseInt(u.level)||0;
@@ -464,6 +500,14 @@ function renderUsers(users) {
       </div>
     </div>`;
   }).join('');
+
+  const hasMore = shown < totalCount;
+  const loadMoreBtn = hasMore
+    ? `<button onclick="loadUsers(true)" style="width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px">
+        ⬇ Charger plus (${totalCount - shown} restants)
+      </button>`
+    : '';
+  div.innerHTML = cards + loadMoreBtn;
 }
 
 // ── USER MODAL ────────────────────────────────────────
@@ -594,19 +638,29 @@ function renderInvest(list) {
 }
 
 // ── DEPOSITS ──────────────────────────────────────────
-async function loadDeposits() {
+let depositsPage=0;
+
+async function loadDeposits(append=false) {
+  if(!append){ depositsPage=0; allDeposits=[]; }
   try {
-    const {data,error}=await sb.from('transactions').select('*').in('type',['depot','bonus']).order('created_at',{ascending:false}).limit(50);
+    const from = depositsPage * 50;
+    const {data,error,count}=await sb.from('transactions')
+      .select('*',{count:'exact'})
+      .in('type',['depot','bonus'])
+      .order('created_at',{ascending:false})
+      .range(from, from+49);
     if(error) throw error;
-    const rows = data||[];
+    const rows=data||[];
     const uids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
     let profMap={};
     if(uids.length){
       const {data:profs}=await sb.from('profiles').select('id,full_name,phone').in('id',uids);
       (profs||[]).forEach(p=>{ profMap[p.id]=p; });
     }
-    allDeposits=rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
-    renderDeposits(allDeposits);
+    const enriched = rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
+    allDeposits = append ? allDeposits.concat(enriched) : enriched;
+    renderDeposits(allDeposits, count);
+    depositsPage++;
   } catch(e){$('deposits-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
 }
 function filterDeposits() {
@@ -617,23 +671,47 @@ function filterDeposits() {
     return (!q||name.includes(d)||d.description.toLowerCase().includes(q))&&(f==='all'||d.status===f);
   }));
 }
-function renderDeposits(list) {
+function renderDeposits(list, total) {
   const div=$('deposits-list');
   if(!list.length){div.innerHTML='<div class="empty">Aucune recharge</div>';return;}
-  div.innerHTML=list.map(d=>`
-    <div class="tx-item">
-      <div class="tx-ico" style="background:rgba(34,197,94,.1)">💰</div>
-      <div style="flex:1">
-        <div class="tx-desc">${d.profiles?.full_name||'—'}</div>
-        <div class="tx-sub">${d.description||d.type} · ${d.profiles?.phone||'—'}</div>
-        <div class="tx-sub">${new Date(d.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+  const shown = list.length;
+  const totalCount = total || shown;
+
+  const cards = list.map(d=>{
+    // Extract proof URL from description
+    let proofUrl = '';
+    if(d.description && d.description.includes('PROOF:')) {
+      proofUrl = d.description.split('PROOF:')[1]?.split(' ')[0] || '';
+    }
+    const proofHtml = proofUrl
+      ? `<div style="margin-top:8px"><img src="${proofUrl}" alt="Preuve" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="window.open('${proofUrl}','_blank')"/><div style="font-size:10px;color:var(--muted);margin-top:3px;text-align:center">📸 Tap pour agrandir</div></div>`
+      : '';
+    return `<div class="tx-item" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;align-items:center;gap:11px">
+        <div class="tx-ico" style="background:rgba(34,197,94,.1)">💰</div>
+        <div style="flex:1">
+          <div class="tx-desc">${d.profiles?.full_name||'Utilisateur'}</div>
+          <div class="tx-sub">${d.method||d.type} · ${d.profiles?.phone||d.phone||'—'}</div>
+          <div class="tx-sub">${new Date(d.created_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="tx-amt" style="color:#22C55E">+${(d.amount||0).toLocaleString('fr-FR')} F</div>
+          <span class="tx-status ${d.status==='success'?'s-success':d.status==='pending'?'s-pending':'s-failed'}">${d.status==='success'?'✓ Validé':d.status==='pending'?'⏳ Attente':'✗ Échoué'}</span>
+        </div>
       </div>
-      <div>
-        <div class="tx-amt" style="color:#22C55E">+${(d.amount||0).toLocaleString('fr-FR')} F</div>
-        <span class="tx-status ${d.status==='success'?'s-success':d.status==='pending'?'s-pending':'s-failed'}">${d.status==='success'?'Validé':d.status==='pending'?'En attente':'Échoué'}</span>
-        ${d.status==='pending'?`<div style="margin-top:5px"><button onclick="validateDeposit('${d.id}','${d.user_id}',${d.amount})" style="background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:12px;font-weight:600">✓ Valider</button></div>`:''}
-      </div>
-    </div>`).join('');
+      ${proofHtml}
+      ${d.status==='pending'?`<button onclick="validateDeposit('${d.id}','${d.user_id}',${d.amount})" style="width:100%;padding:9px;background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.3);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">✅ Valider la recharge</button>`:''}
+    </div>`;
+  }).join('');
+
+  const hasMore = shown < totalCount;
+  const loadMoreBtn = hasMore
+    ? `<button onclick="loadDeposits(true)" style="width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px">
+        ⬇ Charger plus (${totalCount-shown} restants)
+      </button>`
+    : '';
+
+  div.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">${shown} / ${totalCount} recharge(s)</div>` + cards + loadMoreBtn;
 }
 async function validateDeposit(txId, userId, amount) {
   try {
@@ -648,9 +726,17 @@ async function validateDeposit(txId, userId, amount) {
 }
 
 // ── WITHDRAWALS ───────────────────────────────────────
-async function loadWithdrawals() {
+let withdrawalsPage=0;
+
+async function loadWithdrawals(append=false) {
+  if(!append){ withdrawalsPage=0; allWithdrawals=[]; }
   try {
-    const {data,error}=await sb.from('transactions').select('*').eq('type','retrait').order('created_at',{ascending:false}).limit(50);
+    const from = withdrawalsPage * 50;
+    const {data,error,count}=await sb.from('transactions')
+      .select('*',{count:'exact'})
+      .eq('type','retrait')
+      .order('created_at',{ascending:false})
+      .range(from, from+49);
     if(error) throw error;
     const rows=data||[];
     const uids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
@@ -659,14 +745,17 @@ async function loadWithdrawals() {
       const {data:profs}=await sb.from('profiles').select('id,full_name,phone').in('id',uids);
       (profs||[]).forEach(p=>{ profMap[p.id]=p; });
     }
-    allWithdrawals=rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
-    renderWithdrawals(allWithdrawals);
+    const enriched=rows.map(r=>({...r, profiles: profMap[r.user_id]||null}));
+    allWithdrawals=append?allWithdrawals.concat(enriched):enriched;
+    renderWithdrawals(allWithdrawals, count);
+    withdrawalsPage++;
   } catch(e){$('withdrawals-list').innerHTML=`<div class="empty">Erreur: ${e.message}</div>`;}
 }
-function renderWithdrawals(list) {
+function renderWithdrawals(list, total) {
   const div=$('withdrawals-list');
   if(!list.length){div.innerHTML='<div class="empty">Aucun retrait</div>';return;}
-  div.innerHTML=list.map(r=>`
+  const shown=list.length, totalCount=total||shown;
+  const cards=list.map(r=>`
     <div class="ret-item">
       <div class="ret-header">
         <div>
