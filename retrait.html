@@ -65,8 +65,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   </div>
 
   <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px">
-    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">2 000 F</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Minimum</div></div>
-    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--red)">10%</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Frais</div></div>
+    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">1 500 F</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Minimum</div></div>
+    <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--red)">20%</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Frais</div></div>
     <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">09h — 17h</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Horaires</div></div>
     <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:var(--t1)">2 / jour</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Maximum</div></div>
   </div>
@@ -75,12 +75,14 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
     <div class="alert" id="al"></div>
     <div class="field">
       <label>Montant à retirer (FCFA)</label>
-      <input type="number" id="montant" placeholder="Montant minimum : 2 000 FCFA" min="2000" oninput="calcFee()"/>
+      <input type="number" id="montant" placeholder="Montant minimum : 1 500 FCFA" min="1500" oninput="calcFee()"/>
       <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-        <span onclick="setAmt(1000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">2 000</span>
+        <span onclick="setAmt(1500,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">1 500</span>
         <span onclick="setAmt(2000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">2 000</span>
         <span onclick="setAmt(5000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">5 000</span>
         <span onclick="setAmt(10000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">10 000</span>
+        <span onclick="setAmt(20000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">20 000</span>
+        <span onclick="setAmt(50000,this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">50 000</span>
         <span onclick="setAll(this)" style="padding:6px 13px;border-radius:20px;border:1.5px solid var(--bo);font-size:12px;font-weight:500;color:var(--t2);background:#fff;cursor:pointer">Tout</span>
       </div>
     </div>
@@ -172,7 +174,7 @@ function setAll(el) { document.getElementById('montant').value = userBalance; ca
 function calcFee() {
   var v = parseFloat(document.getElementById('montant').value);
   var box = document.getElementById('fee-box');
-  if (!v || v < 1) { box.style.display = 'none'; return; }
+  if (!v || v < 1500) { box.style.display = 'none'; return; }
   var fee = Math.round(v * 0.20);
   var net = v - fee;
   document.getElementById('famt').textContent = v.toLocaleString('fr-FR') + ' FCFA';
@@ -183,7 +185,7 @@ function calcFee() {
 
 async function doRetrait() {
   var montant = parseFloat(document.getElementById('montant').value);
-  if (!montant || montant < 2000) return al('al', 'Montant minimum : 2 000 FCFA');
+  if (!montant || montant < 1500) return al('al', 'Montant minimum : 1 500 FCFA');
   if (montant > userBalance) return al('al', 'Solde insuffisant : ' + userBalance.toLocaleString('fr-FR') + ' FCFA disponible');
   if (!userCard) return al('al', 'Aucun compte Mobile Money enregistré');
   var h = new Date().getHours();
@@ -211,4 +213,5 @@ async function doRetrait() {
   } catch(e) { al('al', 'Erreur : ' + (e.message || 'Réessayez')); btn.disabled = false; btn.textContent = 'Confirmer le retrait'; }
 }
 </script>
-</body></html>
+</body>
+</html>
