@@ -18,7 +18,6 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .ni svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8}
 .ndot{width:4px;height:4px;background:var(--red);border-radius:50%;opacity:0}
 .ni.on .ndot{opacity:1}
-/* HERO */
 .hero{position:relative;height:210px;overflow:hidden;flex-shrink:0;background:#9E1616}
 .btrack{display:flex;height:100%;width:300%;transition:transform .9s cubic-bezier(.77,0,.18,1)}
 .bslide{flex:1;background-size:cover;background-position:center}
@@ -34,22 +33,18 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .hname{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:600;color:#fff}
 .hphone{font-size:12px;color:rgba(255,255,255,.75);margin-top:2px}
 .hlv{display:inline-flex;margin-top:5px;border:1.5px solid rgba(255,255,255,.5);border-radius:20px;padding:2px 9px;font-size:10px;font-weight:600;color:#fff}
-/* QUICK ACTIONS */
 .qa{display:flex;background:#fff;border-bottom:1px solid var(--bo);flex-shrink:0}
 .qab{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;cursor:pointer;padding:14px 4px}
 .qai{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--red),var(--rd));display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(196,28,28,.3)}
 .qab:active .qai{transform:scale(.9)}
 .qai svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2}
 .ql{font-size:11px;font-weight:500;color:var(--t2)}
-/* BALANCE */
 .bals{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px;flex-shrink:0}
 .bc{background:#fff;border-radius:14px;padding:13px;border:1px solid var(--bo);position:relative;overflow:hidden}
 .bc::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--rd),#E02020)}
 .bl{font-size:10px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
 .ba{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:700;color:var(--red)}
-/* BONUS */
 .bonus{margin:0 14px 6px;background:#FFF7ED;border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:9px 12px;font-size:12px;color:#92400E;flex-shrink:0}
-/* MENU */
 .ms{padding:0 14px 12px;flex-shrink:0}
 .mt{font-size:10px;color:var(--mu);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin:12px 0 8px 2px}
 .mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -60,7 +55,6 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .mil{font-size:9px;font-weight:500;color:var(--t2);text-align:center;line-height:1.3}
 .lw{padding:2px 14px 14px;display:flex;justify-content:center;flex-shrink:0}
 .lb{display:flex;align-items:center;gap:7px;border:1.5px solid rgba(196,28,28,.2);border-radius:30px;padding:9px 22px;font-family:"DM Sans",sans-serif;font-size:12.5px;font-weight:500;color:var(--red);background:#fff;cursor:pointer}
-/* PLANS */
 .phdr{background:linear-gradient(135deg,var(--rd),var(--red));padding:44px 16px 16px;flex-shrink:0}
 .phdr h2{font-family:"Cormorant Garamond",serif;font-size:25px;font-weight:600;color:#fff}
 .phdr p{color:rgba(255,255,255,.7);font-size:12px;margin-top:2px}
@@ -76,7 +70,6 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .pgk{font-size:9px;color:var(--mu);margin-top:2px}
 .pbtn{width:100%;padding:11px;border-radius:10px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--red),var(--rd));color:#fff}
 .pbtn:active{opacity:.85}
-/* EQUIPES */
 .rh{background:linear-gradient(135deg,var(--rd),var(--red));padding:38px 16px 18px;text-align:center;flex-shrink:0}
 .rh h2{font-family:"Cormorant Garamond",serif;font-size:23px;font-weight:600;color:#fff;margin-bottom:4px}
 .rh p{color:rgba(255,255,255,.7);font-size:12px;margin-bottom:14px}
@@ -95,7 +88,6 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .nb{background:#FFF7ED;border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:11.5px;color:#92400E;line-height:1.6}
 .mlt{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px}
 .nom{text-align:center;padding:28px 20px;color:var(--mu);font-size:12.5px;line-height:1.7}
-/* COMPTE */
 .ach{background:linear-gradient(135deg,var(--rd),var(--red));padding:38px 16px 20px;display:flex;align-items:center;gap:13px;flex-shrink:0}
 .acav{width:58px;height:58px;border-radius:50%;border:3px solid rgba(255,255,255,.8);background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:23px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
 .acav img{width:100%;height:100%;object-fit:cover}
@@ -108,11 +100,9 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .sn{font-size:13px;font-weight:500;color:var(--t1)}
 .ss{font-size:10.5px;color:var(--mu);margin-top:1px}
 .sar svg{width:14px;height:14px;stroke:var(--mu);fill:none;stroke-width:2}
-/* TOAST */
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);background:var(--t1);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:88vw;pointer-events:none}
 #toast.show{transform:translateX(-50%) translateY(0)}
 input[type=file]{display:none}
-
 .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
 .sheet-bg.on{display:flex}
 .sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;animation:slideUp .3s cubic-bezier(.34,1.2,.64,1);padding:0 0 28px}
@@ -145,7 +135,6 @@ input[type=file]{display:none}
 <input type="file" id="file-avatar" accept="image/*"/>
 <div id="app">
 
-<!-- ACCUEIL -->
 <div id="p-accueil" class="page on">
   <div class="hero">
     <div class="btrack" id="btrack">
@@ -215,15 +204,19 @@ input[type=file]{display:none}
   </div>
 </div>
 
-<!-- PRODUIT -->
 <div id="p-produit" class="page">
   <div class="phdr"><h2>Plans d'investissement</h2><p>100 jours · Revenus quotidiens garantis</p></div>
   <div class="plist">
-<div class="pcard"><div class="phead"><div class="pbadge" style="background:#22C55E"><span style="font-size:20px">🟢</span></div><div style="flex:1"><div class="pname">Starter</div><div class="psub">Idéal pour débuter</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">3 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">250 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">120 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('starter','Starter',3000,250)">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#3B82F6"><span style="font-size:20px">🔵</span></div><div style="flex:1"><div class="pname">Bronze</div><div class="psub">Rendement régulier</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">6 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">600 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">270 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('bronze','Bronze',6000,600)">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#F97316"><span style="font-size:20px">🟠</span></div><div style="flex:1"><div class="pname">Silver</div><div class="psub">Bon rapport qualité</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">10 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">1 500 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">450 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('silver','Silver',10000,1000)">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#F59E0B"><span style="font-size:20px">🟣</span></div><div style="flex:1"><div class="pname">Gold</div><div class="psub">Investisseurs actifs</div></div><span style="margin-left:auto;background:#C41C1C;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px">🔥 Top</span></div><div class="pgrid"><div class="pg"><div class="pgv">20 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">3 500 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">1 050 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('gold','Gold',20000,2000)">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#EF4444"><span style="font-size:20px">🔴</span></div><div style="flex:1"><div class="pname">Premium</div><div class="psub">Hauts rendements</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">50 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">10 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">3 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('premium','Premium',50000,5000)">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#8B5CF6"><span style="font-size:20px">👑</span></div><div style="flex:1"><div class="pname">VIP</div><div class="psub">Élite Marathon</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">100 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">20 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">6 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('vip','VIP',100000,10000)">Investir maintenant</button></div><div class="pcard"><div class="phead"><div class="pbadge" style="background:#0EA5E9"><span style="font-size:20px">❄️</span></div><div style="flex:1"><div class="pname">COLD</div><div class="psub">Investissement ultime</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">300 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">50 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">15 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('cold','COLD',300000,50000)">Investir maintenant</button></div>
+<div class="pcard"><div class="phead"><div class="pbadge" style="background:#22C55E"><span style="font-size:20px">🟢</span></div><div style="flex:1"><div class="pname">Starter</div><div class="psub">Idéal pour débuter</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">3 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">250 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">120 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('starter','Starter',3000,250)">Investir maintenant</button></div>
+<div class="pcard"><div class="phead"><div class="pbadge" style="background:#3B82F6"><span style="font-size:20px">🔵</span></div><div style="flex:1"><div class="pname">Bronze</div><div class="psub">Rendement régulier</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">6 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">600 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">270 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('bronze','Bronze',6000,600)">Investir maintenant</button></div>
+<div class="pcard"><div class="phead"><div class="pbadge" style="background:#F97316"><span style="font-size:20px">🟠</span></div><div style="flex:1"><div class="pname">Silver</div><div class="psub">Bon rapport qualité</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">10 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">1 500 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">450 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('silver','Silver',10000,1000)">Investir maintenant</button></div>
+<div class="pcard"><div class="phead"><div class="pbadge" style="background:#F59E0B"><span style="font-size:20px">🟣</span></div><div style="flex:1"><div class="pname">Gold</div><div class="psub">Investisseurs actifs</div></div><span style="margin-left:auto;background:#C41C1C;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px">🔥 Top</span></div><div class="pgrid"><div class="pg"><div class="pgv">20 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">3 500 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">1 050 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('gold','Gold',20000,2000)">Investir maintenant</button></div>
+<div class="pcard"><div class="phead"><div class="pbadge" style="background:#EF4444"><span style="font-size:20px">🔴</span></div><div style="flex:1"><div class="pname">Premium</div><div class="psub">Hauts rendements</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">50 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">10 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">3 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('premium','Premium',50000,5000)">Investir maintenant</button></div>
+<div class="pcard"><div class="phead"><div class="pbadge" style="background:#8B5CF6"><span style="font-size:20px">👑</span></div><div style="flex:1"><div class="pname">VIP</div><div class="psub">Élite Marathon</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">100 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">20 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">6 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('vip','VIP',100000,10000)">Investir maintenant</button></div>
+<div class="pcard"><div class="phead"><div class="pbadge" style="background:#0EA5E9"><span style="font-size:20px">❄️</span></div><div style="flex:1"><div class="pname">COLD</div><div class="psub">Investissement ultime</div></div></div><div class="pgrid"><div class="pg"><div class="pgv">300 000 F</div><div class="pgk">Investissement</div></div><div class="pg"><div class="pgv">50 000 F/j</div><div class="pgk">Revenu/jour</div></div><div class="pg"><div class="pgv">15 000 000 F</div><div class="pgk">Gain total</div></div></div><button class="pbtn" onclick="openInvest('cold','COLD',300000,50000)">Investir maintenant</button></div>
   </div>
 </div>
 
-<!-- EQUIPES -->
 <div id="p-equipes" class="page">
   <div class="rh">
     <h2>Mon Équipe</h2>
@@ -250,7 +243,7 @@ input[type=file]{display:none}
       <div class="cl">
         <span style="font-size:22px">🥇</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--t1)">Niveau 1 — Filleul direct</div><div style="font-size:11px;color:var(--mu)">Sur investissement</div></div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--red)">20%</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--red)">15%</div>
       </div>
       <div class="cl">
         <span style="font-size:22px">🥈</span>
@@ -272,7 +265,6 @@ input[type=file]{display:none}
   </div>
 </div>
 
-<!-- COMPTE -->
 <div id="p-compte" class="page">
   <div class="ach">
     <div class="acav" id="acav">M</div>
@@ -287,7 +279,6 @@ input[type=file]{display:none}
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <div class="sheet-bg" id="inv-sheet" onclick="if(event.target===this)closeSheet()">
   <div class="sheet">
     <div class="sh-handle"></div>
@@ -354,26 +345,20 @@ input[type=file]{display:none}
 
 <script>
 // ═══════════════════════════════════════════════════════
-// MARATHON DASHBOARD — Version corrigée
-// Fixes: currentUser, double query, session null-check,
-// error handling, sécurité invest via RPC, bonus logic
+// MARATHON DASHBOARD — Version corrigée (commissions fixes)
 // ═══════════════════════════════════════════════════════
 
-// ── SUPABASE ─────────────────────────────────────────
 let sb = null;
 try {
   sb = supabase.createClient('https://mzxxfxkryhxnycewyryv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16eHhmeGtyeWh4bnljZXd5cnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTE0NTUsImV4cCI6MjA5NTE2NzQ1NX0.LrdnZCvNDViY5fyh0LEh4HHPTYjN_DI7knjfTIUL8cc');
 } catch(e) { console.error('Supabase init error:', e); }
 
-// ── STATE (centralisé) ───────────────────────────────
-let currentUser  = null;
+let currentUser = null;
 let currentBalance = 0;
-let investData   = null;
+let investData = null;
 
-// ── DOM REFS (centralisés) ───────────────────────────
 const $ = id => document.getElementById(id);
 
-// ── INIT ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   startBanner();
   loadAvatar();
@@ -381,10 +366,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   try {
     const { data: sessionData, error: sessionError } = await sb.auth.getSession();
     if (sessionError) throw sessionError;
-
     const session = sessionData?.session;
     if (!session) { window.location.href = 'index.html'; return; }
-
     currentUser = session.user;
     await Promise.all([ loadProfile(), loadTeam() ]);
   } catch(e) {
@@ -392,28 +375,27 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// ── PROFILE ───────────────────────────────────────────
 async function loadProfile() {
   const u = currentUser;
   const m = u.user_metadata || {};
-  const name   = m.full_name || u.email?.split('@')[0] || 'Utilisateur';
-  const phone  = m.phone_number || '——';
+  const name = m.full_name || u.email?.split('@')[0] || 'Utilisateur';
+  const phone = m.phone_number || '——';
   const letter = name.charAt(0).toUpperCase();
 
-  $('hname').textContent  = name;
+  $('hname').textContent = name;
   $('hphone').textContent = phone;
-  $('avl').textContent    = letter;
-  $('acn').textContent    = name;
-  $('acp').textContent    = phone;
-  $('ace').textContent    = u.email || '——';
-  $('acav').textContent   = letter;
+  $('avl').textContent = letter;
+  $('acn').textContent = name;
+  $('acp').textContent = phone;
+  $('ace').textContent = u.email || '——';
+  $('acav').textContent = letter;
 
   const fallbackCode = 'MAR' + u.id.slice(-5).toUpperCase();
   $('rcode').textContent = fallbackCode;
 
   try {
     const { data: p, error } = await sb.from('profiles')
-      .select('balance, total_earnings, level, referral_code, bonus_received')
+      .select('balance, total_earnings, level, referral_code, bonus_received, referred_by')
       .eq('id', u.id)
       .single();
 
@@ -421,32 +403,43 @@ async function loadProfile() {
     if (!p) return;
 
     currentBalance = p.balance || 0;
-
-    $('bal').innerHTML  = currentBalance.toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
+    $('bal').innerHTML = currentBalance.toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
     $('earn').innerHTML = (p.total_earnings || 0).toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
     $('hlv').textContent = 'LV' + (p.level || 0);
-
     if (p.referral_code) $('rcode').textContent = p.referral_code;
 
-    // Bonus banner : afficher SEULEMENT si bonus reçu
     const bonusBanner = $('bonus-banner');
     if (bonusBanner && p.bonus_received) bonusBanner.style.display = 'block';
-
   } catch(e) {
     console.error('loadProfile error:', e);
   }
 }
 
-// ── TEAM (une seule requête) ──────────────────────────
 async function loadTeam() {
   try {
-    const { data, error } = await sb.from('referrals')
-      .select('id, referred_name, commission, level, invested_amount, created_at')
+    const { data: referrals, error } = await sb.from('referrals')
+      .select('id, referred_name, commission, level, invested_amount, created_at, referred_id')
       .eq('referrer_id', currentUser.id)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    const list = data || [];
+    const list = referrals || [];
+
+    // Récupérer les noms des filleuls depuis la table profiles si referred_name est vide
+    for (let i = 0; i < list.length; i++) {
+      if (!list[i].referred_name && list[i].referred_id) {
+        const { data: prof } = await sb.from('profiles')
+          .select('full_name, phone')
+          .eq('id', list[i].referred_id)
+          .single();
+        if (prof) {
+          list[i].referred_name = prof.full_name || prof.phone || 'Membre';
+          await sb.from('referrals').update({ referred_name: list[i].referred_name }).eq('id', list[i].id);
+        } else {
+          list[i].referred_name = 'Membre';
+        }
+      }
+    }
 
     $('tcount').textContent = list.length;
     const total = list.reduce((s, x) => s + (x.commission || 0), 0);
@@ -454,13 +447,13 @@ async function loadTeam() {
 
     if (list.length > 0) {
       $('mlist').innerHTML = list.map(m => {
-        const name   = m.referred_name || 'Membre';
+        const name = m.referred_name || 'Membre';
         const letter = name.charAt(0).toUpperCase();
-        const date   = new Date(m.created_at).toLocaleDateString('fr-FR');
-        const com    = (m.commission || 0).toLocaleString('fr-FR');
-        const badge  = m.invested_amount > 0
+        const date = new Date(m.created_at).toLocaleDateString('fr-FR');
+        const com = (m.commission || 0).toLocaleString('fr-FR');
+        const badge = m.invested_amount > 0
           ? '<span style="background:#F0FFF4;color:#166534;font-size:9px;padding:2px 6px;border-radius:20px;margin-left:5px">Investi ✓</span>'
-          : '';
+          : '<span style="background:#FFF7ED;color:#D97706;font-size:9px;padding:2px 6px;border-radius:20px;margin-left:5px">En attente</span>';
         return `<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bo)">
           <div style="width:38px;height:38px;border-radius:50%;background:rgba(196,28,28,.1);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;color:var(--red);flex-shrink:0">${letter}</div>
           <div style="flex:1">
@@ -470,13 +463,14 @@ async function loadTeam() {
           <span style="background:#FFF0F0;color:var(--red);font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px">+${com} F</span>
         </div>`;
       }).join('');
+    } else {
+      $('mlist').innerHTML = '<div class="nom"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;opacity:.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Aucun membre pour l\'instant.<br/>Partagez votre code !</div>';
     }
   } catch(e) {
     console.error('loadTeam error:', e);
   }
 }
 
-// ── AVATAR ────────────────────────────────────────────
 function loadAvatar() {
   const saved = localStorage.getItem('marathon_avatar');
   if (saved) setAvatar(saved);
@@ -503,17 +497,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── NAVIGATION ────────────────────────────────────────
 function nav(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(b => b.classList.remove('on'));
   const page = $('p-' + name);
-  const btn  = $('n-' + name);
+  const btn = $('n-' + name);
   if (page) { page.classList.add('on'); page.scrollTop = 0; }
-  if (btn)  btn.classList.add('on');
+  if (btn) btn.classList.add('on');
 }
 
-// ── BANNER ────────────────────────────────────────────
 let bi = 0;
 function gS(n) {
   bi = n;
@@ -523,7 +515,6 @@ function gS(n) {
 }
 function startBanner() { setInterval(() => gS((bi+1)%3), 4000); }
 
-// ── PARRAINAGE ────────────────────────────────────────
 function copyCode() {
   const code = $('rcode')?.textContent || '';
   const link = `${window.location.origin}/index.html?ref=${code}`;
@@ -543,24 +534,23 @@ function shareLink() {
   else navigator.clipboard.writeText(link).then(() => toast('Lien copié !'));
 }
 
-// ── INVEST SÉCURISÉ (via RPC serveur) ─────────────────
 function openInvest(planId, planName, amount, revenue) {
   investData = { id: planId, name: planName, amount, revenue };
   const insufficient = currentBalance < amount;
 
-  $('si-name').textContent    = planName;
-  $('si-amt').textContent     = amount.toLocaleString('fr-FR') + ' FCFA';
-  $('si-rev').textContent     = revenue.toLocaleString('fr-FR') + ' FCFA / jour';
-  $('si-total').textContent   = (revenue * 100).toLocaleString('fr-FR') + ' FCFA';
-  $('si-bal').textContent     = currentBalance.toLocaleString('fr-FR') + ' FCFA';
+  $('si-name').textContent = planName;
+  $('si-amt').textContent = amount.toLocaleString('fr-FR') + ' FCFA';
+  $('si-rev').textContent = revenue.toLocaleString('fr-FR') + ' FCFA / jour';
+  $('si-total').textContent = (revenue * 100).toLocaleString('fr-FR') + ' FCFA';
+  $('si-bal').textContent = currentBalance.toLocaleString('fr-FR') + ' FCFA';
   $('sh-ok').classList.remove('on');
-  $('sh-form').style.display  = 'block';
+  $('sh-form').style.display = 'block';
 
   const insuf = $('si-insuf');
-  const btn   = $('si-btn');
+  const btn = $('si-btn');
   if (insuf) insuf.style.display = insufficient ? 'block' : 'none';
   if (btn) {
-    btn.disabled    = insufficient;
+    btn.disabled = insufficient;
     btn.textContent = insufficient ? 'Solde insuffisant' : "Confirmer l'investissement";
   }
   $('inv-sheet').classList.add('on');
@@ -578,8 +568,6 @@ async function doInvest() {
   if (btn) { btn.disabled = true; btn.textContent = 'Traitement...'; }
 
   try {
-    const today = new Date().toISOString().split('T')[0];
-
     // 1. Créer l'investissement
     const { data: inv, error: invErr } = await sb.from('investments').insert({
       user_id: currentUser.id,
@@ -614,10 +602,10 @@ async function doInvest() {
     });
     if (txErr) throw txErr;
 
-    // 4. Créer la tâche du jour (24h après = date de demain)
+    // 4. Créer la tâche du jour
     if (inv?.id) {
       const taskDate = new Date();
-      taskDate.setDate(taskDate.getDate() + 1); // Attendre 24h
+      taskDate.setDate(taskDate.getDate() + 1);
       const taskDateStr = taskDate.toISOString().split('T')[0];
       await sb.from('daily_tasks').insert({
         user_id: currentUser.id,
@@ -626,13 +614,13 @@ async function doInvest() {
         reward_amount: investData.revenue,
         plan_name: investData.name,
         status: 'pending'
-      }).then(() => {}).catch(e => console.warn('Task:', e.message));
+      }).catch(e => console.warn('Task:', e.message));
     }
 
     // 5. Créditer les commissions de parrainage
-    await creditReferralCommissions(investData.amount);
+    await creditReferralCommissions(investData.amount, investData.name);
 
-    // 5. Mettre à jour l'interface
+    // 6. Mettre à jour l'interface
     currentBalance = newBal;
     $('bal').innerHTML = currentBalance.toLocaleString('fr-FR') + ' <span style="font-size:11px;font-weight:400">FCFA</span>';
     if ($('si-bal')) $('si-bal').textContent = currentBalance.toLocaleString('fr-FR') + ' FCFA';
@@ -650,14 +638,12 @@ async function doInvest() {
   }
 }
 
-// ── LOGOUT ────────────────────────────────────────────
 async function doLogout() {
   if (!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
   try { await sb?.auth.signOut(); } catch(e) { console.warn(e); }
   window.location.href = 'index.html';
 }
 
-// ── TOAST ─────────────────────────────────────────────
 function toast(msg) {
   const t = $('toast');
   if (!t) return;
@@ -666,64 +652,142 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2600);
 }
 
-// ── COMMISSIONS PARRAINAGE ────────────────────────────────
+// ════════════════════════════════════════════════════════════
+// FONCTION CORRIGÉE POUR LES COMMISSIONS DE PARRAINAGE
 // Niveau 1: 15% | Niveau 2: 2% | Niveau 3: 1%
-async function creditReferralCommissions(amount) {
+// ════════════════════════════════════════════════════════════
+async function creditReferralCommissions(amount, planName) {
   try {
-    // Récupérer le code parrain du user actuel
-    const { data: me } = await sb.from('profiles')
-      .select('referred_by').eq('id', currentUser.id).single();
-    if (!me?.referred_by) return;
+    // Récupérer le code parrain de l'utilisateur actuel (son parrain)
+    const { data: currentProfile, error: currentErr } = await sb.from('profiles')
+      .select('referred_by, id')
+      .eq('id', currentUser.id)
+      .single();
+    
+    if (currentErr || !currentProfile) {
+      console.log('Pas de parrain pour cet utilisateur');
+      return;
+    }
 
-    // Niveau 1 - parrain direct (15%)
-    const { data: l1 } = await sb.from('profiles')
-      .select('id, balance').eq('referral_code', me.referred_by).single();
-    if (!l1) return;
+    if (!currentProfile.referred_by) {
+      console.log('Aucun code parrain associé');
+      return;
+    }
 
+    // Trouver le parrain direct (Niveau 1) via son referral_code
+    const { data: parrain, error: parrainErr } = await sb.from('profiles')
+      .select('id, balance, referral_code, full_name')
+      .eq('referral_code', currentProfile.referred_by)
+      .single();
+
+    if (parrainErr || !parrain) {
+      console.log('Parrain introuvable avec le code:', currentProfile.referred_by);
+      return;
+    }
+
+    // Niveau 1 - 15%
     const com1 = Math.floor(amount * 0.15);
-    await sb.from('profiles').update({ balance: (l1.balance || 0) + com1 }).eq('id', l1.id);
+    await sb.from('profiles').update({ balance: (parrain.balance || 0) + com1 }).eq('id', parrain.id);
     await sb.from('transactions').insert({
-      user_id: l1.id, type: 'commission', amount: com1,
-      fee: 0, net_amount: com1, status: 'success',
-      description: 'Commission parrain L1 (15%) — Plan ' + (investData?.name || '')
-    });
-    await sb.from('referrals')
-      .update({ commission: com1, invested_amount: amount })
-      .eq('referrer_id', l1.id).eq('referred_id', currentUser.id);
-
-    // Niveau 2 - parrain du parrain (2%)
-    const { data: l1Profile } = await sb.from('profiles')
-      .select('referred_by').eq('id', l1.id).single();
-    if (!l1Profile?.referred_by) return;
-
-    const { data: l2 } = await sb.from('profiles')
-      .select('id, balance').eq('referral_code', l1Profile.referred_by).single();
-    if (!l2) return;
-
-    const com2 = Math.floor(amount * 0.02);
-    await sb.from('profiles').update({ balance: (l2.balance || 0) + com2 }).eq('id', l2.id);
-    await sb.from('transactions').insert({
-      user_id: l2.id, type: 'commission', amount: com2,
-      fee: 0, net_amount: com2, status: 'success',
-      description: 'Commission parrain L2 (2%) — Plan ' + (investData?.name || '')
+      user_id: parrain.id,
+      type: 'commission',
+      amount: com1,
+      fee: 0,
+      net_amount: com1,
+      status: 'success',
+      description: `Commission Niveau 1 (15%) de ${currentUser.email} - Plan ${planName}`
     });
 
-    // Niveau 3 (1%)
-    const { data: l2Profile } = await sb.from('profiles')
-      .select('referred_by').eq('id', l2.id).single();
-    if (!l2Profile?.referred_by) return;
+    // Mettre à jour la table referrals pour le filleul
+    await sb.from('referrals').insert({
+      referrer_id: parrain.id,
+      referred_id: currentUser.id,
+      referred_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Membre',
+      level: 1,
+      commission: com1,
+      invested_amount: amount,
+      status: 'paid',
+      created_at: new Date().toISOString()
+    }).catch(e => console.warn('Referral insert L1:', e.message));
 
-    const { data: l3 } = await sb.from('profiles')
-      .select('id, balance').eq('referral_code', l2Profile.referred_by).single();
-    if (!l3) return;
+    toast(`+${com1.toLocaleString('fr-FR')} F pour votre parrain (15%)`);
 
-    const com3 = Math.floor(amount * 0.01);
-    await sb.from('profiles').update({ balance: (l3.balance || 0) + com3 }).eq('id', l3.id);
-    await sb.from('transactions').insert({
-      user_id: l3.id, type: 'commission', amount: com3,
-      fee: 0, net_amount: com3, status: 'success',
-      description: 'Commission parrain L3 (1%) — Plan ' + (investData?.name || '')
-    });
+    // Niveau 2 - 2% (rechercher le parrain du parrain)
+    const { data: parrainProfile, error: parrainProfErr } = await sb.from('profiles')
+      .select('referred_by')
+      .eq('id', parrain.id)
+      .single();
+
+    if (parrainProfErr || !parrainProfile?.referred_by) {
+      console.log('Pas de niveau 2');
+      return;
+    }
+
+    const { data: parrain2, error: parrain2Err } = await sb.from('profiles')
+      .select('id, balance')
+      .eq('referral_code', parrainProfile.referred_by)
+      .single();
+
+    if (!parrain2Err && parrain2) {
+      const com2 = Math.floor(amount * 0.02);
+      await sb.from('profiles').update({ balance: (parrain2.balance || 0) + com2 }).eq('id', parrain2.id);
+      await sb.from('transactions').insert({
+        user_id: parrain2.id,
+        type: 'commission',
+        amount: com2,
+        fee: 0,
+        net_amount: com2,
+        status: 'success',
+        description: `Commission Niveau 2 (2%) via ${currentUser.email} - Plan ${planName}`
+      });
+      await sb.from('referrals').insert({
+        referrer_id: parrain2.id,
+        referred_id: currentUser.id,
+        referred_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Membre',
+        level: 2,
+        commission: com2,
+        invested_amount: amount,
+        status: 'paid',
+        created_at: new Date().toISOString()
+      }).catch(e => console.warn('Referral insert L2:', e.message));
+    }
+
+    // Niveau 3 - 1%
+    const { data: parrain2Profile, error: parrain2ProfErr } = await sb.from('profiles')
+      .select('referred_by')
+      .eq('id', parrain2?.id || '')
+      .single();
+
+    if (!parrain2ProfErr && parrain2Profile?.referred_by) {
+      const { data: parrain3, error: parrain3Err } = await sb.from('profiles')
+        .select('id, balance')
+        .eq('referral_code', parrain2Profile.referred_by)
+        .single();
+
+      if (!parrain3Err && parrain3) {
+        const com3 = Math.floor(amount * 0.01);
+        await sb.from('profiles').update({ balance: (parrain3.balance || 0) + com3 }).eq('id', parrain3.id);
+        await sb.from('transactions').insert({
+          user_id: parrain3.id,
+          type: 'commission',
+          amount: com3,
+          fee: 0,
+          net_amount: com3,
+          status: 'success',
+          description: `Commission Niveau 3 (1%) via ${currentUser.email} - Plan ${planName}`
+        });
+        await sb.from('referrals').insert({
+          referrer_id: parrain3.id,
+          referred_id: currentUser.id,
+          referred_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Membre',
+          level: 3,
+          commission: com3,
+          invested_amount: amount,
+          status: 'paid',
+          created_at: new Date().toISOString()
+        }).catch(e => console.warn('Referral insert L3:', e.message));
+      }
+    }
 
   } catch(e) {
     console.warn('Referral commission error:', e.message);
