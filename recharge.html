@@ -93,6 +93,15 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 .step-txt{font-size:13px;color:var(--t2);line-height:1.55}
 .step-txt b{color:var(--t1)}
 
+/* UPLOAD SECTION */
+.upload-area{background:var(--cr);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;border:2px dashed var(--bo);transition:all .2s;cursor:pointer}
+.upload-area:hover{border-color:var(--red);background:#FFF8F8}
+.upload-area .upload-icon{font-size:36px;margin-bottom:8px}
+.upload-area .upload-text{font-size:12px;color:var(--mu);margin-top:6px}
+.upload-area .upload-text b{color:var(--red)}
+.preview-image{width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:10px;display:none}
+.remove-preview{background:rgba(196,28,28,.1);border:none;border-radius:6px;padding:6px 12px;font-size:11px;color:var(--red);cursor:pointer;margin-top:8px;display:inline-flex;align-items:center;gap:5px}
+
 /* FORM FIELDS */
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
@@ -277,11 +286,33 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
           </div>
           <div class="step">
             <div class="step-num">3</div>
-            <div class="step-txt">Remplissez le formulaire ci-dessous et soumettez votre demande</div>
+            <div class="step-txt"><b>Téléchargez une capture d'écran</b> de la confirmation de paiement</div>
           </div>
           <div class="step">
             <div class="step-num">4</div>
+            <div class="step-txt">Remplissez le formulaire ci-dessous et soumettez votre demande</div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
             <div class="step-txt"><b>L'admin validera</b> votre recharge sous 24h maximum</div>
+          </div>
+        </div>
+
+        <!-- UPLOAD CAPTURE -->
+        <div class="field">
+          <label>📸 Capture d'écran du paiement <span style="color:var(--red)">*</span></label>
+          <div class="upload-area" id="upload-area" onclick="document.getElementById('proof-input').click()">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Cliquez pour télécharger une capture d'écran<br>ou <b>glissez-déposez</b> votre image</div>
+            <div class="upload-text" style="font-size:10px;margin-top:5px">Formats acceptés : JPG, PNG, WebP (Max 5MB)</div>
+          </div>
+          <input type="file" id="proof-input" accept="image/*" style="display:none" onchange="handleFileUpload(this.files[0])"/>
+          <img id="preview-img" class="preview-image" src="" alt="Aperçu"/>
+          <div style="text-align:center;margin-top:6px">
+            <button class="remove-preview" onclick="removeProof()" style="display:none" id="remove-btn">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Supprimer
+            </button>
           </div>
         </div>
 
@@ -317,7 +348,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
         </button>
 
         <div style="background:#FFF7ED;border:1px solid rgba(245,158,11,.2);border-radius:11px;padding:11px 13px;margin-top:12px;font-size:12px;color:#92400E;line-height:1.65">
-          ⏰ Votre recharge sera validée par un admin dans un délai de <b>30 minutes à 24h</b> après vérification du transfert.
+          ⏰ Votre recharge sera validée par un admin dans un délai de <b>30 minutes à 24h</b> après vérification du transfert et de la capture.
         </div>
       </div>
     </div>
@@ -369,6 +400,7 @@ const MANUAL_ACCOUNTS = {
 
 let sb = null, currentUser = null;
 let amtAuto = 0, amtManual = 0, selectedOp = null;
+let proofBase64 = null;
 const $ = id => document.getElementById(id);
 
 try {
@@ -394,10 +426,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     currentUser = sd.session.user;
     const { data: p } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
     if (p) $('bal-val').textContent = (p.balance || 0).toLocaleString('fr-FR') + ' FCFA';
-    // Pre-fill phone if available
     const phone = currentUser.user_metadata?.phone_number || '';
     if (phone && $('sender-phone')) $('sender-phone').value = phone.replace(/^\+\d+\s?/, '');
-    // Check SoinaPay return
     const params = new URLSearchParams(window.location.search);
     const status = params.get('payment_status');
     const ref = params.get('transaction_id') || params.get('ref');
@@ -454,11 +484,14 @@ function updateAutoBtn() {
 }
 function updateManualBtn() {
   const btn = $('btn-submit-manual');
-  btn.disabled = amtManual < 3000;
-  if (amtManual >= 3000) {
+  const hasProof = proofBase64 !== null;
+  btn.disabled = (amtManual < 3000) || !hasProof;
+  if (amtManual >= 3000 && hasProof) {
     btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer — ' + amtManual.toLocaleString('fr-FR') + ' FCFA';
-  } else {
+  } else if (amtManual < 3000) {
     btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer la demande';
+  } else {
+    btn.innerHTML = '📷 Téléchargez d\'abord la capture';
   }
 }
 
@@ -492,6 +525,66 @@ function copyNumber() {
   navigator.clipboard.writeText(acc.number).then(() => toast('Numéro copié : ' + acc.number));
 }
 
+// ── UPLOAD PROOF ─────────────────────────────────────────
+function handleFileUpload(file) {
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    toast('Image trop volumineuse (max 5MB)');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    proofBase64 = e.target.result;
+    const preview = $('preview-img');
+    preview.src = proofBase64;
+    preview.style.display = 'block';
+    const removeBtn = $('remove-btn');
+    if (removeBtn) removeBtn.style.display = 'inline-flex';
+    updateManualBtn();
+    toast('Capture ajoutée ✓');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProof() {
+  proofBase64 = null;
+  const preview = $('preview-img');
+  preview.src = '';
+  preview.style.display = 'none';
+  const removeBtn = $('remove-btn');
+  if (removeBtn) removeBtn.style.display = 'none';
+  const fileInput = $('proof-input');
+  if (fileInput) fileInput.value = '';
+  updateManualBtn();
+  toast('Capture supprimée');
+}
+
+// Drag and drop support
+const uploadArea = $('upload-area');
+if (uploadArea) {
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--red)';
+    uploadArea.style.background = '#FFF8F8';
+  });
+  uploadArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '';
+    uploadArea.style.background = '';
+  });
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '';
+    uploadArea.style.background = '';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      handleFileUpload(file);
+    } else {
+      toast('Veuillez déposer une image');
+    }
+  });
+}
+
 // ── SOINA PAY ─────────────────────────────────────────────
 function startSoinaPay() {
   if (amtAuto < 3000) { showAlert('al-auto', 'Montant minimum : 3 000 FCFA'); return; }
@@ -511,12 +604,15 @@ async function submitManual() {
   const acc = MANUAL_ACCOUNTS[selectedOp];
   if (amtManual < 3000) return;
   if (!phone) { showAlert('al-manual', 'Entrez votre numéro de téléphone'); return; }
+  if (!proofBase64) { showAlert('al-manual', 'Téléchargez la capture d\'écran du paiement'); return; }
   if (!currentUser) { showAlert('al-manual', 'Session expirée'); return; }
   const btn = $('btn-submit-manual');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>Envoi en cours...';
   try {
     const ref = 'MAN_' + Date.now();
+    // Inclure la preuve dans la description (base64 tronquée pour ne pas surcharger)
+    const proofShort = proofBase64.length > 500 ? proofBase64.substring(0, 500) + '...' : proofBase64;
     await sb.from('transactions').insert({
       user_id: currentUser.id,
       type: 'depot',
@@ -524,10 +620,10 @@ async function submitManual() {
       fee: 0,
       net_amount: amtManual,
       status: 'pending',
-      description: 'Recharge manuelle ' + acc.name + ' · ' + phone + (txRef ? ' · Ref: ' + txRef : '') + ' · Ref: ' + ref,
-      method: acc.name
+      description: 'Recharge manuelle ' + acc.name + ' · ' + phone + (txRef ? ' · Ref: ' + txRef : '') + ' · Ref: ' + ref + ' · PROOF:' + proofShort,
+      method: acc.name,
+      proof_image: proofBase64
     });
-    // Show pending success
     $('mode-manual').style.display = 'none';
     const balCard = document.querySelector('.bal-card');
     const infoRow = document.querySelector('.info-row');
@@ -537,7 +633,7 @@ async function submitManual() {
     if (modeTabs) modeTabs.style.display = 'none';
     $('success-ico').textContent = '⏳';
     $('success-title').textContent = 'Demande envoyée !';
-    $('success-msg').innerHTML = 'Votre demande de recharge de <b>' + amtManual.toLocaleString('fr-FR') + ' FCFA</b> via <b>' + acc.name + '</b> a été soumise.<br><br>Un admin validera votre paiement sous <b>30 min à 24h</b>.<br><br>Vous recevrez une notification dès validation.';
+    $('success-msg').innerHTML = 'Votre demande de recharge de <b>' + amtManual.toLocaleString('fr-FR') + ' FCFA</b> via <b>' + acc.name + '</b> a été soumise avec la preuve de paiement.<br><br>Un admin va vérifier et <b>valider votre recharge</b> sous <b>30 min à 24h</b>.<br><br>Vous recevrez une notification dès validation.';
     $('success-screen').classList.add('on');
     toast('Demande envoyée ✓ En attente de validation');
   } catch(e) {
