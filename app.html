@@ -237,10 +237,67 @@ body{
   animation:pulse 1.2s infinite;
 }
 
+/* DOWNLOAD BUTTON */
+
+.download-btn{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  width:100%;
+  max-width:320px;
+  margin:20px auto 0;
+  padding:16px 24px;
+  background:linear-gradient(135deg,var(--red),var(--rd));
+  border:none;
+  border-radius:60px;
+  font-family:"DM Sans",sans-serif;
+  font-size:16px;
+  font-weight:700;
+  color:#fff;
+  cursor:pointer;
+  transition:all .2s;
+  box-shadow:0 6px 20px rgba(196,28,28,.35);
+  text-decoration:none;
+}
+
+.download-btn:active{
+  transform:scale(.96);
+}
+
+.download-btn svg{
+  width:22px;
+  height:22px;
+  stroke:#fff;
+  fill:none;
+  stroke-width:2;
+}
+
+.download-note{
+  position:relative;
+  z-index:2;
+  font-size:11px;
+  color:var(--mu);
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.download-note span{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+
 /* FEATURES */
 
 .features{
-  margin-top:20px;
+  margin-top:28px;
   display:grid;
   gap:14px;
 }
@@ -290,6 +347,30 @@ body{
   line-height:1.8;
 }
 
+/* TOAST */
+
+#toast{
+  position:fixed;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%) translateY(-70px);
+  background:var(--t1);
+  color:#fff;
+  padding:10px 18px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:500;
+  z-index:9999;
+  transition:transform .3s;
+  white-space:nowrap;
+  max-width:88vw;
+  pointer-events:none;
+}
+
+#toast.show{
+  transform:translateX(-50%) translateY(0);
+}
+
 /* ANIMATIONS */
 
 @keyframes float{
@@ -322,6 +403,8 @@ body{
 </head>
 
 <body>
+
+<div id="toast"></div>
 
 <!-- TOPBAR -->
 
@@ -372,22 +455,35 @@ body{
 
     </div>
 
-    <h2>Application bientôt disponible</h2>
+    <h2>Application officielle</h2>
 
     <p class="hero-desc">
 
-      L’application officielle Marathon est actuellement
-      en développement et sera disponible très prochainement
-      sur Android et iPhone avec une expérience plus rapide,
-      plus sécurisée et plus fluide.
+      Téléchargez l'application Marathon pour une expérience
+      plus rapide, plus sécurisée et accessible partout.
 
     </p>
 
-    <div class="status">
+    <a class="download-btn" href="https://median.co/share/jbojbeq#apk" download>
+      <svg viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Télécharger l'APK
+    </a>
+
+    <div class="download-note">
+      <span>📱 Version Android 8.0+</span>
+      <span>🔒 Application sécurisée</span>
+      <span>⚡ Installation rapide</span>
+    </div>
+
+    <div class="status" style="margin-top:24px">
 
       <span class="dot"></span>
 
-      Développement en cours
+      Version bêta disponible
 
     </div>
 
@@ -464,8 +560,8 @@ body{
         <h4>Nouvelles fonctionnalités</h4>
 
         <p>
-          L’application apportera plusieurs fonctionnalités
-          exclusives à venir.
+          L'application apporte plusieurs fonctionnalités
+          exclusives à découvrir.
         </p>
 
       </div>
@@ -479,11 +575,29 @@ body{
   <div class="footer">
 
     Marathon © 2026<br>
-    Application officielle en préparation
+    Application officielle
 
   </div>
 
 </div>
+
+<script>
+function toast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+
+// Détecter si l'utilisateur est sur Android pour afficher une suggestion
+const isAndroid = /Android/i.test(navigator.userAgent);
+if (isAndroid) {
+  setTimeout(() => {
+    toast('📱 Téléchargez l\'APK Marathon pour Android');
+  }, 1000);
+}
+</script>
 
 </body>
 </html>
