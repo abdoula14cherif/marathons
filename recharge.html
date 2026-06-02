@@ -165,7 +165,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
     <div class="mode-tab" id="tab-manual" onclick="setMode('manual')">
       <div class="mt-ico">📲</div>
       <div class="mt-title">Manuel</div>
-      <div class="mt-sub">Wave · Amana · Airtel</div>
+      <div class="mt-sub">Wave · Amana · Airtel · Nita</div>
     </div>
   </div>
 
@@ -225,6 +225,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
             <div class="op-radio"></div>
             <div class="op-ico">📡</div>
             <div><div class="op-name">Airtel Money</div><div class="op-type">Airtel Money</div></div>
+          </div>
+          <div class="op-card" id="op-nita" onclick="selectOp('nita')">
+            <div class="op-radio"></div>
+            <div class="op-ico">💎</div>
+            <div><div class="op-name">Nita</div><div class="op-type">Transfert d'argent Nita</div></div>
           </div>
         </div>
         <button class="pay-btn" id="btn-next-op" onclick="goToStep2()" disabled>Suivant →</button>
@@ -345,10 +350,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 // Pour changer le lien SoinaPay :
 //   → Remplacez la valeur de SOINAPAY_URL ci-dessous
 //
-// Pour ajouter d'autres liens (ex: un lien par pays) :
-//   → Ajoutez dans le tableau PAYMENT_LINKS
-//   → active: true = lien utilisé par défaut
-//
 // Pour modifier les comptes manuels :
 //   → Éditez le tableau MANUAL_ACCOUNTS
 // ═══════════════════════════════════════════════════════════
@@ -358,7 +359,8 @@ const SOINAPAY_URL = 'https://soinapay.com/pay/h3pz7oka';
 const MANUAL_ACCOUNTS = {
   wave:  { name: 'Wave',        ico: '🌊', number: '99736405', label: 'Wave Transfert d\'argent',   holder: 'Abdoulkader Salifou' },
   amana: { name: 'Amana',       ico: '🏦', number: '99736405', label: 'Amana Transfert d\'argent',  holder: 'Abdoulkader Salifou' },
-  airtel:{ name: 'Airtel Money',ico: '📡', number: '99736405', label: 'Airtel Money',                holder: 'Abdoulkader Salifou' }
+  airtel:{ name: 'Airtel Money',ico: '📡', number: '99736405', label: 'Airtel Money',                holder: 'Abdoulkader Salifou' },
+  nita:  { name: 'Nita',        ico: '💎', number: '99736405', label: 'Nita Transfert d\'argent',   holder: 'Abdoulkader Salifou' }
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -527,9 +529,12 @@ async function submitManual() {
     });
     // Show pending success
     $('mode-manual').style.display = 'none';
-    $('bal-card').style.display = 'none';
-    $('info-row').style.display = 'none';
-    $('mode-tabs').style.display = 'none';
+    const balCard = document.querySelector('.bal-card');
+    const infoRow = document.querySelector('.info-row');
+    const modeTabs = document.querySelector('.mode-tabs');
+    if (balCard) balCard.style.display = 'none';
+    if (infoRow) infoRow.style.display = 'none';
+    if (modeTabs) modeTabs.style.display = 'none';
     $('success-ico').textContent = '⏳';
     $('success-title').textContent = 'Demande envoyée !';
     $('success-msg').innerHTML = 'Votre demande de recharge de <b>' + amtManual.toLocaleString('fr-FR') + ' FCFA</b> via <b>' + acc.name + '</b> a été soumise.<br><br>Un admin validera votre paiement sous <b>30 min à 24h</b>.<br><br>Vous recevrez une notification dès validation.';
@@ -546,7 +551,6 @@ async function submitManual() {
 async function creditAccount(amount, ref, method) {
   const key = 'pending_submitted_' + ref;
   if (localStorage.getItem(key)) {
-    // Déjà soumis, juste afficher l'écran d'attente
     showPendingScreen(amount, method);
     return;
   }
@@ -574,7 +578,8 @@ async function creditAccount(amount, ref, method) {
 function showPendingScreen(amount, method) {
   $('mode-auto').style.display = 'none';
   $('mode-manual').style.display = 'none';
-  $('mode-tabs').style.display = 'none';
+  const modeTabs = document.querySelector('.mode-tabs');
+  if (modeTabs) modeTabs.style.display = 'none';
   $('success-ico').textContent = '⏳';
   $('success-title').textContent = 'Demande reçue !';
   $('success-msg').innerHTML =
@@ -583,16 +588,6 @@ function showPendingScreen(amount, method) {
     '✅ Votre solde sera mis à jour automatiquement après validation.';
   $('success-screen').classList.add('on');
 }
-
-// Add missing balance-card and info-row display reference
-document.addEventListener('DOMContentLoaded', () => {
-  const br = document.querySelector('.bal-card');
-  if (br) br.id = 'bal-card';
-  const ir = document.querySelector('.info-row');
-  if (ir) ir.id = 'info-row';
-  const mt = document.querySelector('.mode-tabs');
-  if (mt) mt.id = 'mode-tabs';
-});
 </script>
 </body>
 </html>
