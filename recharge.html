@@ -28,15 +28,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 .info-box .v{font-size:15px;font-weight:700;color:var(--t1)}
 .info-box .k{font-size:10px;color:var(--mu);margin-top:3px}
 
-/* PAYMENT MODE TABS */
-.mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.mode-tab{padding:14px 10px;border-radius:13px;border:2px solid var(--bo);background:#fff;cursor:pointer;text-align:center;transition:all .2s;font-family:"DM Sans",sans-serif}
-.mode-tab.on{border-color:var(--red);background:#FFF0F0}
-.mode-tab .mt-ico{font-size:26px;margin-bottom:6px}
-.mode-tab .mt-title{font-size:13px;font-weight:700;color:var(--t1)}
-.mode-tab .mt-sub{font-size:10.5px;color:var(--mu);margin-top:2px}
-.mode-tab.on .mt-title{color:var(--red)}
-
 /* CARD */
 .card{background:#fff;border-radius:14px;padding:18px;border:1px solid var(--bo);margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .card h3{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:var(--t1);margin-bottom:16px}
@@ -63,50 +54,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 .pay-btn:active{transform:scale(.98)}
 .pay-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
 .sec-btn{width:100%;padding:13px;border-radius:13px;border:1.5px solid rgba(196,28,28,.25);cursor:pointer;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:#fff;color:var(--red);margin-top:10px}
-
-/* OPERATOR CARDS */
-.op-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
-.op-card{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border-radius:13px;border:2px solid var(--bo);cursor:pointer;transition:all .2s}
-.op-card.on{border-color:var(--red);background:#FFF8F8}
-.op-card:active{transform:scale(.97)}
-.op-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--bo);flex-shrink:0;position:relative;transition:all .2s}
-.op-card.on .op-radio{border-color:var(--red);background:var(--red)}
-.op-card.on .op-radio::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:7px;height:7px;background:#fff;border-radius:50%}
-.op-ico{font-size:28px;flex-shrink:0}
-.op-name{font-size:14px;font-weight:700;color:var(--t1)}
-.op-type{font-size:11.5px;color:var(--mu);margin-top:1px}
-
-/* PAYMENT DETAILS BOX */
-.pay-details{background:linear-gradient(135deg,#0B1526,#1A2840);border-radius:14px;padding:18px;margin-bottom:16px;color:#fff}
-.pay-details .pd-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:14px;display:flex;align-items:center;gap:6px}
-.pay-details .pd-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08)}
-.pay-details .pd-row:last-child{border-bottom:none}
-.pay-details .pd-label{font-size:12px;color:rgba(255,255,255,.55)}
-.pay-details .pd-val{font-size:14px;font-weight:700;color:#fff}
-.pay-details .pd-num{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:700;color:#FFD700;letter-spacing:.06em}
-.copy-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:5px 12px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif}
-
-/* STEPS */
-.steps{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.step{display:flex;align-items:flex-start;gap:12px;padding:11px 13px;background:var(--cr);border-radius:11px}
-.step-num{width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-txt{font-size:13px;color:var(--t2);line-height:1.55}
-.step-txt b{color:var(--t1)}
-
-/* UPLOAD SECTION */
-.upload-area{background:var(--cr);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;border:2px dashed var(--bo);transition:all .2s;cursor:pointer}
-.upload-area:hover{border-color:var(--red);background:#FFF8F8}
-.upload-area .upload-icon{font-size:36px;margin-bottom:8px}
-.upload-area .upload-text{font-size:12px;color:var(--mu);margin-top:6px}
-.upload-area .upload-text b{color:var(--red)}
-.preview-image{width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:10px;display:none}
-.remove-preview{background:rgba(196,28,28,.1);border:none;border-radius:6px;padding:6px 12px;font-size:11px;color:var(--red);cursor:pointer;margin-top:8px;display:inline-flex;align-items:center;gap:5px}
-
-/* FORM FIELDS */
-.field{margin-bottom:14px}
-.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
-.field input,.field select{width:100%;padding:12px 14px;border:1.5px solid var(--bo);border-radius:11px;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--t1);background:var(--cr);outline:none;transition:all .2s}
-.field input:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px rgba(196,28,28,.1)}
 
 /* ALERT */
 .alert{padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
@@ -145,7 +92,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
   <button class="back" onclick="window.location.href='dashboard.html'">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <div><h1>Recharger mon compte</h1><p>Choisissez votre méthode de paiement</p></div>
+  <div><h1>Recharger mon compte</h1><p>Paiement sécurisé par SoinaPay</p></div>
 </div>
 
 <div class="content">
@@ -161,24 +108,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 
   <div class="info-row">
     <div class="info-box"><div class="v">3 000 F</div><div class="k">Dépôt minimum</div></div>
-    <div class="info-box"><div class="v">Instantané</div><div class="k">Crédit auto</div></div>
+    <div class="info-box"><div class="v">Instantané</div><div class="k">Crédit automatique</div></div>
   </div>
 
-  <!-- MODE TABS -->
-  <div class="mode-tabs">
-    <div class="mode-tab on" id="tab-auto" onclick="setMode('auto')">
-      <div class="mt-ico">⚡</div>
-      <div class="mt-title">Automatique</div>
-      <div class="mt-sub">SoinaPay · Rapide</div>
-    </div>
-    <div class="mode-tab" id="tab-manual" onclick="setMode('manual')">
-      <div class="mt-ico">📲</div>
-      <div class="mt-title">Manuel</div>
-      <div class="mt-sub">Wave · Amana · Airtel · Nita</div>
-    </div>
-  </div>
-
-  <!-- ══════════ MODE AUTO (SoinaPay) ══════════ -->
+  <!-- MODE AUTO (SoinaPay) -->
   <div id="mode-auto">
     <div class="card">
       <h3>Choisir le montant</h3>
@@ -210,150 +143,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
     </div>
   </div>
 
-  <!-- ══════════ MODE MANUEL ══════════ -->
-  <div id="mode-manual" style="display:none">
-    <div class="card">
-      <h3>Paiement manuel</h3>
-      <div class="alert" id="al-manual"></div>
-
-      <!-- ÉTAPE 1 : Choisir opérateur -->
-      <div id="step-operator">
-        <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">1. Choisissez l'opérateur</div>
-        <div class="op-grid">
-          <div class="op-card" id="op-wave" onclick="selectOp('wave')">
-            <div class="op-radio"></div>
-            <div class="op-ico">🌊</div>
-            <div><div class="op-name">Wave</div><div class="op-type">Transfert d'argent Wave</div></div>
-          </div>
-          <div class="op-card" id="op-amana" onclick="selectOp('amana')">
-            <div class="op-radio"></div>
-            <div class="op-ico">🏦</div>
-            <div><div class="op-name">Amana</div><div class="op-type">Transfert d'argent Amana</div></div>
-          </div>
-          <div class="op-card" id="op-airtel" onclick="selectOp('airtel')">
-            <div class="op-radio"></div>
-            <div class="op-ico">📡</div>
-            <div><div class="op-name">Airtel Money</div><div class="op-type">Airtel Money</div></div>
-          </div>
-          <div class="op-card" id="op-nita" onclick="selectOp('nita')">
-            <div class="op-radio"></div>
-            <div class="op-ico">💎</div>
-            <div><div class="op-name">Nita</div><div class="op-type">Transfert d'argent Nita</div></div>
-          </div>
-        </div>
-        <button class="pay-btn" id="btn-next-op" onclick="goToStep2()" disabled>Suivant →</button>
-      </div>
-
-      <!-- ÉTAPE 2 : Détails + Montant -->
-      <div id="step-details" style="display:none">
-        <button onclick="goBack()" style="background:none;border:none;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;gap:5px">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          Retour
-        </button>
-
-        <!-- Infos de paiement -->
-        <div class="pay-details">
-          <div class="pd-title" id="pd-operator-name">
-            <span id="pd-ico">💳</span>
-            <span>Compte de dépôt</span>
-          </div>
-          <div class="pd-row">
-            <span class="pd-label">Numéro</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <span class="pd-num" id="pd-number">99736405</span>
-              <button class="copy-btn" onclick="copyNumber()">📋 Copier</button>
-            </div>
-          </div>
-          <div class="pd-row">
-            <span class="pd-label">Nom du bénéficiaire</span>
-            <span class="pd-val">Abdoulkader Salifou</span>
-          </div>
-          <div class="pd-row">
-            <span class="pd-label">Opérateur</span>
-            <span class="pd-val" id="pd-op-label">—</span>
-          </div>
-        </div>
-
-        <!-- Instructions -->
-        <div class="steps">
-          <div class="step">
-            <div class="step-num">1</div>
-            <div class="step-txt">Ouvrez votre application <b id="inst-op">Wave</b> et envoyez le montant souhaité au numéro <b>99736405</b> (Abdoulkader Salifou)</div>
-          </div>
-          <div class="step">
-            <div class="step-num">2</div>
-            <div class="step-txt">Notez votre <b>numéro de transaction</b> ou la référence du transfert</div>
-          </div>
-          <div class="step">
-            <div class="step-num">3</div>
-            <div class="step-txt"><b>Téléchargez une capture d'écran</b> de la confirmation de paiement</div>
-          </div>
-          <div class="step">
-            <div class="step-num">4</div>
-            <div class="step-txt">Remplissez le formulaire ci-dessous et soumettez votre demande</div>
-          </div>
-          <div class="step">
-            <div class="step-num">5</div>
-            <div class="step-txt"><b> </b>Recharge instantané</div>
-          </div>
-        </div>
-
-        <!-- UPLOAD CAPTURE -->
-        <div class="field">
-          <label>📸 Capture d'écran du paiement <span style="color:var(--red)">*</span></label>
-          <div class="upload-area" id="upload-area" onclick="document.getElementById('proof-input').click()">
-            <div class="upload-icon">📷</div>
-            <div class="upload-text">Cliquez pour télécharger une capture d'écran<br>ou <b>glissez-déposez</b> votre image</div>
-            <div class="upload-text" style="font-size:10px;margin-top:5px">Formats acceptés : JPG, PNG, WebP (Max 5MB)</div>
-          </div>
-          <input type="file" id="proof-input" accept="image/*" style="display:none" onchange="handleFileUpload(this.files[0])"/>
-          <img id="preview-img" class="preview-image" src="" alt="Aperçu"/>
-          <div style="text-align:center;margin-top:6px">
-            <button class="remove-preview" onclick="removeProof()" style="display:none" id="remove-btn">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              Supprimer
-            </button>
-          </div>
-        </div>
-
-        <!-- Montant -->
-        <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Montant envoyé</div>
-        <div class="presets" id="presets-manual">
-          <div class="preset" onclick="setAmt(3000,this,'manual')"><span class="pa">3 000 F</span><span class="pp">🟢 Starter</span></div>
-          <div class="preset" onclick="setAmt(6000,this,'manual')"><span class="pa">6 000 F</span><span class="pp">🔵 Bronze</span></div>
-          <div class="preset" onclick="setAmt(10000,this,'manual')"><span class="pa">10 000 F</span><span class="pp">🟠 Silver</span></div>
-          <div class="preset" onclick="setAmt(20000,this,'manual')"><span class="pa">20 000 F</span><span class="pp">🟣 Gold</span></div>
-          <div class="preset" onclick="setAmt(50000,this,'manual')"><span class="pa">50 000 F</span><span class="pp">🔴 Premium</span></div>
-          <div class="preset" onclick="setAmt(100000,this,'manual')"><span class="pa">100 000 F</span><span class="pp">👑 VIP</span></div>
-          <div class="preset" onclick="setAmt(300000,this,'manual')"><span class="pa">300 000 F</span><span class="pp">❄️ COLD</span></div>
-        </div>
-        <div class="custom-wrap" style="margin-bottom:14px">
-          <span>FCFA</span>
-          <input type="number" id="custom-manual" placeholder="Autre montant..." min="3000" oninput="onCustom('manual')"/>
-        </div>
-
-        <!-- Formulaire -->
-        <div class="field">
-          <label>Votre numéro de téléphone</label>
-          <input type="tel" id="sender-phone" placeholder="Ex: 99 73 64 05"/>
-        </div>
-        <div class="field">
-          <label>Référence / N° de transaction <span style="color:var(--mu);text-transform:none;font-size:10px">(optionnel mais recommandé)</span></label>
-          <input type="text" id="tx-ref" placeholder="Ex: TRF-XXXXXXXXXX"/>
-        </div>
-
-        <button class="pay-btn" id="btn-submit-manual" onclick="submitManual()" disabled>
-          <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Envoyer la demande
-        </button>
-
-        <div style="background:#FFF7ED;border:1px solid rgba(245,158,11,.2);border-radius:11px;padding:11px 13px;margin-top:12px;font-size:12px;color:#92400E;line-height:1.65">
-          ⏰ Votre recharge sera validée par un admin dans un délai de <b>30 minutes à 24h</b> après vérification du transfert et de la capture.
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- SUCCESS SCREEN -->
   <div class="success" id="success-screen">
     <div class="ico" id="success-ico">🎉</div>
@@ -380,27 +169,16 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--t1);min-h
 //
 // Pour changer le lien SoinaPay :
 //   → Remplacez la valeur de SOINAPAY_URL ci-dessous
-//
-// Pour modifier les comptes manuels :
-//   → Éditez le tableau MANUAL_ACCOUNTS
 // ═══════════════════════════════════════════════════════════
 
 const SOINAPAY_URL = 'https://soinapay.com/pay/h3pz7oka';
-
-const MANUAL_ACCOUNTS = {
-  wave:  { name: 'Wave',        ico: '🌊', number: '99736405', label: 'Wave Transfert d\'argent',   holder: 'Abdoulkader Salifou' },
-  amana: { name: 'Amana',       ico: '🏦', number: '99736405', label: 'Amana Transfert d\'argent',  holder: 'Abdoulkader Salifou' },
-  airtel:{ name: 'Airtel Money',ico: '📡', number: '99736405', label: 'Airtel Money',                holder: 'Abdoulkader Salifou' },
-  nita:  { name: 'Nita',        ico: '💎', number: '99736405', label: 'Nita Transfert d\'argent',   holder: 'Abdoulkader Salifou' }
-};
 
 // ═══════════════════════════════════════════════════════════
 //  FIN DE LA ZONE DE CONFIG
 // ═══════════════════════════════════════════════════════════
 
 let sb = null, currentUser = null;
-let amtAuto = 0, amtManual = 0, selectedOp = null;
-let proofBase64 = null;
+let amtAuto = 0;
 const $ = id => document.getElementById(id);
 
 try {
@@ -413,7 +191,11 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 function showAlert(id, msg, type) {
-  const el = $(id); el.className = 'alert ' + (type || 'err'); el.textContent = msg;
+  const el = $(id); 
+  el.className = 'alert ' + (type || 'err'); 
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { if(el) el.style.display = 'none'; }, 5000);
 }
 function hideAlert(id) { const el = $(id); if (el) el.style.display = 'none'; }
 
@@ -426,8 +208,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     currentUser = sd.session.user;
     const { data: p } = await sb.from('profiles').select('balance').eq('id', currentUser.id).single();
     if (p) $('bal-val').textContent = (p.balance || 0).toLocaleString('fr-FR') + ' FCFA';
-    const phone = currentUser.user_metadata?.phone_number || '';
-    if (phone && $('sender-phone')) $('sender-phone').value = phone.replace(/^\+\d+\s?/, '');
+    
     const params = new URLSearchParams(window.location.search);
     const status = params.get('payment_status');
     const ref = params.get('transaction_id') || params.get('ref');
@@ -439,14 +220,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   } catch(e) { console.error(e); }
 });
 
-// ── MODE TABS ─────────────────────────────────────────────
-function setMode(mode) {
-  $('tab-auto').classList.toggle('on', mode === 'auto');
-  $('tab-manual').classList.toggle('on', mode === 'manual');
-  $('mode-auto').style.display = mode === 'auto' ? 'block' : 'none';
-  $('mode-manual').style.display = mode === 'manual' ? 'block' : 'none';
-}
-
 // ── AMOUNT ────────────────────────────────────────────────
 function setAmt(amt, el, mode) {
   if (mode === 'auto') {
@@ -455,26 +228,19 @@ function setAmt(amt, el, mode) {
     $('custom-auto').value = '';
     document.querySelectorAll('#presets-auto .preset').forEach(p => p.classList.remove('on'));
     updateAutoBtn();
-  } else {
-    amtManual = amt;
-    $('custom-manual').value = '';
-    document.querySelectorAll('#presets-manual .preset').forEach(p => p.classList.remove('on'));
-    updateManualBtn();
   }
   el.classList.add('on');
 }
+
 function onCustom(mode) {
   if (mode === 'auto') {
     amtAuto = parseInt($('custom-auto').value) || 0;
     $('amt-display-auto').textContent = amtAuto > 0 ? amtAuto.toLocaleString('fr-FR') : '0';
     document.querySelectorAll('#presets-auto .preset').forEach(p => p.classList.remove('on'));
     updateAutoBtn();
-  } else {
-    amtManual = parseInt($('custom-manual').value) || 0;
-    document.querySelectorAll('#presets-manual .preset').forEach(p => p.classList.remove('on'));
-    updateManualBtn();
   }
 }
+
 function updateAutoBtn() {
   const btn = $('btn-auto');
   btn.disabled = amtAuto < 3000;
@@ -482,174 +248,36 @@ function updateAutoBtn() {
     ? '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer ' + amtAuto.toLocaleString('fr-FR') + ' FCFA'
     : '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payer avec SoinaPay';
 }
-function updateManualBtn() {
-  const btn = $('btn-submit-manual');
-  const hasProof = proofBase64 !== null;
-  btn.disabled = (amtManual < 3000) || !hasProof;
-  if (amtManual >= 3000 && hasProof) {
-    btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer — ' + amtManual.toLocaleString('fr-FR') + ' FCFA';
-  } else if (amtManual < 3000) {
-    btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer la demande';
-  } else {
-    btn.innerHTML = '📷 Téléchargez d\'abord la capture';
-  }
-}
-
-// ── OPERATOR SELECTION ────────────────────────────────────
-function selectOp(op) {
-  selectedOp = op;
-  document.querySelectorAll('.op-card').forEach(c => c.classList.remove('on'));
-  $('op-' + op).classList.add('on');
-  $('btn-next-op').disabled = false;
-}
-
-function goToStep2() {
-  if (!selectedOp) return;
-  const acc = MANUAL_ACCOUNTS[selectedOp];
-  $('pd-ico').textContent = acc.ico;
-  $('pd-number').textContent = acc.number;
-  $('pd-op-label').textContent = acc.label;
-  $('inst-op').textContent = acc.name;
-  $('step-operator').style.display = 'none';
-  $('step-details').style.display = 'block';
-}
-
-function goBack() {
-  $('step-details').style.display = 'none';
-  $('step-operator').style.display = 'block';
-}
-
-function copyNumber() {
-  const acc = MANUAL_ACCOUNTS[selectedOp];
-  if (!acc) return;
-  navigator.clipboard.writeText(acc.number).then(() => toast('Numéro copié : ' + acc.number));
-}
-
-// ── UPLOAD PROOF ─────────────────────────────────────────
-function handleFileUpload(file) {
-  if (!file) return;
-  if (file.size > 5 * 1024 * 1024) {
-    toast('Image trop volumineuse (max 5MB)');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    proofBase64 = e.target.result;
-    const preview = $('preview-img');
-    preview.src = proofBase64;
-    preview.style.display = 'block';
-    const removeBtn = $('remove-btn');
-    if (removeBtn) removeBtn.style.display = 'inline-flex';
-    updateManualBtn();
-    toast('Capture ajoutée ✓');
-  };
-  reader.readAsDataURL(file);
-}
-
-function removeProof() {
-  proofBase64 = null;
-  const preview = $('preview-img');
-  preview.src = '';
-  preview.style.display = 'none';
-  const removeBtn = $('remove-btn');
-  if (removeBtn) removeBtn.style.display = 'none';
-  const fileInput = $('proof-input');
-  if (fileInput) fileInput.value = '';
-  updateManualBtn();
-  toast('Capture supprimée');
-}
-
-// Drag and drop support
-const uploadArea = $('upload-area');
-if (uploadArea) {
-  uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = 'var(--red)';
-    uploadArea.style.background = '#FFF8F8';
-  });
-  uploadArea.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = '';
-    uploadArea.style.background = '';
-  });
-  uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = '';
-    uploadArea.style.background = '';
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      handleFileUpload(file);
-    } else {
-      toast('Veuillez déposer une image');
-    }
-  });
-}
 
 // ── SOINA PAY ─────────────────────────────────────────────
 function startSoinaPay() {
-  if (amtAuto < 3000) { showAlert('al-auto', 'Montant minimum : 3 000 FCFA'); return; }
-  if (!currentUser) { showAlert('al-auto', 'Session expirée. Reconnectez-vous.'); return; }
+  if (amtAuto < 3000) { 
+    showAlert('al-auto', 'Montant minimum : 3 000 FCFA'); 
+    return; 
+  }
+  if (!currentUser) { 
+    showAlert('al-auto', 'Session expirée. Reconnectez-vous.'); 
+    return; 
+  }
+  
   const ref = 'MAR_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
   sessionStorage.setItem('sp_pending', JSON.stringify({ amount: amtAuto, ref, ts: Date.now() }));
   $('loader').classList.add('on');
+  
   const returnUrl = encodeURIComponent(window.location.origin + window.location.pathname + '?payment_status=success&amount=' + amtAuto + '&transaction_id=' + ref);
   const url = SOINAPAY_URL + '?amount=' + amtAuto + '&reference=' + ref + '&redirect_url=' + returnUrl;
+  
   setTimeout(() => { window.location.href = url; }, 600);
 }
 
-// ── MANUAL SUBMIT ─────────────────────────────────────────
-async function submitManual() {
-  const phone = $('sender-phone').value.trim();
-  const txRef = $('tx-ref').value.trim();
-  const acc = MANUAL_ACCOUNTS[selectedOp];
-  if (amtManual < 3000) return;
-  if (!phone) { showAlert('al-manual', 'Entrez votre numéro de téléphone'); return; }
-  if (!proofBase64) { showAlert('al-manual', 'Téléchargez la capture d\'écran du paiement'); return; }
-  if (!currentUser) { showAlert('al-manual', 'Session expirée'); return; }
-  const btn = $('btn-submit-manual');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>Envoi en cours...';
-  try {
-    const ref = 'MAN_' + Date.now();
-    // Inclure la preuve dans la description (base64 tronquée pour ne pas surcharger)
-    const proofShort = proofBase64.length > 500 ? proofBase64.substring(0, 500) + '...' : proofBase64;
-    await sb.from('transactions').insert({
-      user_id: currentUser.id,
-      type: 'depot',
-      amount: amtManual,
-      fee: 0,
-      net_amount: amtManual,
-      status: 'pending',
-      description: 'Recharge manuelle ' + acc.name + ' · ' + phone + (txRef ? ' · Ref: ' + txRef : '') + ' · Ref: ' + ref + ' · PROOF:' + proofShort,
-      method: acc.name,
-      proof_image: proofBase64
-    });
-    $('mode-manual').style.display = 'none';
-    const balCard = document.querySelector('.bal-card');
-    const infoRow = document.querySelector('.info-row');
-    const modeTabs = document.querySelector('.mode-tabs');
-    if (balCard) balCard.style.display = 'none';
-    if (infoRow) infoRow.style.display = 'none';
-    if (modeTabs) modeTabs.style.display = 'none';
-    $('success-ico').textContent = '⏳';
-    $('success-title').textContent = 'Demande envoyée !';
-    $('success-msg').innerHTML = 'Votre demande de recharge de <b>' + amtManual.toLocaleString('fr-FR') + ' FCFA</b> via <b>' + acc.name + '</b> a été soumise avec la preuve de paiement.<br><br>Un admin va vérifier et <b>valider votre recharge</b> sous <b>30 min à 24h</b>.<br><br>Vous recevrez une notification dès validation.';
-    $('success-screen').classList.add('on');
-    toast('Demande envoyée ✓ En attente de validation');
-  } catch(e) {
-    showAlert('al-manual', 'Erreur : ' + (e.message || 'Réessayez'));
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Envoyer la demande';
-  }
-}
-
-// ── PAIEMENT EN ATTENTE (admin valide avant crédit) ──────
+// ── CRÉDIT COMPTE (transaction en attente de validation admin) ──
 async function creditAccount(amount, ref, method) {
   const key = 'pending_submitted_' + ref;
   if (localStorage.getItem(key)) {
     showPendingScreen(amount, method);
     return;
   }
+  
   try {
     await sb.from('transactions').insert({
       user_id: currentUser.id,
@@ -672,16 +300,21 @@ async function creditAccount(amount, ref, method) {
 }
 
 function showPendingScreen(amount, method) {
+  // Cacher les éléments de la page de recharge
   $('mode-auto').style.display = 'none';
-  $('mode-manual').style.display = 'none';
-  const modeTabs = document.querySelector('.mode-tabs');
-  if (modeTabs) modeTabs.style.display = 'none';
+  const balCard = document.querySelector('.bal-card');
+  const infoRow = document.querySelector('.info-row');
+  if (balCard) balCard.style.display = 'none';
+  if (infoRow) infoRow.style.display = 'none';
+  
+  // Afficher l'écran de succès avec message d'attente
   $('success-ico').textContent = '⏳';
   $('success-title').textContent = 'Demande reçue !';
   $('success-msg').innerHTML =
     'Votre paiement de <b>' + amount.toLocaleString('fr-FR') + ' FCFA</b> via <b>' + method + '</b> a été enregistré.<br><br>' +
-    '⏰ Un admin va vérifier et <b>valider votre recharge</b> très prochainement.<br><br>' +
-    '✅ Votre solde sera mis à jour automatiquement après validation.';
+    '⏰ Un administrateur va vérifier et <b>valider votre recharge</b> très prochainement.<br><br>' +
+    '✅ Votre solde sera mis à jour automatiquement après validation.<br><br>' +
+    '📧 Vous recevrez une notification dès validation.';
   $('success-screen').classList.add('on');
 }
 </script>
