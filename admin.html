@@ -55,6 +55,7 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .ab-orange{background:#EA580C;color:#fff}
 .ab-green{background:#16A34A;color:#fff}
 .ab-purple{background:#7C3AED;color:#fff}
+.ab-cyan{background:#0891B2;color:#fff}
 
 .search-row{display:flex;gap:8px;margin-bottom:12px}
 .search-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);outline:none}
@@ -67,6 +68,16 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 .user-name{font-size:14px;font-weight:600;color:var(--white)}
 .user-info{font-size:11.5px;color:var(--muted)}
 .user-bal{font-family:"Cormorant Garamond",serif;font-size:16px;font-weight:700;color:var(--gold);text-align:right}
+
+/* EXPORT BAR */
+.export-bar{background:var(--card);border-radius:12px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.export-bar .label{font-size:12px;color:var(--muted)}
+.export-btns{display:flex;gap:8px;flex-wrap:wrap}
+.export-btn{background:var(--card2);border:1px solid var(--border);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px}
+.export-btn:hover{background:var(--border);color:var(--white)}
+.export-btn.csv{color:#22C55E}
+.export-btn.vcf{color:#F59E0B}
+.export-btn.copy{color:#3B82F6}
 
 /* TRANSACTION ITEM */
 .tx-item{background:var(--card);border-radius:12px;padding:12px 13px;border:1px solid var(--border);margin-bottom:8px;display:flex;align-items:center;gap:11px;cursor:pointer}
@@ -183,11 +194,22 @@ html,body{height:100%;overflow:hidden;font-family:"DM Sans",sans-serif;backgroun
 </div>
 
 <div id="sec-users" class="section">
+  <!-- BARRE D'EXPORTATION -->
+  <div class="export-bar">
+    <span class="label">📤 Exporter les contacts :</span>
+    <div class="export-btns">
+      <button class="export-btn csv" onclick="exportUsersCSV()">📊 CSV (Excel)</button>
+      <button class="export-btn vcf" onclick="exportUsersVCF()">📇 VCF (Téléphone)</button>
+      <button class="export-btn copy" onclick="copyPhonesToClipboard()">📋 Copier numéros</button>
+    </div>
+  </div>
+  
   <div class="search-row">
     <input class="search-input" id="user-search" placeholder="🔍 Rechercher..." oninput="filterUsers()"/>
     <select class="filter-select" id="user-filter" onchange="filterUsers()">
       <option value="all">Tous</option>
       <option value="active">Avec solde</option>
+      <option value="with-phone">Avec téléphone</option>
     </select>
   </div>
   <div id="users-count" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
@@ -346,6 +368,104 @@ function showTab(name, btn) {
   }
 }
 
+// ========== FONCTIONS D'EXPORTATION ==========
+
+// Export CSV (compatible Excel)
+function exportUsersCSV() {
+  const usersWithPhone = allUsers.filter(u => u.phone && u.phone.trim() !== '');
+  if(usersWithPhone.length === 0) {
+    toast('⚠️ Aucun numéro de téléphone disponible');
+    return;
+  }
+  
+  // Entêtes CSV
+  const headers = ['Nom complet', 'Téléphone', 'Solde (FCFA)', 'Niveau', 'Code parrain', "Date d'inscription"];
+  const rows = usersWithPhone.map(u => [
+    `"${(u.full_name || '').replace(/"/g, '""')}"`,
+    u.phone,
+    u.balance || 0,
+    `LV${u.level || 0}`,
+    u.referral_code || '',
+    new Date(u.created_at).toLocaleDateString('fr-FR')
+  ]);
+  
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.setAttribute('download', `contacts_marathon_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  toast(`📊 ${usersWithPhone.length} contacts exportés en CSV`);
+}
+
+// Export VCF (carnet d'adresses téléphone)
+function exportUsersVCF() {
+  const usersWithPhone = allUsers.filter(u => u.phone && u.phone.trim() !== '');
+  if(usersWithPhone.length === 0) {
+    toast('⚠️ Aucun numéro de téléphone disponible');
+    return;
+  }
+  
+  const vcfCards = usersWithPhone.map(u => {
+    const name = (u.full_name || 'Utilisateur').trim();
+    const phone = u.phone.replace(/\s/g, '');
+    return `BEGIN:VCARD
+VERSION:3.0
+FN:${name}
+TEL;TYPE=CELL:${phone}
+NOTE:Utilisateur Marathon - Solde: ${(u.balance || 0).toLocaleString()} FCFA - Niveau LV${u.level || 0}
+REV:${new Date().toISOString()}
+END:VCARD`;
+  }).join('\n');
+  
+  const blob = new Blob([vcfCards], { type: 'text/vcard;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.setAttribute('download', `contacts_marathon_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.vcf`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  toast(`📇 ${usersWithPhone.length} contacts exportés en VCF (ouvrir avec le carnet d'adresses)`);
+}
+
+// Copier les numéros de téléphone dans le presse-papier
+async function copyPhonesToClipboard() {
+  const usersWithPhone = allUsers.filter(u => u.phone && u.phone.trim() !== '');
+  if(usersWithPhone.length === 0) {
+    toast('⚠️ Aucun numéro de téléphone disponible');
+    return;
+  }
+  
+  // Formater les numéros (un par ligne)
+  const phonesList = usersWithPhone.map(u => {
+    const name = u.full_name || 'Sans nom';
+    const phone = u.phone;
+    return `${name} : ${phone}`;
+  }).join('\n');
+  
+  try {
+    await navigator.clipboard.writeText(phonesList);
+    toast(`📋 ${usersWithPhone.length} contacts copiés dans le presse-papier`);
+  } catch(err) {
+    // Fallback pour les navigateurs plus anciens
+    const textarea = document.createElement('textarea');
+    textarea.value = phonesList;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    toast(`📋 ${usersWithPhone.length} contacts copiés`);
+  }
+}
+
+// ========== FIN EXPORTATION ==========
+
 // UTILISATEURS
 async function loadAllUsers() {
   try {
@@ -356,7 +476,13 @@ async function loadAllUsers() {
 function filterUsers() {
   const q = $('user-search').value.toLowerCase();
   const f = $('user-filter').value;
-  let filtered = allUsers.filter(u => (!q || (u.full_name||'').toLowerCase().includes(q) || (u.phone||'').includes(q)) && (f!=='active' || (u.balance||0)>0));
+  let filtered = allUsers.filter(u => {
+    const matchSearch = !q || (u.full_name||'').toLowerCase().includes(q) || (u.phone||'').includes(q);
+    if(!matchSearch) return false;
+    if(f === 'active') return (u.balance||0) > 0;
+    if(f === 'with-phone') return u.phone && u.phone.trim() !== '';
+    return true;
+  });
   renderUsers(filtered);
 }
 function renderUsers(users) {
